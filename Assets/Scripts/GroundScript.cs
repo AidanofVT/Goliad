@@ -3,19 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GroundScript : MonoBehaviour {
-    UnitSelection selectionManager;
+    ClickHandler clickHandler;
+    public GameObject mouseHijinx;
+    GameState gameState;
     public GameObject goliad;
 
     private void Start() {
-        selectionManager = goliad.GetComponent<UnitSelection>();
+        clickHandler = mouseHijinx.GetComponent<ClickHandler>();
+        gameState = goliad.GetComponent<GameState>();
     }
 
+    //TODO: Swap this so that the outer criteria is the mouse button being depressed. This probably will need two methods.
     private void OnMouseOver() {
         if (Input.GetKeyDown(KeyCode.Mouse0)) {
-            selectionManager.clearActiveUnits();
+            gameState.clearActive();
         }
         else if (Input.GetKeyDown(KeyCode.Mouse1)) {
-            selectionManager.thingRightClicked(gameObject);
+            clickHandler.thingRightClicked(gameObject);
         }  
     }
 }

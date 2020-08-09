@@ -16,8 +16,11 @@ public class AidansMovementScript : MonoBehaviour {
     }
 
     public void setDestination (Vector3 destination) {
-        seeker.StartPath(transform.position, destination, OnPathComplete);
-        Debug.Log("Destination set."); 
+        if (destination != new Vector3(0,0,0)) {
+            seeker.StartPath(transform.position, destination, OnPathComplete);
+            currentWaypoint = 0;
+            Debug.Log("Destination set."); 
+        }
     }
 
     void OnPathComplete (Path finishedPath) {
@@ -34,26 +37,28 @@ public class AidansMovementScript : MonoBehaviour {
             Debug.Log("Destination reached. Path null.");
             return;
         }
-        for (int i = 0; i < 1000; i++) {
+        //for (int i = 0; i < 1000; i++) {
             //if you are within a specified range of the next waypoint
-            if (Vector2.Distance(transform.position, path.vectorPath[currentWaypoint]) < changePointThreshhold) {
-                //and if the number of the next waypoint would not exceeed the number of waypoints in the path
-                if (currentWaypoint + 1 < path.vectorPath.Count) {
-                    //increment the currentWaypoint (I think there should be another break here, but it's not in the example)
-                    currentWaypoint++;
+                if (Vector2.Distance(transform.position, path.vectorPath[currentWaypoint]) < changePointThreshhold) {
+                    //and if the number of the next waypoint would not exceeed the number of waypoints in the path
+                    if (currentWaypoint + 1 < path.vectorPath.Count - 1) {
+                        //increment the currentWaypoint (I think there should be another break here, but it's not in the example)
+                        currentWaypoint++;
+                    }
+                    else {
+                        //end reached
+                        path = null;
+                        currentWaypoint = 0;
+                        Debug.Log("Destination reached.");
+                        return;
+                        //break;
+                    }
                 }
-                else {
-                    //end reached
-                    path = null;
-                    Debug.Log("Destination reached exactly. Path null.");
-                    break;
-                }
-            }
-            else {
-                //no incrementing needed yet
-                break;
-            }
-        }
+        //     else {
+        //         //no incrementing needed yet
+        //         break;
+        //     }
+        // }
         Vector3 dirNew = (path.vectorPath[currentWaypoint] - transform.position).normalized;
         transform.position += dirNew * speed * Time.deltaTime;
     }

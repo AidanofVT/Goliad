@@ -7,14 +7,15 @@ public class Unit : MonoBehaviour
     AidansMovementScript moveConductor;
     public GameObject Goliad;
     GameState gameState;
-    UnitSelection selectionManager;
+    ClickHandler clickManager;
     public GameObject blueCircle;
     public Hashtable subordinateUIElements = new Hashtable();
 
     void Start() {
         gameState = Goliad.GetComponent<GameState>();
-        selectionManager = Goliad.GetComponent<UnitSelection>();
+        clickManager = Goliad.GetComponent<ClickHandler>();
         moveConductor = gameObject.GetComponent<AidansMovementScript>();
+        gameState.enlivenUnit(gameObject);
     }
 
     public void move (Vector3 target) {
@@ -25,20 +26,25 @@ public class Unit : MonoBehaviour
     void OnMouseOver() {
         if (Input.GetKeyDown(KeyCode.Mouse0)) {
             Debug.Log("Click Registered.");
-            gameState.addActiveUnit(gameObject);
-            highlight();
+            activate();
         }
         else if (Input.GetKeyDown(KeyCode.Mouse1)) {
             Debug.Log("Right clicked."); 
-            selectionManager.thingRightClicked(gameObject);
-            Debug.Log("Called Driver");
+            clickManager.thingRightClicked(gameObject);
         }  
     }
 
-    public void highlight () {
+    public void activate () {
+        gameState.activateUnit(gameObject);
         GameObject highlightCircle = Instantiate(blueCircle, transform.position, Quaternion.identity);
         highlightCircle.transform.parent = gameObject.transform;
         subordinateUIElements.Add("highlightCircle", highlightCircle);
         Debug.Log("End of highlight.");
+    }
+
+    public void deactivate () {
+        gameState.deactivateUnit(gameObject);
+        Destroy((GameObject)subordinateUIElements["highlightCircle"]);
+        subordinateUIElements.Remove("highlightCircle");
     }
 }
