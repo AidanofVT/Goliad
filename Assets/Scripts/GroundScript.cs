@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//                                            OBSOLETE: DELETE WHEN EVERYTHING WORKS WITHOUT IT
 public class GroundScript : MonoBehaviour {
     ClickHandler clickHandler;
     public GameObject mouseHijinx;

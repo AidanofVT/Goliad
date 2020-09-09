@@ -16,22 +16,12 @@ public class Unit : MonoBehaviour
         clickManager = Goliad.GetComponent<ClickHandler>();
         moveConductor = gameObject.GetComponent<AidansMovementScript>();
         gameState.enlivenUnit(gameObject);
+        gameObject.transform.hasChanged = false;
     }
 
-    public void move (Vector3 target) {
-        moveConductor.setDestination(target);
+    public void move (Vector3 target, Transform movingTransform = null) {
+        moveConductor.setDestination(target, movingTransform);
         Debug.Log("Called mover"); 
-    }
-
-    void OnMouseOver() {
-        if (Input.GetKeyDown(KeyCode.Mouse0)) {
-            Debug.Log("Click Registered.");
-            activate();
-        }
-        else if (Input.GetKeyDown(KeyCode.Mouse1)) {
-            Debug.Log("Right clicked."); 
-            clickManager.thingRightClicked(gameObject);
-        }  
     }
 
     public void activate () {
@@ -39,7 +29,7 @@ public class Unit : MonoBehaviour
         GameObject highlightCircle = Instantiate(blueCircle, transform.position, Quaternion.identity);
         highlightCircle.transform.parent = gameObject.transform;
         subordinateUIElements.Add("highlightCircle", highlightCircle);
-        Debug.Log("End of highlight.");
+        Debug.Log("Unit activated.");
     }
 
     public void deactivate () {

@@ -46,6 +46,6 @@ public class GameState : MonoBehaviour
             unit.GetComponent<Unit>().subordinateUIElements.Remove("highlightCircle");
         }
         activeUnits.Clear();
-        Debug.Log("clearactive called. activeUnits size = " + activeUnits.Count);
+        Debug.Log("Clearactive called. activeUnits size = " + activeUnits.Count);
     }
 }

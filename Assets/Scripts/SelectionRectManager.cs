@@ -10,6 +10,7 @@ public class SelectionRectManager : MonoBehaviour {
     Vector2 mouseDownLocation;
     public Transform quadrangle;
     Transform selectorSquare;
+    public bool rectOn = false;
 
     void Awake() {
         gameState = goliad.GetComponent<GameState>();
@@ -27,12 +28,12 @@ public class SelectionRectManager : MonoBehaviour {
                 activateRegion();
             }
             downTime = 1000000;
-            selectorSquare.gameObject.SetActive(false);
- 
+            selectorSquare.gameObject.SetActive(false); 
         }
         else if (Time.time - downTime >= 0.15) {
             if (selectorSquare.gameObject.activeInHierarchy == false) {
                 selectorSquare.gameObject.SetActive(true);
+                rectOn = true;
                 selectorSquare.position = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition);
             }
             Vector2 rectSize = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition) - mouseDownLocation;
@@ -41,6 +42,9 @@ public class SelectionRectManager : MonoBehaviour {
             // + rectSize + "\n selectorSquare.localScale: " + selectorSquare.localScale);
             selectorSquare.position = new Vector3 (mouseDownLocation.x + (rectSize.x/ 2), mouseDownLocation.y + (rectSize.y/ 2), -1.0f);
             mousePosLastFrame = Input.mousePosition;
+        }
+        else {
+            rectOn = false;
         }
     }
 
@@ -52,16 +56,16 @@ public class SelectionRectManager : MonoBehaviour {
         float rightExtreme = selectorSquare.position.x + selectorSquare.gameObject.GetComponent<SpriteRenderer>().bounds.size.x / 2;
         foreach (GameObject maybeInBounds in gameState.getAliveUnits()) {
             Vector3 thePosition = maybeInBounds.transform.position;
-            // Debug.Log("Examining the object at " + thePosition + ". " +
-            // "\n topExtreme = " + topExtreme +
-            // "\n bottomExtreme = " + bottomExtreme +
-            // "\n leftExtreme = " + leftExtreme +
-            // "\n rightExtreme = " + rightExtreme);
+            Debug.Log("Examining the object at " + thePosition + ". " +
+            "\n topExtreme = " + topExtreme +
+            "\n bottomExtreme = " + bottomExtreme +
+            "\n leftExtreme = " + leftExtreme +
+            "\n rightExtreme = " + rightExtreme);
             if (thePosition.y <= topExtreme &&
                 thePosition.y >= bottomExtreme &&
                 thePosition.x >= leftExtreme &&
                 thePosition.x <= rightExtreme) {
-                //Debug.Log("Object at " + thePosition + "accepted for activation.");
+                Debug.Log("Object at " + thePosition + "accepted for activation.");
                 toActivate.Add(maybeInBounds);
             }
         }
