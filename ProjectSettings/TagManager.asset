@@ -6,6 +6,7 @@ TagManager:
   tags:
   - unit
   - ground
+  - UI
   layers:
   - Default
   - TransparentFX
@@ -16,7 +17,7 @@ TagManager:
   - 
   - 
   - Obstacles
-  - 
+  - Unit Overlay
   - Ground
   - Units
   - 

@@ -39,13 +39,16 @@ public class ClickHandler : MonoBehaviour {
             case "ground":
                 destination = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 break;
+            case "UI":
+                return;
             default: 
                 destination = new Vector3(0,0,0);
+                Debug.Log("PROBLEM: nothing with a valid tag hit by raycast.");
                 break;
         }
         foreach (GameObject unit in gameState.getActiveUnits()) {
-            unit.GetComponent<Unit>().move(destination, optionalTransform);
-            Debug.Log("Called unit.move"); 
+            unit.GetComponent<MobileUnit>().move(destination, optionalTransform);
+            Debug.Log("Called unit.move");
         }
     }
 
@@ -58,8 +61,10 @@ public class ClickHandler : MonoBehaviour {
             case "ground":
                 gameState.clearActive();
                 break;
+            case "UI":
+                return;
             default:
-                Debug.Log("PROBLEM: neither unit nor ground hit by raycast.");
+                Debug.Log("PROBLEM: nothing with a valid tag hit by raycast.");
                 break;
         }
     }

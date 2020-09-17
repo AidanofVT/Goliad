@@ -1,0 +1,7 @@
+.vscode/
+Library/
+Logs/
+Packages/
+Proto-RTS.sln
+Temp/
+obj/

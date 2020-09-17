@@ -41,11 +41,9 @@ public class GameState : MonoBehaviour
     }
 
     public void clearActive () {
-        foreach (GameObject unit in activeUnits) {
-            Destroy(unit.GetComponent<Unit>().subordinateUIElements["highlightCircle"] as GameObject);
-            unit.GetComponent<Unit>().subordinateUIElements.Remove("highlightCircle");
+        foreach (GameObject unit in activeUnits.ToArray()) {
+            unit.GetComponent<Unit>().deactivate();
         }
-        activeUnits.Clear();
         Debug.Log("Clearactive called. activeUnits size = " + activeUnits.Count);
     }
 }
