@@ -47,8 +47,10 @@ public class ClickHandler : MonoBehaviour {
                 break;
         }
         foreach (GameObject unit in gameState.getActiveUnits()) {
-            unit.GetComponent<MobileUnit>().move(destination, optionalTransform);
-            Debug.Log("Called unit.move");
+            if (unit.GetComponent<MobileUnit>() != null) {
+                unit.GetComponent<MobileUnit>().move(destination, optionalTransform);
+                Debug.Log("Called unit.move");
+            }
         }
     }
 

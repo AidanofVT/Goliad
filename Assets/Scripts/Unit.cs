@@ -5,6 +5,12 @@ using UnityEngine;
 public class Unit : MonoBehaviour
 {
     protected GameState gameState;
+    public int meat = 0;
+    int meatCost = 10;
+
+    public int cost () {
+        return meatCost;
+    }
 
     void Start() {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();

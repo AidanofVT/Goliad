@@ -57,12 +57,12 @@
      <Compile Include="Assets\Scripts\BeatingHeart.cs" />
      <Compile Include="Assets\Scripts\CameraPanner.cs" />
      <Compile Include="Assets\Scripts\ClickHandler.cs" />
-     <Compile Include="Assets\Scripts\FactoryCreateMobileUnit.cs" />
+     <Compile Include="Assets\Scripts\FactoryUnit.cs" />
      <Compile Include="Assets\Scripts\GameState.cs" />
      <Compile Include="Assets\Scripts\GroundScript.cs" />
+     <Compile Include="Assets\Scripts\MakeMobileUnitScript.cs" />
      <Compile Include="Assets\Scripts\MobileUnit.cs" />
      <Compile Include="Assets\Scripts\SelectionRectManager.cs" />
-     <Compile Include="Assets\Scripts\UIManager.cs" />
      <Compile Include="Assets\Scripts\Unit.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>C:/Users/Aidan/Desktop/Proto-RTS/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class CameraPanner : MonoBehaviour
 {
+    GameObject Goliad;
     public float panMultiplier = 0.05f;
     public float zoomMultiplier = 9f;
     public float distanceFactor = 1.1f;
@@ -12,12 +13,14 @@ public class CameraPanner : MonoBehaviour
 
     private void Awake() {
         distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, distanceFactor) / 5;
+        Goliad = GameObject.Find("Goliad");
     }
 
     void Update()
     {
         obeyCameraPanInputs();
         obeyCameraZoomInputs();
+        distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, distanceFactor) / 10;   
     }
 
     void obeyCameraPanInputs () {
@@ -40,7 +43,15 @@ public class CameraPanner : MonoBehaviour
     }
 
     void obeyCameraZoomInputs () {
-        Camera.main.orthographicSize -= Input.GetAxis("zoom") * zoomMultiplier * distanceMultiplier;
-        distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, distanceFactor) / 10;        
+        if (Input.GetAxis("zoom") != 0) {
+            Camera.main.orthographicSize -= Input.GetAxis("zoom") * zoomMultiplier * distanceMultiplier;
+            resizeUIs();
+        }
+    }
+
+    void resizeUIs () {
+        foreach (GameObject unit in Goliad.GetComponent<GameState>().getActiveUnits()) {
+            unit.transform.GetChild(0).GetChild(0).GetComponent<RectTransform>().localScale = new Vector3(1,1,1) * (Camera.main.orthographicSize / 5);
+        }
     }
 }
