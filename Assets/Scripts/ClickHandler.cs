@@ -5,7 +5,7 @@ using UnityEngine;
 public class ClickHandler : MonoBehaviour {
     GameState gameState;
     public GameObject goliad;
-
+    
     void Awake () {
         gameState = goliad.GetComponent<GameState>();
     }
@@ -13,19 +13,25 @@ public class ClickHandler : MonoBehaviour {
     void Update() {
         if (Input.GetKeyUp(KeyCode.Mouse0)) {
             if (gameObject.GetComponent<SelectionRectManager>().rectOn == false) {
-                thingLeftClicked(probeUnderMouse().collider.gameObject);
+                //Debug.Log(Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition)).Length);
+                testThing();
+                thingLeftClicked(Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition))[0].gameObject);
             }
         }
         if (Input.GetKeyUp(KeyCode.Mouse1)) {
-            thingRightClicked(probeUnderMouse().collider.gameObject);
+            //Debug.Log(Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition)).Length);
+            thingRightClicked(Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition))[0].gameObject);
         }
     }
 
-    RaycastHit probeUnderMouse () {
-        RaycastHit hit;
-        Debug.Log("Casting ray from " + Camera.main.ScreenToWorldPoint(Input.mousePosition));
-        Physics.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), new Vector3(0,0,1), out hit);
-        return hit;
+    void testThing () {
+        float xRoll = Random.Range(-1.0f, 1.0f);
+        float yRoll = Random.Range(-1.0f, 1.0f);
+        List <Vector2Int> returnedList = gameState.tileRaycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), new Vector2(xRoll,yRoll), 10);
+        Debug.Log("Slope: " + xRoll + "," + yRoll);
+        foreach (Vector2Int toChange in returnedList) {
+            goliad.GetComponent<MapManager>().exploitPatch(toChange);
+        }
     }
 
     public void thingRightClicked (GameObject thingClicked) {

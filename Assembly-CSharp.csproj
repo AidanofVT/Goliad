@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\AidansMovementScript.cs" />
+     <Compile Include="Assets\Scripts\BarenTile.cs" />
      <Compile Include="Assets\Scripts\BeatingHeart.cs" />
      <Compile Include="Assets\Scripts\CameraPanner.cs" />
      <Compile Include="Assets\Scripts\ClickHandler.cs" />
@@ -61,8 +62,11 @@
      <Compile Include="Assets\Scripts\GameState.cs" />
      <Compile Include="Assets\Scripts\GroundScript.cs" />
      <Compile Include="Assets\Scripts\MakeMobileUnitScript.cs" />
+     <Compile Include="Assets\Scripts\MapManager.cs" />
      <Compile Include="Assets\Scripts\MobileUnit.cs" />
      <Compile Include="Assets\Scripts\SelectionRectManager.cs" />
+     <Compile Include="Assets\Scripts\SheepBehavior.cs" />
+     <Compile Include="Assets\Scripts\ShortGrassTile.cs" />
      <Compile Include="Assets\Scripts\Unit.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>C:/Users/Aidan/Desktop/Proto-RTS/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>

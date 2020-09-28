@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Unit : MonoBehaviour
 {
+    protected GameObject Goliad;
     protected GameState gameState;
     public int meat = 0;
     int meatCost = 10;
@@ -13,7 +14,8 @@ public class Unit : MonoBehaviour
     }
 
     void Start() {
-        gameState = GameObject.Find("Goliad").GetComponent<GameState>();
+        Goliad = GameObject.Find("Goliad");
+        gameState = Goliad.GetComponent<GameState>();
         gameState.enlivenUnit(gameObject);
         gameObject.transform.hasChanged = false;
     }

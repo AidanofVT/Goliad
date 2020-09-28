@@ -20,7 +20,6 @@ public class FactoryUnit : Unit {
             if (meat >= toMake.GetComponent<Unit>().cost()) {
                 Instantiate(toMake, gameObject.transform.position + nextOutputLocation(), gameObject.transform.rotation);
                 meat -= toMake.GetComponent<Unit>().cost();
-                Debug.Log(meat);
             }
             MeatReadout.GetComponent<Text>().text = meat.ToString();
         }
@@ -30,7 +29,6 @@ public class FactoryUnit : Unit {
         float distanceAlongCircumferenc = locationCycler * Mathf.PI / 3.5f;
         Vector2 direction = new Vector2 (Mathf.Sin(distanceAlongCircumferenc), Mathf.Cos(distanceAlongCircumferenc));
         Vector3 result = new Vector3(direction.x, direction.y, gameObject.transform.position.z) * 2f;
-        Debug.Log(result);
         ++locationCycler;
         if (locationCycler == 7) {
             locationCycler = 0;

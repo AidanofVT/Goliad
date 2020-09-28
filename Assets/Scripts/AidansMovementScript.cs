@@ -37,7 +37,6 @@ public class AidansMovementScript : MonoBehaviour {
         }
         //The first criteria is just to stop the recalculation from happening every frame.
         if (Time.time % 0.5f <= 0.02 && transToFollow != null && transToFollow.hasChanged == true) {
-            Debug.Log("time: " + Time.time);
             setDestination(transToFollow.position);
             currentWaypoint = 0;
         }
@@ -68,6 +67,5 @@ public class AidansMovementScript : MonoBehaviour {
         currentWaypoint = 0;
         transToFollow = null;
         gameObject.transform.hasChanged = false;
-        Debug.Log("Destination reached.");
     }
 }

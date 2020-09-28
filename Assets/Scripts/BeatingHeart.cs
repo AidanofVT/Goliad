@@ -7,10 +7,7 @@ public class BeatingHeart : MonoBehaviour {
 
     void Awake() {
         gameState = gameObject.GetComponent<GameState>();
+        Physics2D.IgnoreLayerCollision(10, 11);
     }
 
-    void Update()
-    {
-        
-    }
 }

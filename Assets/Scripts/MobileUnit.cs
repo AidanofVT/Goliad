@@ -6,7 +6,8 @@ public class MobileUnit : Unit {
     AidansMovementScript moveConductor;
 
     void Start () {
-        gameState = GameObject.Find("Goliad").GetComponent<GameState>();
+        Goliad = GameObject.Find("Goliad");
+        gameState = Goliad.GetComponent<GameState>();
         moveConductor = gameObject.GetComponent<AidansMovementScript>();
         gameState.enlivenUnit(gameObject);
         gameObject.transform.hasChanged = false;
@@ -16,4 +17,13 @@ public class MobileUnit : Unit {
         moveConductor.setDestination(target, movingTransform);
         Debug.Log("Called mover"); 
     }
+
+    private void Update() {
+        Vector2Int placeNow = new Vector2Int((int) transform.position.x, (int) transform.position.y);
+        int offset = gameState.map.GetLength(0) / 2;
+        if (gameState.map[placeNow.x + offset, placeNow.y + offset] >= 1) {
+            Goliad.GetComponent<MapManager>().exploitPatch(placeNow);
+        }
+    }
+
 }
