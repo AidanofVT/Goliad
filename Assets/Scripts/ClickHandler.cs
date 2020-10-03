@@ -13,26 +13,23 @@ public class ClickHandler : MonoBehaviour {
     void Update() {
         if (Input.GetKeyUp(KeyCode.Mouse0)) {
             if (gameObject.GetComponent<SelectionRectManager>().rectOn == false) {
-                //Debug.Log(Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition)).Length);
-                testThing();
                 thingLeftClicked(Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition))[0].gameObject);
             }
         }
         if (Input.GetKeyUp(KeyCode.Mouse1)) {
-            //Debug.Log(Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition)).Length);
             thingRightClicked(Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition))[0].gameObject);
         }
     }
 
-    void testThing () {
-        float xRoll = Random.Range(-1.0f, 1.0f);
-        float yRoll = Random.Range(-1.0f, 1.0f);
-        List <Vector2Int> returnedList = gameState.tileRaycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), new Vector2(xRoll,yRoll), 10);
-        Debug.Log("Slope: " + xRoll + "," + yRoll);
-        foreach (Vector2Int toChange in returnedList) {
-            goliad.GetComponent<MapManager>().exploitPatch(toChange);
-        }
-    }
+    // void testThing () {
+    //     float xRoll = Random.Range(-1.0f, 1.0f);
+    //     float yRoll = Random.Range(-1.0f, 1.0f);
+    //     List <Vector2Int> returnedList = gameState.LiteRaycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), new Vector2(xRoll,yRoll), 20);
+    //     Debug.Log("Slope: " + xRoll + "," + yRoll);
+    //     foreach (Vector2Int toChange in returnedList) {
+    //         goliad.GetComponent<MapManager>().exploitPatch(toChange);
+    //     }
+    // }
 
     public void thingRightClicked (GameObject thingClicked) {
         Vector3 destination;
@@ -55,7 +52,6 @@ public class ClickHandler : MonoBehaviour {
         foreach (GameObject unit in gameState.getActiveUnits()) {
             if (unit.GetComponent<MobileUnit>() != null) {
                 unit.GetComponent<MobileUnit>().move(destination, optionalTransform);
-                Debug.Log("Called unit.move");
             }
         }
     }

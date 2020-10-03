@@ -7,13 +7,15 @@ public class AidansMovementScript : MonoBehaviour {
     Seeker seeker;
     ABPath path = null;
     Transform transToFollow = null;
+    Rigidbody2D body;
     public float speed = 2;
     public float changePointThreshhold = 0.5f;
-    public float roundToArrived = 0.5f;
+    public float roundToArrived = 5;
     int currentWaypoint = 0;
 
     void Start() {
         seeker = GetComponent<Seeker>();
+        body = GetComponent<Rigidbody2D>();
     }
 
     public void setDestination (Vector3 destination, Transform movingTransform = null) {
@@ -25,30 +27,34 @@ public class AidansMovementScript : MonoBehaviour {
             seeker.StartPath(transform.position, destination, OnPathComplete);
             currentWaypoint = 0;
         }
+        InvokeRepeating("moveAlong", 0.5f, 0);
     }
 
     void OnPathComplete (Path finishedPath) {
         path = (ABPath) finishedPath;
     }
 
-    void Update() {
+    void moveAlong() {
         if (path == null) {
             return;
         }
         //The first criteria is just to stop the recalculation from happening every frame.
-        if (Time.time % 0.5f <= 0.02 && transToFollow != null && transToFollow.hasChanged == true) {
+        if (transToFollow!= null) {
             setDestination(transToFollow.position);
-            currentWaypoint = 0;
         }
+        else {
+            setDestination(path.vectorPath[path.vectorPath.Count - 1]);
+        }
+        currentWaypoint = 0;
         if (Vector2.Distance(transform.position, path.endPoint) < roundToArrived) {
             terminatePathfinding();
             return;
         }
-        //if you are within a specified range of the next waypoint
+//if you are within a specified range of the next waypoint
             if (Vector2.Distance(transform.position, path.vectorPath[currentWaypoint]) < changePointThreshhold) {
-                //and if the number of the next waypoint would not exceeed the number of waypoints in the path
+//and if the number of the next waypoint would not exceeed the number of waypoints in the path
                 if (currentWaypoint + 1 < path.vectorPath.Count - 1) {
-                    //increment the currentWaypoint (I think there should be another break here, but it's not in the example)
+//increment the currentWaypoint (I think there should be another break here, but it's not in the example)
                     currentWaypoint++;
                 }
                 else {
@@ -57,8 +63,11 @@ public class AidansMovementScript : MonoBehaviour {
                     return;
                 }
             }
-        Vector3 dirNew = (path.vectorPath[currentWaypoint] - transform.position).normalized;
-        transform.position += dirNew * speed * Time.deltaTime;
+        Vector2 dirNew = (path.vectorPath[currentWaypoint] - transform.position).normalized;
+        if (Mathf.Sqrt(Mathf.Pow(body.velocity.x, 2) + Mathf.Pow(body.velocity.y, 2)) <= speed) {
+            body.AddForce(dirNew * 10);
+        }
+        //transform.position += dirNew * speed * Time.deltaTime;
         gameObject.transform.hasChanged = true;
     }
 
@@ -67,5 +76,10 @@ public class AidansMovementScript : MonoBehaviour {
         currentWaypoint = 0;
         transToFollow = null;
         gameObject.transform.hasChanged = false;
+        body.velocity = new Vector2(0, 0);
+    }
+
+    public bool isRunning () {
+        return (path != null);
     }
 }

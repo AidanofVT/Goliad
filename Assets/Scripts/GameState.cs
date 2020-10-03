@@ -51,52 +51,30 @@ public class GameState : MonoBehaviour
         //Debug.Log("Clearactive called. activeUnits size = " + activeUnits.Count);
     }
 
-    public List<Vector2Int> tileRaycast(Vector2 startPoint, Vector2 slope, int length) {
-        List<short> toReturn = new List<short>();
-        List <Vector2Int> testReturn = new List<Vector2Int>();
+    //Hey dummy: converting a float to an integer automatically rounds down. Instead of this, just normalize the slope and then add it to itself i times, adding the rounded down coordinates to the list every time.
+    public short[] tileRaycast (Vector2 startPoint, Vector2 slope, int length) {
+        short[] toReturn = new short[length];
         int loopbreaker = 0;
         float rise = slope.normalized.y;
         float run = slope.normalized.x;
-        int xOffset = 0;
         int xSign = (int) Mathf.Sign(run);
-        int yOffset = 0;
         int ySign = (int) Mathf.Sign(rise);
-        Vector2Int pointOnPath = new Vector2Int(xSign, ySign) * -1;
-        for (int i = 0; i < length;) {
-            while (Mathf.Sign((rise/run * pointOnPath.x - pointOnPath.y) * -1) == ySign) {
-                //Debug.Log("Attempting to add " + ((int) startPoint.x + xOffset) + ", " + ((int) startPoint.y + yOffset) + ". Map offset = " + mapOffset);
-                testReturn.Add(new Vector2Int((int) startPoint.x + xOffset, (int) startPoint.y + yOffset));
-                //toReturn.Add(map[(int) startPoint.x + mapOffset + xOffset, (int) startPoint.y + mapOffset + yOffset]);
-                pointOnPath.y -= ySign;
+        int xOffset = xSign;
+        int yOffset = ySign;
+        int i = 0;
+        while (++i < length && ++loopbreaker < 1000) {
+            while (Mathf.Abs(rise/run * xOffset) >= Mathf.Abs(run/rise * yOffset) && ++i >= length && loopbreaker++ < 1000) {
+                //testReturn.Add(new Vector2Int((int) startPoint.x + xOffset, (int) startPoint.y + yOffset));
+                toReturn[i] = (map[(int) startPoint.x + mapOffset + xOffset, (int) startPoint.y + mapOffset + yOffset]);
                 yOffset += ySign;
-                if (++i >= length) {
-                    return testReturn;
-                }
-                if (loopbreaker++ >= 1000) {
-                    Debug.Log("Infinite loop broken.");
-                    return null;
-                }
             }
-            while (Mathf.Sign((run/rise * pointOnPath.y - pointOnPath.x) * -1) == xSign || (run/rise * pointOnPath.y - pointOnPath.x) == 0) {
-                //Debug.Log("Attempting to add " + ((int) startPoint.x + xOffset) + ", " + ((int) startPoint.y + yOffset) + ". Map offset = " + mapOffset);
-                testReturn.Add(new Vector2Int((int) startPoint.x + xOffset, (int) startPoint.y + yOffset));
-                //toReturn.Add(map[(int) startPoint.x + mapOffset + xOffset, (int) startPoint.y + mapOffset + yOffset]);
-                pointOnPath.x -= xSign;
+            while (Mathf.Abs(rise/run * xOffset) < Mathf.Abs(run/rise * yOffset) && ++i >= length && loopbreaker++ < 1000) {
+                //testReturn.Add(new Vector2Int((int) startPoint.x + xOffset, (int) startPoint.y + yOffset));
+                toReturn[i] = (map[(int) startPoint.x + mapOffset + xOffset, (int) startPoint.y + mapOffset + yOffset]);
                 xOffset += xSign;
-                if (++i >= length) {
-                    return testReturn;
-                }
-                if (loopbreaker++ >= 1000) {
-                    Debug.Log("Infinite loop broken.");
-                    return null;
-                }
-            }
-            if (loopbreaker++ >= 1000) {
-                    Debug.Log("Infinite loop broken.");
-                    return null;
             }
         }
-        return testReturn;
+        return toReturn;
     }
 
 }
