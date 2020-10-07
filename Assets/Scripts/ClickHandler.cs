@@ -21,15 +21,23 @@ public class ClickHandler : MonoBehaviour {
         }
     }
 
-    // void testThing () {
-    //     float xRoll = Random.Range(-1.0f, 1.0f);
-    //     float yRoll = Random.Range(-1.0f, 1.0f);
-    //     List <Vector2Int> returnedList = gameState.LiteRaycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), new Vector2(xRoll,yRoll), 20);
-    //     Debug.Log("Slope: " + xRoll + "," + yRoll);
-    //     foreach (Vector2Int toChange in returnedList) {
-    //         goliad.GetComponent<MapManager>().exploitPatch(toChange);
-    //     }
-    // }
+    void testThing () {
+        float xRoll = Random.Range(-1.0f, 1.0f);
+        float yRoll = Random.Range(-1.0f, 1.0f);
+        Vector2 runRise = new Vector2(xRoll, yRoll);
+        runRise.Normalize();
+        List <Vector2Int> returnedList = new List<Vector2Int>(); //= gameState.tileRaycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), new Vector2(xRoll,yRoll), 20);
+        for (int i = 0; i < 15; ++i) {
+            Vector2 toAdd = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            toAdd += (runRise * i);
+            Vector2Int toAddInt = new Vector2Int((int) toAdd.x, (int) toAdd.y);
+            returnedList.Add(toAddInt);
+        }
+        Debug.Log("Slope: " + xRoll + "," + yRoll);
+        foreach (Vector2Int toChange in returnedList) {
+            goliad.GetComponent<MapManager>().testPatch(toChange);
+        }
+    }
 
     public void thingRightClicked (GameObject thingClicked) {
         Vector3 destination;

@@ -29,8 +29,8 @@ public class SheepBehavior : MonoBehaviour
         legs = gameObject.GetComponent<AidansMovementScript>();
 //a positive z value sholud be used as an indicator that the targetPatch variable is inactive
         currentMostAppealingPatch = transform.position + new Vector3(0,0,1000);
-        //InvokeRepeating("behave", 0, 1.0f);
-        InvokeRepeating("updateFacing", 0, 0.2f);
+        InvokeRepeating("idle", 0, 1.0f);
+        InvokeRepeating("updateFacing", 0.1f, 0.2f);
     }
 
     void Update() {
@@ -38,72 +38,118 @@ public class SheepBehavior : MonoBehaviour
     }
 
     void updateFacing () {
-        float xVelocity = gameObject.GetComponent<Rigidbody2D>().velocity.x;
-        float yVelocity = gameObject.GetComponent<Rigidbody2D>().velocity.y;
+        Vector2 velocityNow = gameObject.GetComponent<Rigidbody2D>().velocity;
+        if (velocityNow == new Vector2(0,0)) {
+            return;
+        }
+        float xVelocity = velocityNow.x;
+        float yVelocity = velocityNow.y;
         Vector2 ratio = new Vector2(xVelocity, yVelocity);
         ratio.Normalize();
         facing = Mathf.Tan(ratio.y/ratio.y);
-        Debug.Log("xVelocity = " + xVelocity + ". yVelocity = " + yVelocity + ". New facing value: " + facing);
     }
 
-    void behave () {
-        float eatAppeal;
-        if (timeOfLastEatStart == -1){
-            searchForFood();
+    void idle () {
+        if (searchForFood()) {
+            CancelInvoke("idle");
+            changeBehavior();
         }
-//this formula will max-out at 80.
-        eatAppeal = 1.5f + (3 / Vector3.Distance(transform.position, currentMostAppealingPatch) / 40);
+        //a 'wander' function should be put here
+    }
+
+    void changeBehavior (int feedMultiplier = 1, int conveneMultiplier = 1) {
+        float eatAppeal = 1.5f + (3 / (Vector3.Distance(transform.position, currentMostAppealingPatch) / 40)); //this formula will max-out at 80.
         float conveneAppeal = 2 * distanceToFlock();
-        if (sheepState == sheepModes.grazing) {
-            eatAppeal *= 2;
-        }
-        else if (sheepState == sheepModes.grazing) {
-            conveneAppeal *= 2;
-        }
+        eatAppeal *= feedMultiplier;
+        conveneAppeal *= conveneMultiplier;
         int roll = (int) Random.Range(0, eatAppeal + conveneAppeal - 1);
         Debug.Log("The results are in: eatAppeal is " + eatAppeal + ", targeting patch " + currentMostAppealingPatch + ". ConveneAppeal is " + conveneAppeal + ", " + distanceToFlock() + " away from the flocks center of gravity. The roll is " + roll + ".");
         if (roll <= eatAppeal) {
-            sheepState = sheepModes.grazing;
+            InvokeRepeating("walkToFood", 0, 0.1f);
+            InvokeRepeating("checkFoodTarget", 1, 1);
         }
         else {
-            sheepState = sheepModes.approaching;
+            InvokeRepeating("idle", 1, 1);
         }
     }
 
-
-    void searchForFood () {
-        float roll = Random.Range(-1, 1);
-// this formula generates a number between approximately negative pi and pi, prefering outcomes close to zero
-        float direction = (Mathf.Pow(roll, 6) / 0.3f * roll) + facing;
+    bool searchForFood (int range = 5, bool randomGlance = true) {
+        if (range <= 0) {
+            return true;
+        }
+        Debug.Log("SearchForFood");
+        float direction = 0;
+        // if (randomGlance == true) {
+        //     float roll = Random.Range(-1.0f, 1.0f);
+        //     direction = (Mathf.Pow(roll, 6) / 0.3f * roll) + facing; // this formula generates a number between approximately negative pi and pi, prefering outcomes close to zero
+        // }
+        // else {
+        //     direction = facing;
+        // }
         List<Vector2> percievedPatches = new List<Vector2>();
-        int shortgrassIndex = 0;
+        int shortgrassIndex = -1;
         float clockwise = direction + 0.5f;
         float counterClockwise = direction - 0.5f;
-        glanceForFood(direction, ref shortgrassIndex, ref percievedPatches);
-        glanceForFood(counterClockwise, ref shortgrassIndex, ref percievedPatches);
-        glanceForFood(clockwise, ref shortgrassIndex, ref percievedPatches);
+        glanceForFood(direction, range, ref shortgrassIndex, ref percievedPatches);
+        //glanceForFood(counterClockwise, range, ref shortgrassIndex, ref percievedPatches);
+        //glanceForFood(clockwise, range, ref shortgrassIndex, ref percievedPatches);
         if (percievedPatches.Count == 0) {
             currentMostAppealingPatch = transform.position + new Vector3(0,0,1000);
-            return;
+            return false;
         }
         else {
-            foreach (Vector2 location in percievedPatches) {
-                gameObject.GetComponent<MapManager>().testPatch(new Vector2Int((int)location.x, (int)location.y));
-            }
+            // foreach (Vector2 percieved in percievedPatches) {
+            //     Goliad.GetComponent<MapManager>().testPatch(new Vector2Int((int)percieved.x, (int)percieved.y));
+            // }
             currentMostAppealingPatch = percievedPatches[0];
+            safetyNudge();
+            return true;
         }
     }
 
-    void glanceForFood (float direction, ref int shortgrassIndex, ref List<Vector2> percievedPatches) {
-        Vector2 runRise = new Vector2(Mathf.Cos(direction), Mathf.Cos(direction));
-        short[] patchesAlongLine = gameState.tileRaycast(new Vector2(transform.position.x, transform.position.y), runRise, 15);
-        for (int i = 0; i < patchesAlongLine.Length; ++i) {
+    void glanceForFood (float direction, int range, ref int shortgrassIndex, ref List<Vector2> percievedPatches) {
+        Debug.Log("GlanceForFood");
+        Vector2 runRise = new Vector2(Mathf.Sin(direction), Mathf.Cos(direction));
+        int offset = gameState.mapOffset;
+        for (int i = 0; i < range; ++i) {
             Vector2 positionOf = new Vector2(transform.position.x, transform.position.y) + runRise * i;
-            if (patchesAlongLine[i] == 1) {
-                percievedPatches.Insert(shortgrassIndex, positionOf);
+            try {
+            short foodAt = gameState.map[Mathf.FloorToInt(positionOf.x) + offset, Mathf.FloorToInt(positionOf.y) + offset];
+            if (foodAt == 1) {
+                int j = shortgrassIndex;
+//For better optimization, this should be changed to a binary search
+                if (percievedPatches.Count > 0) {
+                    while (j >= 0 && Vector2.Distance(gameObject.transform.position, positionOf) < Vector2.Distance(gameObject.transform.position, percievedPatches[j])) {
+                        // Debug.Log("Program thinks that " + positionOf.x + "," + positionOf.y + " is closer to " + gameObject.transform.position.x + "," 
+                        //             + gameObject.transform.position.y + " than " + percievedPatches[j].x + "," + percievedPatches[j].y + " at index " + j + " is.");
+                        --j;
+                    }
+                    // Debug.Log("Program thinks that " + percievedPatches[j+1].x + "," + percievedPatches[j+1].y + " at index " + (j + 1) + " is closer to " + gameObject.transform.position.x + "," 
+                    // + gameObject.transform.position.y + " than " + positionOf.x + "," + positionOf.y + " is.");
+                }
                 ++shortgrassIndex;
+                //Debug.Log("Inserting " + positionOf.x + "," + positionOf.y + " at index " + j);
+                percievedPatches.Insert(j + 1, positionOf);
+            }
+            }
+            catch {
+                Debug.Log("Attempted to access the nonexistent MAP index" + Mathf.FloorToInt(positionOf.x) + "," + Mathf.FloorToInt(positionOf.y) + " with offset " + offset);
             }
         }        
+    }
+
+    void safetyNudge () {
+        Vector2 squareCenter = new Vector2 ((int) currentMostAppealingPatch.x, (int) currentMostAppealingPatch.y);
+        squareCenter.x += Mathf.Sign(squareCenter.x) * 0.5f;
+        squareCenter.y += Mathf.Sign(squareCenter.y) * 0.5f;
+        Vector2 direction = squareCenter - (Vector2) currentMostAppealingPatch;
+        currentMostAppealingPatch += (Vector3) direction * 0.3f;
+        //Goliad.GetComponent<MapManager>().testPatch(new Vector2Int(Mathf.FloorToInt(currentMostAppealingPatch.x), Mathf.FloorToInt(currentMostAppealingPatch.y)));
+    }
+
+    void checkFoodTarget () {
+        Debug.Log("checkfoodtarget with range " + ((int) Vector3.Distance(transform.position, currentMostAppealingPatch) + 1));
+        searchForFood((int) Vector3.Distance(transform.position, currentMostAppealingPatch) + 2, false);
     }
 
     float distanceToFlock () {
@@ -120,17 +166,34 @@ public class SheepBehavior : MonoBehaviour
         return sum / (flock.Count + 1);
     }
 
-    void performEating () {
+    void walkToFood () {
+        Debug.Log("walking to food");
         if (legs.isRunning()) {
+            Debug.Log("legs running");
             return;
         }
-        else if (timeOfLastEatStart ==  -1) {
-            timeOfLastEatStart = Time.time;
+        else {
+            Debug.Log("legs not running");
+            Vector2Int hereInt = new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y));
+            Vector2Int thereInt = new Vector2Int(Mathf.FloorToInt(currentMostAppealingPatch.x), Mathf.FloorToInt(currentMostAppealingPatch.y));
+            if (hereInt != thereInt) {
+                legs.setDestination(currentMostAppealingPatch);
+                Debug.Log("set destination");
+            }
+            else {
+                Debug.Log("eating clock started");
+                CancelInvoke("walkToFood");
+                CancelInvoke("checkFoodTarget");
+                Invoke("consume", eatTime);
+            }
         }
-        else if (timeOfLastEatStart - Time.time >= eatTime) {
-            Goliad.GetComponent<MapManager>().exploitPatch(new Vector2Int((int)transform.position.x, (int)transform.position.y));
-            timeOfLastEatStart = -1;
-        }
+    }
+
+    void consume () {
+        Debug.Log("Exploiting " + Mathf.FloorToInt(transform.position.x) + Mathf.FloorToInt(transform.position.y));
+        Goliad.GetComponent<MapManager>().exploitPatch(new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y)));
+        timeOfLastEatStart = -1;
+        InvokeRepeating("idle", 0, 1.0f);
     }
 
 }

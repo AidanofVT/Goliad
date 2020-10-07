@@ -30,7 +30,7 @@ public class MapManager : MonoBehaviour {
     }
 
     private void Update() {
-        grow();
+        //grow();
     }
 
     void buildMap (ref short [,] mapIn) {
@@ -54,15 +54,24 @@ public class MapManager : MonoBehaviour {
     }
 
     public void exploitPatch (Vector2Int targetPatch) {
-        map[targetPatch.x + offset, targetPatch.y + offset] -= 1;
+        if (map[targetPatch.x + offset, targetPatch.y + offset] > 0) {
+            map[targetPatch.x + offset, targetPatch.y + offset] -= 1;
+            growing.Add(targetPatch);
+            timesOfLastChange.Add(Time.time);
+        }
         mapOfTiles.SetTile(new Vector3Int(targetPatch.x, targetPatch.y, 0), dust);
+    }
+
+    public void testPatch (Vector2Int targetPatch) {
+        //map[targetPatch.x + offset, targetPatch.y + offset] = -1;
+        mapOfTiles.SetTile(new Vector3Int(targetPatch.x, targetPatch.y, 0), purple);
         growing.Add (targetPatch);
         timesOfLastChange.Add(Time.time);
     }
 
-    public void testPatch (Vector2Int targetPatch) {
+    public void testB (Vector2Int targetPatch) {
         map[targetPatch.x + offset, targetPatch.y + offset] = -1;
-        mapOfTiles.SetTile(new Vector3Int(targetPatch.x, targetPatch.y, 0), purple);
+        mapOfTiles.SetTile(new Vector3Int(targetPatch.x, targetPatch.y, 0), ShortGrass);
         growing.Add (targetPatch);
         timesOfLastChange.Add(Time.time);
     }

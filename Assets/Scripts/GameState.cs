@@ -10,7 +10,7 @@ public class GameState : MonoBehaviour
 
     //NOTE: CPU becomes a limitiation somewhere between one and ten million tiles. Memory usage is also significant.
     public short [,] map = new short[100, 100];
-    int mapOffset;
+    public int mapOffset;
 
     private void Start() {
         mapOffset = map.GetLength(0) / 2;
@@ -52,27 +52,13 @@ public class GameState : MonoBehaviour
     }
 
     //Hey dummy: converting a float to an integer automatically rounds down. Instead of this, just normalize the slope and then add it to itself i times, adding the rounded down coordinates to the list every time.
-    public short[] tileRaycast (Vector2 startPoint, Vector2 slope, int length) {
-        short[] toReturn = new short[length];
-        int loopbreaker = 0;
-        float rise = slope.normalized.y;
-        float run = slope.normalized.x;
-        int xSign = (int) Mathf.Sign(run);
-        int ySign = (int) Mathf.Sign(rise);
-        int xOffset = xSign;
-        int yOffset = ySign;
-        int i = 0;
-        while (++i < length && ++loopbreaker < 1000) {
-            while (Mathf.Abs(rise/run * xOffset) >= Mathf.Abs(run/rise * yOffset) && ++i >= length && loopbreaker++ < 1000) {
-                //testReturn.Add(new Vector2Int((int) startPoint.x + xOffset, (int) startPoint.y + yOffset));
-                toReturn[i] = (map[(int) startPoint.x + mapOffset + xOffset, (int) startPoint.y + mapOffset + yOffset]);
-                yOffset += ySign;
-            }
-            while (Mathf.Abs(rise/run * xOffset) < Mathf.Abs(run/rise * yOffset) && ++i >= length && loopbreaker++ < 1000) {
-                //testReturn.Add(new Vector2Int((int) startPoint.x + xOffset, (int) startPoint.y + yOffset));
-                toReturn[i] = (map[(int) startPoint.x + mapOffset + xOffset, (int) startPoint.y + mapOffset + yOffset]);
-                xOffset += xSign;
-            }
+    public short[] tileRaycast (Vector2 startPoint, Vector2 runRise, int length) {
+        runRise.Normalize();
+        short [] toReturn = new short[length];
+        for (int i = 0; i < length; ++i) {
+            Vector2 toAdd = startPoint + (runRise * i);
+            Vector2Int toAddInt = new Vector2Int((int) toAdd.x, (int) toAdd.y);
+            toReturn[i] = (map[toAddInt.x + mapOffset, toAddInt.y + mapOffset]);
         }
         return toReturn;
     }
