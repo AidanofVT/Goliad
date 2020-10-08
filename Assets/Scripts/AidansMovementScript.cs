@@ -29,17 +29,17 @@ public class AidansMovementScript : MonoBehaviour {
             seeker.StartPath(transform.position, destination, OnPathComplete);
             currentWaypoint = 0;
         }
-        InvokeRepeating("moveAlong", 0.5f, 0);
-        isRunning = true;
     }
 
     void OnPathComplete (Path finishedPath) {
         path = (ABPath) finishedPath;
+        InvokeRepeating("moveAlong", 0, 0.5f);
+        isRunning = true;
     }
 
     void moveAlong() {
         //The first criteria is just to stop the recalculation from happening every frame.
-        if (transToFollow!= null) {
+        if (transToFollow != null) {
             setDestination(transToFollow.position);
         }
         else {
@@ -65,7 +65,10 @@ public class AidansMovementScript : MonoBehaviour {
             }
         Vector2 dirNew = (path.vectorPath[currentWaypoint] - transform.position).normalized;
         if (Mathf.Sqrt(Mathf.Pow(body.velocity.x, 2) + Mathf.Pow(body.velocity.y, 2)) <= speed) {
-            body.AddForce(neededPush(dirNew) * 10);
+            body.AddForce(neededPush(dirNew));
+        }
+        else {
+            body.AddForce(body.velocity * -1);
         }
         //transform.position += dirNew * speed * Time.deltaTime;
         gameObject.transform.hasChanged = true;

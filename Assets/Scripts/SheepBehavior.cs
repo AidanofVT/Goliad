@@ -8,18 +8,18 @@ public class SheepBehavior : MonoBehaviour
     GameState gameState;
     AidansMovementScript legs;
 
-    enum sheepModes {idle, approaching, grazing, fleeing}
-    sheepModes sheepState = sheepModes.idle;
-    
     List<GameObject> flock = new List<GameObject>();
+    List<GameObject> farFlock = new List<GameObject>();
+    Vector2 flockCenter;
     public GameObject shepherd;
     public int shepherdPower = 1;
-    
+    int conveneMultiplier = 1;
+
 //a negative value should be used to indicate that the variable is inactive.
     float timeOfLastEatStart = -1;
     short eatTime = 1;
     Vector3 currentMostAppealingPatch;
-
+    int feedMultiplier = 1;
 
     float facing = 0;
 
@@ -29,12 +29,10 @@ public class SheepBehavior : MonoBehaviour
         legs = gameObject.GetComponent<AidansMovementScript>();
 //a positive z value sholud be used as an indicator that the targetPatch variable is inactive
         currentMostAppealingPatch = transform.position + new Vector3(0,0,1000);
-        InvokeRepeating("idle", 0, 1.0f);
-        InvokeRepeating("updateFacing", 0.1f, 0.2f);
-    }
 
-    void Update() {
-        //check for a switch to flee mode
+        InvokeRepeating("updateFacing", 0.01f, 0.2f);
+        InvokeRepeating("updateFlockCenter", 0.01f, 5);
+        InvokeRepeating("idle", 0.02f, 1.0f);
     }
 
     void updateFacing () {
@@ -50,34 +48,36 @@ public class SheepBehavior : MonoBehaviour
     }
 
     void idle () {
-        if (searchForFood()) {
+        Debug.Log("idling");
+        if (searchForFood() == true) {
             CancelInvoke("idle");
             changeBehavior();
         }
         //a 'wander' function should be put here
     }
 
-    void changeBehavior (int feedMultiplier = 1, int conveneMultiplier = 1) {
+    void changeBehavior () {
         float eatAppeal = 1.5f + (3 / (Vector3.Distance(transform.position, currentMostAppealingPatch) / 40)); //this formula will max-out at 80.
-        float conveneAppeal = 2 * distanceToFlock();
+        float conveneAppeal = 2 * Vector3.Distance(transform.position, flockCenter);
         eatAppeal *= feedMultiplier;
         conveneAppeal *= conveneMultiplier;
-        int roll = (int) Random.Range(0, eatAppeal + conveneAppeal - 1);
-        Debug.Log("The results are in: eatAppeal is " + eatAppeal + ", targeting patch " + currentMostAppealingPatch + ". ConveneAppeal is " + conveneAppeal + ", " + distanceToFlock() + " away from the flocks center of gravity. The roll is " + roll + ".");
+        int roll = (int) Random.Range(1, eatAppeal + conveneAppeal);
+        Debug.Log("The results are in: eatAppeal is " + eatAppeal + ", targeting patch " + currentMostAppealingPatch + ". ConveneAppeal is " + conveneAppeal + ". The roll is " + roll + ".");
         if (roll <= eatAppeal) {
             InvokeRepeating("walkToFood", 0, 0.1f);
             InvokeRepeating("checkFoodTarget", 1, 1);
         }
         else {
-            InvokeRepeating("idle", 1, 1);
+            legs.setDestination(flockCenter);
+            Invoke("changeBehavior", Vector3.Distance(transform.position, flockCenter) / legs.speed);
         }
     }
 
     bool searchForFood (int range = 15, bool randomGlance = true) {
+        Debug.Log("SearchForFood");
         if (range <= 0) {
             return true;
         }
-        Debug.Log("SearchForFood");
         float direction;
         if (randomGlance == true) {
             float roll = Random.Range(-1.0f, 1.0f);
@@ -95,6 +95,7 @@ public class SheepBehavior : MonoBehaviour
         glanceForFood(clockwise, range, ref shortgrassIndex, ref percievedPatches);
         if (percievedPatches.Count == 0) {
             currentMostAppealingPatch = transform.position + new Vector3(0,0,1000);
+            Debug.Log("Failed to find food.");
             return false;
         }
         else {
@@ -108,7 +109,7 @@ public class SheepBehavior : MonoBehaviour
     }
 
     void glanceForFood (float direction, int range, ref int shortgrassIndex, ref List<Vector2> percievedPatches) {
-        Debug.Log("GlanceForFood");
+        //Debug.Log("GlanceForFood");
         Vector2 runRise = new Vector2(Mathf.Sin(direction), Mathf.Cos(direction));
         int offset = gameState.mapOffset;
         for (int i = 0; i < range; ++i) {
@@ -149,38 +150,43 @@ public class SheepBehavior : MonoBehaviour
 
     void checkFoodTarget () {
         Debug.Log("checkfoodtarget with range " + ((int) Vector3.Distance(transform.position, currentMostAppealingPatch) + 1));
-        searchForFood((int) Vector3.Distance(transform.position, currentMostAppealingPatch) + 2, false);
+        if (!searchForFood((int) Vector3.Distance(transform.position, currentMostAppealingPatch) + 2, false)) {
+            CancelInvoke("walkToFood");
+            CancelInvoke("checkFoodTarget");
+            InvokeRepeating("idle", 0, 1.0f);
+        }
     }
 
-    float distanceToFlock () {
-        Vector3 here = transform.position;
-        float sum = 0;
+    void updateFlockCenter () {
+        if (flock.Count == 0) {
+            flockCenter = transform.position;
+            return;
+        }
+        Vector3 there = transform.position;
         foreach (GameObject fellow in flock) {
-            Vector3 there = fellow.transform.position;
-            sum += Mathf.Sqrt(Mathf.Pow(Mathf.Abs(here.x - there.x), 2) + Mathf.Pow(Mathf.Abs(here.y - there.y), 2));
+            there += fellow.transform.position;
         }
         if (shepherd != null) {
-            Vector3 herder = shepherd.transform.position;
-            sum += shepherdPower * Mathf.Sqrt(Mathf.Pow(Mathf.Abs(here.x - herder.x), 2) + Mathf.Pow(Mathf.Abs(here.y - herder.y), 2));
+            there += shepherd.transform.position * shepherdPower;
         }
-        return sum / (flock.Count + 1);
+        flockCenter = new Vector2 (there.x / flock.Count, there.y / flock.Count);
     }
 
     void walkToFood () {
         if (legs.isRunning) {
-            Debug.Log("legs running");
+            //Debug.Log("legs running");
             return;
         }
         else {
-            Debug.Log("legs not running");
+            //Debug.Log("legs not running");
             Vector2Int hereInt = new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y));
             Vector2Int thereInt = new Vector2Int(Mathf.FloorToInt(currentMostAppealingPatch.x), Mathf.FloorToInt(currentMostAppealingPatch.y));
             if (hereInt != thereInt) {
                 legs.setDestination(currentMostAppealingPatch);
-                Debug.Log("set destination");
+                //Debug.Log("set destination");
             }
             else {
-                Debug.Log("eating clock started");
+                //Debug.Log("eating clock started");
                 CancelInvoke("walkToFood");
                 CancelInvoke("checkFoodTarget");
                 Invoke("consume", eatTime);
@@ -192,7 +198,33 @@ public class SheepBehavior : MonoBehaviour
         Debug.Log("Exploiting " + Mathf.FloorToInt(transform.position.x) + Mathf.FloorToInt(transform.position.y));
         Goliad.GetComponent<MapManager>().exploitPatch(new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y)));
         timeOfLastEatStart = -1;
+        CancelInvoke("walkToFood");
+        CancelInvoke("checkFoodTarget");
         InvokeRepeating("idle", 0, 1.0f);
+    }
+
+    void OnTriggerEnter2D(Collider2D thing) {
+        if (thing.gameObject.GetComponent<SheepBehavior>() != null && thing.isTrigger == false && flock.Contains(thing.gameObject) == false) {
+            flock.Add(thing.gameObject);
+            Debug.Log("New friend spotted. Flock count = " + flock.Count);
+        }
+        InvokeRepeating("forgetFlockMates", 5, 5);
+    }
+
+    void OnTriggerExit2D(Collider2D other) {
+        farFlock.Add(other.gameObject);
+    }
+
+//in the future, this should include a check for whether the sheep is in sight
+    void forgetFlockMates () {
+        List<GameObject> farFlockCopy = farFlock;
+        foreach (GameObject flockMate in farFlockCopy) {
+            if (Random.Range(1, 100) <= 5) {
+                farFlock.Remove(flockMate);
+                flock.Remove(flockMate);
+                Debug.Log("Friend lost.");
+            }
+        }
     }
 
 }
