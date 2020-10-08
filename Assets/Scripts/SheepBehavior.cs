@@ -73,26 +73,26 @@ public class SheepBehavior : MonoBehaviour
         }
     }
 
-    bool searchForFood (int range = 5, bool randomGlance = true) {
+    bool searchForFood (int range = 15, bool randomGlance = true) {
         if (range <= 0) {
             return true;
         }
         Debug.Log("SearchForFood");
-        float direction = 0;
-        // if (randomGlance == true) {
-        //     float roll = Random.Range(-1.0f, 1.0f);
-        //     direction = (Mathf.Pow(roll, 6) / 0.3f * roll) + facing; // this formula generates a number between approximately negative pi and pi, prefering outcomes close to zero
-        // }
-        // else {
-        //     direction = facing;
-        // }
+        float direction;
+        if (randomGlance == true) {
+            float roll = Random.Range(-1.0f, 1.0f);
+            direction = (Mathf.Pow(roll, 6) / 0.3f * roll) + facing; // this formula generates a number between approximately negative pi and pi, prefering outcomes close to zero
+        }
+        else {
+            direction = facing;
+        }
         List<Vector2> percievedPatches = new List<Vector2>();
         int shortgrassIndex = -1;
         float clockwise = direction + 0.5f;
         float counterClockwise = direction - 0.5f;
         glanceForFood(direction, range, ref shortgrassIndex, ref percievedPatches);
-        //glanceForFood(counterClockwise, range, ref shortgrassIndex, ref percievedPatches);
-        //glanceForFood(clockwise, range, ref shortgrassIndex, ref percievedPatches);
+        glanceForFood(counterClockwise, range, ref shortgrassIndex, ref percievedPatches);
+        glanceForFood(clockwise, range, ref shortgrassIndex, ref percievedPatches);
         if (percievedPatches.Count == 0) {
             currentMostAppealingPatch = transform.position + new Vector3(0,0,1000);
             return false;
@@ -167,8 +167,7 @@ public class SheepBehavior : MonoBehaviour
     }
 
     void walkToFood () {
-        Debug.Log("walking to food");
-        if (legs.isRunning()) {
+        if (legs.isRunning) {
             Debug.Log("legs running");
             return;
         }
