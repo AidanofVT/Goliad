@@ -56,16 +56,16 @@ public class SelectionRectManager : MonoBehaviour {
         float rightExtreme = selectorSquare.position.x + selectorSquare.gameObject.GetComponent<SpriteRenderer>().bounds.size.x / 2;
         foreach (GameObject maybeInBounds in gameState.getAliveUnits()) {
             Vector3 thePosition = maybeInBounds.transform.position;
-            Debug.Log("Examining the object at " + thePosition + ". " +
-            "\n topExtreme = " + topExtreme +
-            "\n bottomExtreme = " + bottomExtreme +
-            "\n leftExtreme = " + leftExtreme +
-            "\n rightExtreme = " + rightExtreme);
+            //Debug.Log("Examining the object at " + thePosition + ". " +
+            // "\n topExtreme = " + topExtreme +
+            // "\n bottomExtreme = " + bottomExtreme +
+            // "\n leftExtreme = " + leftExtreme +
+            // "\n rightExtreme = " + rightExtreme);
             if (thePosition.y <= topExtreme &&
                 thePosition.y >= bottomExtreme &&
                 thePosition.x >= leftExtreme &&
                 thePosition.x <= rightExtreme) {
-                Debug.Log("Object at " + thePosition + "accepted for activation.");
+                //Debug.Log("Object at " + thePosition + "accepted for activation.");
                 toActivate.Add(maybeInBounds);
             }
         }

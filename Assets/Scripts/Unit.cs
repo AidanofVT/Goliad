@@ -17,16 +17,16 @@ public class Unit : MonoBehaviour
         Goliad = GameObject.Find("Goliad");
         gameState = Goliad.GetComponent<GameState>();
         gameState.enlivenUnit(gameObject);
-        gameObject.transform.hasChanged = false;
     }
 
-    public void activate () {
+    public virtual void activate () {
         gameState.activateUnit(gameObject);
         gameObject.transform.GetChild(0).gameObject.SetActive(true);
+        transform.GetChild(0).GetChild(0).GetComponent<RectTransform>().localScale = new Vector3(1,1,1) * (Camera.main.orthographicSize / 5);
         Debug.Log("Unit activated.");
     }
 
-    public void deactivate () {
+    public virtual void deactivate () {
         gameObject.transform.GetChild(0).gameObject.SetActive(false);
         gameState.deactivateUnit(gameObject);
         Debug.Log("Unit deactivated.");

@@ -17,12 +17,4 @@ public class MobileUnit : Unit {
         moveConductor.setDestination(target, movingTransform);
     }
 
-    private void Update() {
-        // Vector2Int placeNow = new Vector2Int((int) transform.position.x, (int) transform.position.y);
-        // int offset = gameState.map.GetLength(0) / 2;
-        // if (gameState.map[placeNow.x + offset, placeNow.y + offset] >= 1) {
-        //     Goliad.GetComponent<MapManager>().exploitPatch(placeNow);
-        // }
-    }
-
 }

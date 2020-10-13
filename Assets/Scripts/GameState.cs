@@ -44,6 +44,10 @@ public class GameState : MonoBehaviour
         return aliveUnits;
     }
 
+    public int getPatchValue (int x, int y) {
+        return map[x + mapOffset, y + mapOffset];
+    }
+
     public void clearActive () {
         foreach (GameObject unit in activeUnits.ToArray()) {
             unit.GetComponent<Unit>().deactivate();

@@ -6,8 +6,10 @@ using Pathfinding;
 public class AidansMovementScript : MonoBehaviour {
     Seeker seeker;
     ABPath path = null;
+    Vector3 placetoGo;
     Transform transToFollow = null;
     Rigidbody2D body;
+    Vector3 positionOneSecondAgo;
 //for some reason, paths don't stay null when they are set to null, so this is needed
     public bool isRunning = false;
     public float speed = 2;
@@ -21,31 +23,30 @@ public class AidansMovementScript : MonoBehaviour {
     }
 
     public void setDestination (Vector3 destination, Transform movingTransform = null) {
-        if (movingTransform != null) {
-            transToFollow = movingTransform;
-        }
         //MAYBE OBSOLETE??? this IF is needed because the click handler defaults to a destination of 0,0,0 if it doesn't recognise a unit or the ground.
-        if (destination != new Vector3(0,0,0)) {
-            seeker.StartPath(transform.position, destination, OnPathComplete);
-            currentWaypoint = 0;
+        placetoGo = destination;
+        transToFollow = movingTransform;
+        InvokeRepeating("setRoute", 0, 2);       
+        InvokeRepeating("stuckCheck", 1, 1);
+        isRunning = true;
+    }
+
+    void setRoute () {
+        if (transToFollow != null) {
+            seeker.StartPath(transform.position, transToFollow.position, OnPathComplete);
         }
+        else {
+            seeker.StartPath(transform.position, placetoGo, OnPathComplete);
+        }
+        currentWaypoint = 0;
     }
 
     void OnPathComplete (Path finishedPath) {
         path = (ABPath) finishedPath;
-        InvokeRepeating("moveAlong", 0, 0.5f);
-        isRunning = true;
+        InvokeRepeating("moveAlong", 0, .05f); 
     }
 
     void moveAlong() {
-        //The first criteria is just to stop the recalculation from happening every frame.
-        if (transToFollow != null) {
-            setDestination(transToFollow.position);
-        }
-        else {
-            setDestination(path.vectorPath[path.vectorPath.Count - 1]);
-        }
-        //currentWaypoint = 0;
         if (Vector2.Distance(transform.position, path.endPoint) < roundToArrived) {
             terminatePathfinding();
             return;
@@ -63,15 +64,29 @@ public class AidansMovementScript : MonoBehaviour {
                     return;
                 }
             }
-        Vector2 dirNew = (path.vectorPath[currentWaypoint] - transform.position).normalized;
+        Vector2 dirNew = (path.vectorPath[currentWaypoint] - transform.position).normalized * speed;
         if (Mathf.Sqrt(Mathf.Pow(body.velocity.x, 2) + Mathf.Pow(body.velocity.y, 2)) <= speed) {
             body.AddForce(neededPush(dirNew));
         }
         else {
-            body.AddForce(body.velocity * -1);
+            body.AddForce(body.velocity * -0.5f);
         }
         //transform.position += dirNew * speed * Time.deltaTime;
-        gameObject.transform.hasChanged = true;
+        positionOneSecondAgo = transform.position;
+    }
+
+    void stuckCheck () {
+        Vector3 change = transform.position - positionOneSecondAgo;
+        if (change.magnitude < 0.1) {
+            Vector2 swayWay = (path.vectorPath[currentWaypoint] - transform.position).normalized;
+            float temp  = swayWay.x;
+            swayWay.x = swayWay.y;
+            swayWay.y = temp;
+            if (Random.value < 0.5) {
+                swayWay *= -1;
+            }
+            body.AddForce(swayWay * 10);
+        }
     }
 
     Vector2 neededPush (Vector2 desiredCourse) {
@@ -80,11 +95,12 @@ public class AidansMovementScript : MonoBehaviour {
 
     void terminatePathfinding () {
         CancelInvoke("moveAlong");
+        CancelInvoke("stuckCheck");
+        CancelInvoke("setRoute");
         isRunning = false;
         path = null;
         currentWaypoint = 0;
         transToFollow = null;
-        gameObject.transform.hasChanged = false;
         body.velocity = new Vector2(0, 0);
     }
 
