@@ -5,14 +5,17 @@ using UnityEngine;
 public class CameraPanner : MonoBehaviour
 {
     GameObject Goliad;
+//changes to panMultiplier and zoomMultiplier change the magnitude of these inputs by a static, linear amount.
     public float panMultiplier = 0.05f;
     public float zoomMultiplier = 9f;
-    public float distanceFactor = 1.1f;
+//zoomExponent determines how exponentially greater zoom inputs should become as camera size increases
+    public float zoomExponent = 1.1f;
+//zoomMultiplier simply compensates for camera size, allowing the movement of things across the screen to seem static regardless of zoom 
     float distanceMultiplier;
     enum buttonState {up, upLeft, left, leftDown, down, downRight, right, rightUp}
 
     private void Awake() {
-        distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, distanceFactor) / 5;
+        distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, zoomExponent) / 5;
         Goliad = GameObject.Find("Goliad");
     }
 
@@ -20,7 +23,7 @@ public class CameraPanner : MonoBehaviour
     {
         obeyCameraPanInputs();
         obeyCameraZoomInputs();
-        distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, distanceFactor) / 10;   
+        distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, zoomExponent) / 10;   
     }
 
     void obeyCameraPanInputs () {

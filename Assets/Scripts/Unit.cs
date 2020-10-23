@@ -1,24 +1,24 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Unit : MonoBehaviour
 {
-    protected GameObject Goliad;
     protected GameState gameState;
-    public int meat = 0;
+    protected GameObject MeatReadout;
+    public int maxMeat = 30;
+    public int meat = 10;
     int meatCost = 10;
+
+    void Start() {
+        gameState = GameObject.Find("Goliad").GetComponent<GameState>();
+        gameState.enlivenUnit(gameObject);
+        MeatReadout = transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
+    }
 
     public int cost () {
         return meatCost;
     }
-
-    void Start() {
-        Goliad = GameObject.Find("Goliad");
-        gameState = Goliad.GetComponent<GameState>();
-        gameState.enlivenUnit(gameObject);
-    }
-
     public virtual void activate () {
         gameState.activateUnit(gameObject);
         gameObject.transform.GetChild(0).gameObject.SetActive(true);
@@ -30,5 +30,25 @@ public class Unit : MonoBehaviour
         gameObject.transform.GetChild(0).gameObject.SetActive(false);
         gameState.deactivateUnit(gameObject);
         Debug.Log("Unit deactivated.");
+    }
+
+    public virtual bool addMeat (int toAdd) {
+        if (meat + toAdd < maxMeat) {
+            meat += toAdd;
+            MeatReadout.GetComponent<Text>().text = meat.ToString();
+            return true;
+        }
+        return false;
+    }
+
+    public virtual void die() {
+        gameState.deadenUnit(gameObject);
+        GameObject orb = (GameObject)Resources.Load("Orb");
+        for (; meat > 0; --meat) {
+            Vector3 place = new Vector3(transform.position.x + Random.Range(-.1f, 0.1f), transform.position.y + Random.Range(-.5f, 0.5f), 0);
+            GameObject lastOrb = Instantiate(orb, place, transform.rotation);
+            lastOrb.GetComponent<Rigidbody2D>().AddForce((lastOrb.transform.position - transform.position).normalized * 2);
+        }
+        Destroy(gameObject);
     }
 }

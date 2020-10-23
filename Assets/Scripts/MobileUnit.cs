@@ -6,8 +6,7 @@ public class MobileUnit : Unit {
     AidansMovementScript moveConductor;
 
     void Start () {
-        Goliad = GameObject.Find("Goliad");
-        gameState = Goliad.GetComponent<GameState>();
+        gameState = GameObject.Find("Goliad").GetComponent<GameState>();
         moveConductor = gameObject.GetComponent<AidansMovementScript>();
         gameState.enlivenUnit(gameObject);
         gameObject.transform.hasChanged = false;

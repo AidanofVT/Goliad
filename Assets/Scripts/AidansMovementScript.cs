@@ -10,7 +10,7 @@ public class AidansMovementScript : MonoBehaviour {
     Transform transToFollow = null;
     Rigidbody2D body;
     Vector3 positionOneSecondAgo;
-//for some reason, paths don't stay null when they are set to null, so this is needed
+//this boolean isn't used by this script, but it is needed for other scripts to register what's going on. toggling path to null and back doesn't work: a new path is spontaneously created for some reason
     public bool isRunning = false;
     public float speed = 2;
     public float changePointThreshhold = 0.5f;
@@ -18,17 +18,16 @@ public class AidansMovementScript : MonoBehaviour {
     int currentWaypoint = 0;
 
     void Start() {
+//The seeker is the script that branches into all the A* pathfinding stuff
         seeker = GetComponent<Seeker>();
         body = GetComponent<Rigidbody2D>();
     }
 
     public void setDestination (Vector3 destination, Transform movingTransform = null) {
-        //MAYBE OBSOLETE??? this IF is needed because the click handler defaults to a destination of 0,0,0 if it doesn't recognise a unit or the ground.
         placetoGo = destination;
         transToFollow = movingTransform;
         InvokeRepeating("setRoute", 0, 2);       
         InvokeRepeating("stuckCheck", 1, 1);
-        isRunning = true;
     }
 
     void setRoute () {
@@ -41,9 +40,12 @@ public class AidansMovementScript : MonoBehaviour {
         currentWaypoint = 0;
     }
 
+//This function is needed because the seeker's startpath() function can only deliver it's output via a backwards-parameter, or whatever it's called.
+//The name of the intermediary function, in this case OnePathComplete, is put as a parameter for StartPath (see lines 33 and 36), and the resulting path gets passed here as a parameter.
     void OnPathComplete (Path finishedPath) {
         path = (ABPath) finishedPath;
-        InvokeRepeating("moveAlong", 0, .05f); 
+        InvokeRepeating("moveAlong", 0, .05f);
+        isRunning = true;
     }
 
     void moveAlong() {
@@ -94,10 +96,10 @@ public class AidansMovementScript : MonoBehaviour {
     }
 
     void terminatePathfinding () {
+        isRunning = false;
         CancelInvoke("moveAlong");
         CancelInvoke("stuckCheck");
         CancelInvoke("setRoute");
-        isRunning = false;
         path = null;
         currentWaypoint = 0;
         transToFollow = null;

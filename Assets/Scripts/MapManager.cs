@@ -1,16 +1,15 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEngine.UI;
-using Pathfinding;
 
 public class MapManager : MonoBehaviour {
-    public ShortGrassTile ShortGrass;
-    public BarenTile dust;
+    public tile_shortGrass ShortGrass;
+    public tile_baren dust;
     public tile_purple purple;
+//grids are not unique to tilemaps, but tilemaps need them in order to function. Grids populate the entire map: though there may be multiple tilemaps, they can share one grid.
     public Grid mapBasis;
     public Tilemap mapOfTiles;
+    public int growInterval = 30;
     short [,] map;
     int offset;
     
@@ -21,20 +20,25 @@ public class MapManager : MonoBehaviour {
 
 
     void Start() {
-        ShortGrass = new ShortGrassTile();
-        dust = new BarenTile();
+        ShortGrass = new tile_shortGrass();
+        dust = new tile_baren();
         purple = new tile_purple();
+//this arrangement is required: tilemaps must be on objects which are subordinate to an object with a grids.
         mapOfTiles = mapBasis.transform.GetChild(0).gameObject.GetComponent<Tilemap>();
+//arrays are by default passed as references! no special treatment is required for map to act as a reference variable. I checked: it's working.
+        map = gameObject.GetComponent<GameState>().map;
+//this offset is crucial: the tilemap has negative values, but the list does not. note that as this is currently set up, only square maps are possible.
         offset = gameObject.GetComponent<GameState>().map.GetLength(0) / 2;
-        buildMap(ref gameObject.GetComponent<GameState>().map);
+        buildMap();
     }
 
     private void Update() {
+        //I must create a second map[] with data about the base state of the map before grow() can be used for maps that aren't just all green.
         //grow();
     }
 
-    void buildMap (ref short [,] mapIn) {
-        map = mapIn;
+//buildMap is necessary, but its implementation is negotiable. this is the method to alter to change the map construction.
+    void buildMap () {
         int sideLength = map.GetLength(0);
         GameObject.Find("Ground").transform.localScale = new Vector3(sideLength, sideLength, 0);
         AstarPath.active.data.gridGraph.SetDimensions(sideLength * 2, sideLength * 2, 0.5f);
@@ -53,29 +57,27 @@ public class MapManager : MonoBehaviour {
         }
     }
 
-    public void exploitPatch (Vector2Int targetPatch) {
+    public bool exploitPatch (Vector2Int targetPatch) {
         if (map[targetPatch.x + offset, targetPatch.y + offset] > 0) {
             map[targetPatch.x + offset, targetPatch.y + offset] -= 1;
             growing.Add(targetPatch);
             timesOfLastChange.Add(Time.time);
+            mapOfTiles.SetTile(new Vector3Int(targetPatch.x, targetPatch.y, 0), dust);
+            return true;
         }
-        mapOfTiles.SetTile(new Vector3Int(targetPatch.x, targetPatch.y, 0), dust);
+        else {
+            return false;
+        }
     }
 
     public void testPatch (Vector2Int targetPatch) {
-        //map[targetPatch.x + offset, targetPatch.y + offset] = -1;
+        map[targetPatch.x + offset, targetPatch.y + offset] = -1;
         mapOfTiles.SetTile(new Vector3Int(targetPatch.x, targetPatch.y, 0), purple);
         growing.Add (targetPatch);
         timesOfLastChange.Add(Time.time);
     }
 
-    public void testB (Vector2Int targetPatch) {
-        map[targetPatch.x + offset, targetPatch.y + offset] = -1;
-        mapOfTiles.SetTile(new Vector3Int(targetPatch.x, targetPatch.y, 0), ShortGrass);
-        growing.Add (targetPatch);
-        timesOfLastChange.Add(Time.time);
-    }
-
+//this is the function that is most likely to require it's own thread in the future. If things get slow, look here first.
     void grow () {
         int i = 0;
         int loopBreaker = 10000;
@@ -83,6 +85,8 @@ public class MapManager : MonoBehaviour {
             map[growing[i].x + offset, growing[i].y + offset] += 1;
             if (map[growing[i].x + offset, growing[i].y + offset] >= 1) {
                 mapOfTiles.SetTile(new Vector3Int (growing[i].x, growing[i].y, 0), ShortGrass);
+//when the time comes to add more growth levels, remember that patches will have to move to the back of the lines wehenever they grow a level but aren't yet fully grown.
+//this assumes that every degree of growth takes the same amount of time.
                 growing.RemoveAt(i);
                 timesOfLastChange.RemoveAt(i);
             }

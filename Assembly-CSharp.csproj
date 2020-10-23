@@ -54,23 +54,21 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\AidansMovementScript.cs" />
-     <Compile Include="Assets\Scripts\BarenTile.cs" />
-     <Compile Include="Assets\Scripts\BeatingHeart.cs" />
-     <Compile Include="Assets\Scripts\button_Chime.cs" />
      <Compile Include="Assets\Scripts\CameraPanner.cs" />
      <Compile Include="Assets\Scripts\ClickHandler.cs" />
      <Compile Include="Assets\Scripts\FactoryUnit.cs" />
      <Compile Include="Assets\Scripts\GameState.cs" />
-     <Compile Include="Assets\Scripts\GroundScript.cs" />
      <Compile Include="Assets\Scripts\independentUnit.cs" />
-     <Compile Include="Assets\Scripts\MakeMobileUnitScript.cs" />
      <Compile Include="Assets\Scripts\MapManager.cs" />
      <Compile Include="Assets\Scripts\MobileUnit.cs" />
+     <Compile Include="Assets\Scripts\OrbBehavior.cs" />
      <Compile Include="Assets\Scripts\SelectionRectManager.cs" />
+     <Compile Include="Assets\Scripts\setup.cs" />
      <Compile Include="Assets\Scripts\SheepBehavior.cs" />
      <Compile Include="Assets\Scripts\ShepherdFunction.cs" />
-     <Compile Include="Assets\Scripts\ShortGrassTile.cs" />
+     <Compile Include="Assets\Scripts\tile_baren.cs" />
      <Compile Include="Assets\Scripts\tile_purple.cs" />
+     <Compile Include="Assets\Scripts\tile_shortGrass.cs" />
      <Compile Include="Assets\Scripts\Unit.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>C:/Users/Aidan/Desktop/Proto-RTS/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>

@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class SheepBehavior : MonoBehaviour
@@ -130,7 +129,9 @@ public class SheepBehavior : MonoBehaviour
 
     void consume () {
         //Debug.Log("Exploiting " + Mathf.FloorToInt(transform.position.x) + Mathf.FloorToInt(transform.position.y));
-        Goliad.GetComponent<MapManager>().exploitPatch(new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y)));
+        if (Goliad.GetComponent<MapManager>().exploitPatch(new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y)))) {
+            gameObject.GetComponent<independentUnit>().addMeat(1);
+        }
         CancelInvoke("walkToFood");
         CancelInvoke("checkFoodTarget");
         InvokeRepeating("idle", 0, 1.0f);
@@ -158,7 +159,7 @@ public class SheepBehavior : MonoBehaviour
             Debug.Log("PROBLEM: long-range destination set."); 
         }
         legs.setDestination(safeSpot);
-        Invoke("changeBehavior", toGo / legs.speed);
+        InvokeRepeating("idle", toGo / legs.speed, 2);
         Invoke("resetSpeed", toGo / legs.speed);
     }
 
