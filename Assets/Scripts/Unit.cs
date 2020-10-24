@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
+using Photon.Pun;
 
-public class Unit : MonoBehaviour
+public class Unit : MonoBehaviourPun
 {
     protected GameState gameState;
     protected GameObject MeatReadout;
@@ -10,6 +10,18 @@ public class Unit : MonoBehaviour
     public int meat = 10;
     int meatCost = 10;
 
+    void Awake () {
+        string prefab = gameObject.name;
+        prefab = prefab.Remove(prefab.IndexOf("("));
+        prefab = "Sprites/" + prefab;
+        if (photonView.Owner.ActorNumber == 1) {
+            GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(prefab + "_white");
+        }
+        else if (photonView.Owner.ActorNumber == 2) {
+            GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(prefab + "_orange");
+        }
+    }
+    
     void Start() {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
         gameState.enlivenUnit(gameObject);

@@ -323,7 +323,7 @@ GameObject:
   - component: {fileID: 9182977958649021548}
   - component: {fileID: 9182977958649021546}
   m_Layer: 11
-  m_Name: Shepherd
+  m_Name: shepherd
   m_TagString: unit
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -426,7 +426,7 @@ SpriteRenderer:
   m_Size: {x: 7, y: 7}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!114 &9182977958649021549

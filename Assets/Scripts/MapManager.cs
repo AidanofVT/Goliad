@@ -1,14 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Photon.Pun;
 
-public class MapManager : MonoBehaviour {
+public class MapManager : MonoBehaviourPun, IPunObservable {
     public tile_shortGrass ShortGrass;
     public tile_baren dust;
     public tile_purple purple;
 //grids are not unique to tilemaps, but tilemaps need them in order to function. Grids populate the entire map: though there may be multiple tilemaps, they can share one grid.
     public Grid mapBasis;
-    public Tilemap mapOfTiles;
+    Tilemap mapOfTiles;
     public int growInterval = 30;
     short [,] map;
     int offset;
@@ -40,7 +41,7 @@ public class MapManager : MonoBehaviour {
 //buildMap is necessary, but its implementation is negotiable. this is the method to alter to change the map construction.
     void buildMap () {
         int sideLength = map.GetLength(0);
-        GameObject.Find("Ground").transform.localScale = new Vector3(sideLength, sideLength, 0);
+        GameObject.Find("Ground").GetComponent<BoxCollider2D>().size = new Vector2(sideLength, sideLength);
         AstarPath.active.data.gridGraph.SetDimensions(sideLength * 2, sideLength * 2, 0.5f);
         AstarPath.active.Scan();
         for (int i = offset - 1; i >= offset * -1; i--) {
@@ -59,14 +60,21 @@ public class MapManager : MonoBehaviour {
 
     public bool exploitPatch (Vector2Int targetPatch) {
         if (map[targetPatch.x + offset, targetPatch.y + offset] > 0) {
-            map[targetPatch.x + offset, targetPatch.y + offset] -= 1;
-            growing.Add(targetPatch);
-            timesOfLastChange.Add(Time.time);
-            mapOfTiles.SetTile(new Vector3Int(targetPatch.x, targetPatch.y, 0), dust);
+            photonView.RPC("changeMap", RpcTarget.All, targetPatch.x, targetPatch.y);
             return true;
         }
         else {
             return false;
+        }
+    }
+    
+    [PunRPC]
+    public void changeMap (int x, int y) {
+        if (map[x + offset, y + offset] > 0) {
+            map[x + offset, y + offset] -= 1;
+            growing.Add(new Vector2Int(x, y));
+            timesOfLastChange.Add(Time.time);
+            mapOfTiles.SetTile(new Vector3Int(x, y, 0), dust);
         }
     }
 
@@ -98,6 +106,10 @@ public class MapManager : MonoBehaviour {
                 break;
             }
         }
+    }
+
+    void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info) {
+
     }
 
 }

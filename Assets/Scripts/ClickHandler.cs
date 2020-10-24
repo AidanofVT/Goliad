@@ -14,11 +14,17 @@ public class ClickHandler : MonoBehaviour {
         if (Input.GetKeyUp(KeyCode.Mouse0)) {
             if (gameObject.GetComponent<SelectionRectManager>().rectOn == false) {
                 thingLeftClicked(Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition))[0].gameObject);
+                testThing();
             }
         }
         if (Input.GetKeyUp(KeyCode.Mouse1)) {
             thingRightClicked(Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition))[0].gameObject);
         }
+    }
+
+    void testThing () {
+        Vector2Int where = new Vector2Int (Mathf.FloorToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).x), (Mathf.FloorToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).y)));
+        GameObject.Find("Goliad").GetComponent<MapManager>().exploitPatch(where);
     }
 
     public void thingRightClicked (GameObject thingClicked) {

@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/multiplayer autojoin.unity
+    guid: 4dd71c94830adc64390d55fc1b5b09ed
   m_configObjects: {}

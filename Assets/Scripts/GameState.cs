@@ -7,10 +7,13 @@ public class GameState : MonoBehaviour
     List<GameObject> aliveUnits = new List<GameObject>();
 
     //NOTE: CPU becomes a limitiation somewhere between one and ten million tiles on-screen. Memory usage is also significant.
-    public short [,] map = new short[200, 200];
+    public short [,] map;
     public int mapOffset;
 
-    private void Start() {
+    void Awake () {
+//this is in Awake rather than Start so that the array gets made before other scripts try to access it.
+        int mapSize = GetComponent<setup>().mapSize;
+        map = new short [mapSize,mapSize];
         mapOffset = map.GetLength(0) / 2;
     }
 
