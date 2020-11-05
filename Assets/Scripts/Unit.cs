@@ -1,66 +1,87 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 using Photon.Pun;
 
-public class Unit : MonoBehaviourPun
-{
+public class Unit : MonoBehaviourPun {
     protected GameState gameState;
-    protected GameObject MeatReadout;
-    public int maxMeat = 30;
-    public int meat = 10;
-    int meatCost = 10;
+    protected BarManager statusBar;
+    public UnitBlueprint stats;
+    public Weapon weapon;
+    public Cohort cohort;
+    public float facing = 0;
+    public int meat = 0;
+    public int strikes = 3;
 
     void Awake () {
-        string prefab = gameObject.name;
-        prefab = prefab.Remove(prefab.IndexOf("("));
-        prefab = "Sprites/" + prefab;
+        string spriteAddress = gameObject.name;
+        spriteAddress = spriteAddress.Remove(spriteAddress.IndexOf("("));
+        spriteAddress = "Sprites/" + spriteAddress;
         if (photonView.Owner.ActorNumber == 1) {
-            GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(prefab + "_white");
+            transform.GetChild(2).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(spriteAddress + "_white");
         }
         else if (photonView.Owner.ActorNumber == 2) {
-            GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(prefab + "_orange");
+            transform.GetChild(2).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(spriteAddress + "_orange");
+        }
+        GetComponent<UnitBlueprint>().factionNumber = photonView.OwnerActorNr;
+        if (this.GetType() == typeof(Unit)) {
+            if (photonView.IsMine) {
+                gameObject.AddComponent<Unit_local>();
+
+            }
+            else {
+                gameObject.AddComponent<Unit_remote>();
+            }
+//If this were just Destroy(), then the component would persist through the next update cycle, and components would have trouble finding the instances of the generated subclasses.
+            DestroyImmediate(this);            
         }
     }
-    
-    void Start() {
-        gameState = GameObject.Find("Goliad").GetComponent<GameState>();
-        gameState.enlivenUnit(gameObject);
-        MeatReadout = transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
-    }
 
-    public int cost () {
-        return meatCost;
-    }
-    public virtual void activate () {
-        gameState.activateUnit(gameObject);
-        gameObject.transform.GetChild(0).gameObject.SetActive(true);
-        transform.GetChild(0).GetChild(0).GetComponent<RectTransform>().localScale = new Vector3(1,1,1) * (Camera.main.orthographicSize / 5);
-        Debug.Log("Unit activated.");
-    }
-
-    public virtual void deactivate () {
-        gameObject.transform.GetChild(0).gameObject.SetActive(false);
-        gameState.deactivateUnit(gameObject);
-        Debug.Log("Unit deactivated.");
-    }
-
-    public virtual bool addMeat (int toAdd) {
-        if (meat + toAdd < maxMeat) {
+    [PunRPC]
+    public void addMeat (int toAdd) {
+        if (meat + toAdd < stats.meatCapacity) {
             meat += toAdd;
-            MeatReadout.GetComponent<Text>().text = meat.ToString();
-            return true;
+            statusBar.updateBar();
         }
-        return false;
     }
 
-    public virtual void die() {
-        gameState.deadenUnit(gameObject);
-        GameObject orb = (GameObject)Resources.Load("Orb");
-        for (; meat > 0; --meat) {
-            Vector3 place = new Vector3(transform.position.x + Random.Range(-.1f, 0.1f), transform.position.y + Random.Range(-.5f, 0.5f), 0);
-            GameObject lastOrb = Instantiate(orb, place, transform.rotation);
-            lastOrb.GetComponent<Rigidbody2D>().AddForce((lastOrb.transform.position - transform.position).normalized * 2);
+    [PunRPC]
+    public void deductMeat (int toDeduct) {
+        if (meat - toDeduct >= 0) {
+            meat -= toDeduct;
+            statusBar.updateBar();
         }
-        Destroy(gameObject);
+    }
+
+    [PunRPC]
+    public virtual void takeHit (int power, PhotonView pViewOfAttacker) {  
+    }
+
+    [PunRPC]
+    public void deductStrike () {
+        if (--strikes <= 0) {
+            die();
+        }
+        statusBar.displayStrikes();
+    }
+
+    [PunRPC]
+    public virtual void die () {        
+    }
+
+    public int roomForMeat () {
+        return stats.meatCapacity - meat;
+    }
+
+    public IEnumerator updateFacing () {
+        while (true) {
+            Vector2 velocityNow = gameObject.GetComponent<Rigidbody2D>().velocity;
+            if (velocityNow != Vector2.zero) {
+                velocityNow.Normalize();
+                facing = Mathf.Atan2(velocityNow.y, velocityNow.x);
+                transform.GetChild(2).rotation = Quaternion.AxisAngle(Vector3.forward, facing - Mathf.PI * 1.5f);
+            }
+            yield return new WaitForSeconds(0.1f);
+        }        
     }
 }

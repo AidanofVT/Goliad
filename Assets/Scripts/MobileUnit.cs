@@ -3,16 +3,37 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class MobileUnit : Unit {
-    AidansMovementScript moveConductor;
+    protected AidansMovementScript moveConductor;
 
-    void Start () {
+    void Awake () {
+        string prefab = gameObject.name;
+        prefab = prefab.Remove(prefab.IndexOf("("));
+        prefab = "Sprites/" + prefab;
+        if (photonView.Owner.ActorNumber == 1) {
+            GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(prefab + "_white");
+        }
+        else if (photonView.Owner.ActorNumber == 2) {
+            GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(prefab + "_orange");
+        }
+        if (this.GetType() == typeof(MobileUnit)) {
+            Unit replacement = null;
+            if (photonView.IsMine) {
+                replacement = gameObject.AddComponent<MobileUnit_local>();
+
+            }
+            else {
+                replacement = gameObject.AddComponent<MobileUnit_remote>();
+            }
+            Destroy(this);            
+        }
+    }
+
+    private void Start() {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
-        moveConductor = gameObject.GetComponent<AidansMovementScript>();
-        gameState.enlivenUnit(gameObject);
-        gameObject.transform.hasChanged = false;
+        moveConductor = gameObject.GetComponent<AidansMovementScript>();        
     }
     
-    public void move (Vector3 target, Transform movingTransform = null) {
+    public virtual void move (Vector3 target, Transform movingTransform = null) {
         moveConductor.setDestination(target, movingTransform);
     }
 

@@ -4,6 +4,7 @@ using UnityEngine;
 public class GameState : MonoBehaviour
 {
     List<GameObject> activeUnits = new List<GameObject>();
+//aliveUnits is intended for alive ALLIED units.
     List<GameObject> aliveUnits = new List<GameObject>();
 
     //NOTE: CPU becomes a limitiation somewhere between one and ten million tiles on-screen. Memory usage is also significant.
@@ -35,6 +36,7 @@ public class GameState : MonoBehaviour
     public void deadenUnit (GameObject toRem) {
         //Debug.Log("Attempting to remove object from aliveUnits.");
         aliveUnits.Remove(toRem);
+        activeUnits.Remove(toRem);
     }
 
     public List<GameObject> getActiveUnits () {
@@ -51,7 +53,7 @@ public class GameState : MonoBehaviour
 
     public void clearActive () {
         foreach (GameObject unit in activeUnits.ToArray()) {
-            unit.GetComponent<Unit>().deactivate();
+            unit.GetComponent<Unit_local>().deactivate();
         }
         //Debug.Log("Clearactive called. activeUnits size = " + activeUnits.Count);
     }

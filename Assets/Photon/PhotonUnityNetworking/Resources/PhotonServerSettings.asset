@@ -39,6 +39,20 @@ MonoBehaviour:
   - Fire
   - RespawnSpaceship
   - changeMap
+  - addMeat
+  - die
+  - orderMobileUnit
+  - orderSheep
+  - orderShepherd
+  - slaughterSheep
+  - deductMeat
+  - transferOwnership
+  - hearChime
+  - displayStrikes
+  - incurStrike
+  - deductStrike
+  - takeHit
+  - move
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

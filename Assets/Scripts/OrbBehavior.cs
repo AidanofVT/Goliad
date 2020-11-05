@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
 public class OrbBehavior : MonoBehaviour {
 
@@ -12,88 +13,99 @@ public class OrbBehavior : MonoBehaviour {
 
     void Start () {
         body = GetComponent<Rigidbody2D>();
-        InvokeRepeating("launchStage", 0.1f, 0.1f);
-        Destroy(gameObject, 25);
+        //Destroy(gameObject, 25);
+        StartCoroutine("launchStage");
     }
 
-    void launchStage () {
-        if (body.velocity.magnitude < 0.5f) {
-            CancelInvoke("launchState");
-            GetComponent<Rigidbody2D>().velocity = new Vector3(0,0,0);
+    IEnumerator launchStage () {
+//This yield needs to be here because the object doesn't yet have velocity. forces don't get added immediately: we have to wait for coroutine-call-time in the next frame.
+        yield return null;
+        while (body.velocity.magnitude > 0.5f) {
+            yield return new WaitForSeconds(0.1f);
+        }
+            CancelInvoke("launchStage");
+            body.velocity = new Vector3(0,0,0);
             Destroy(body);
             CircleCollider2D localCollider = GetComponent<CircleCollider2D>();
-            localCollider.enabled = false;
-            localCollider.radius = 10;
-            localCollider.isTrigger = true;
             activeSearch();
-        }
-
+            localCollider.isTrigger = true;
+            localCollider.radius = 10;
     }
 
     void activeSearch () {
-        for (int radius = 5; radius <= 10; radius += 5) {
+        GameObject closest = null;
+        List <GameObject> nearbyCanTake = new List<GameObject>();
+        for (int radius = 3; radius <= 9; radius += 3) {
             Collider2D[] nearby = Physics2D.OverlapCircleAll(transform.position, radius);
-            List <GameObject> nearbyCanTake = new List<GameObject>();
             foreach (Collider2D something in nearby) {
-                if (something.gameObject.GetComponent<Unit>() != null && something.gameObject.GetComponent<Unit>().meat < something.gameObject.GetComponent<Unit>().maxMeat) {
+                if (something.gameObject.GetComponent<Unit>() != null && something.gameObject.GetComponent<Unit>().roomForMeat() > 0) {
                     nearbyCanTake.Add(something.gameObject);
                 }
             }
-            if (nearbyCanTake.Count == 0) {
-                gameObject.GetComponent<CircleCollider2D>().enabled = true;
-                return;                    
-            }
-            GameObject closest;
-            if (nearbyCanTake.Count == 1) {
-                closest = nearbyCanTake[0];
-            }
-            else {
+            if (nearbyCanTake.Count > 0) {
                 closest = nearbyCanTake[0];
                 for (int i = 1; i < nearbyCanTake.Count; ++i) {
                     if (Vector2.Distance(nearbyCanTake[i].transform.position, transform.position) < Vector2.Distance(closest.transform.position, transform.position)) {
                         closest = nearbyCanTake[i].gameObject;
                     }
                 }
+                break;
             }
+        }
+        if (closest != null) {
             target = closest.transform;
-            InvokeRepeating("goForIt", 0, 0.05f);
+            StopCoroutine("stopIt");
+            StartCoroutine("goForIt");
         }
     }
 
-    void goForIt () {
-        if (target.gameObject.GetComponent<Unit>().meat >= target.gameObject.GetComponent<Unit>().maxMeat) {
-            CancelInvoke("goForIt");
-            target = null;
-            positionLastTime = transform.position;
-            InvokeRepeating("stopIt", 0.1f, 0.1f);
-        }
-        if (speed < 20) {
-            speed += 0.5f;
-        }
-        direction = (target.position - transform.position);
-        if (direction.magnitude < 0.5) {
-            target.gameObject.GetComponent<Unit>().addMeat(1);
-            Destroy(gameObject);
-        }
-        transform.position += Time.deltaTime * speed * direction.normalized;
-    }
-
-    void stopIt () {
-        if (speed > 0.1f) {
-            speed *= 0.5f;
+    IEnumerator goForIt () {
+        while (true) {
+            if (target == null || target.gameObject.GetComponent<Unit>().roomForMeat() <= 0) {
+                StopCoroutine("goForIt");
+                target = null;
+                positionLastTime = transform.position;
+                StartCoroutine("stopIt");
+                yield return null;
+            }
+            direction = (target.position - transform.position);
+            if (direction.magnitude < 0.5) {
+                target.gameObject.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, 1);
+                PhotonNetwork.Destroy(gameObject);
+            }
+            if (speed < 12) {
+                speed += 15 * Time.deltaTime;
+            }
             transform.position += Time.deltaTime * speed * direction.normalized;
+            yield return new WaitForSeconds(0.05f);
         }
-        else {
-            speed = 0;
-            CancelInvoke("stopIt");
-            activeSearch();
+    }
+
+    IEnumerator stopIt () {
+        int cycler = 0;
+        while (true) {
+            if (speed > 0.1f) {
+                speed *= 0.75f;
+                transform.position += Time.deltaTime * speed * direction.normalized;
+            }
+            else {
+                speed = 0;
+                StopCoroutine("stopIt");
+            }
+            if (cycler % 5 == 0) {
+                activeSearch();
+            }
+            ++cycler;
+            yield return new WaitForSeconds(0.05f);
         }
     }
 
     void OnTriggerEnter2D(Collider2D other) {
-        if (other.gameObject.GetComponent<Unit>() != null) {
+        if (target == null
+        && other.gameObject.GetComponent<Unit>() != null
+        && other.gameObject.GetComponent<Unit>().roomForMeat() > 0) {
             target = other.transform;
-            InvokeRepeating("goForIt", 0, 0.05f);
+            StartCoroutine("goForIt");
         }
     }
 

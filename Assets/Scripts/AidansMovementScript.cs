@@ -9,10 +9,9 @@ public class AidansMovementScript : MonoBehaviour {
     Vector3 placetoGo;
     Transform transToFollow = null;
     Rigidbody2D body;
-    Vector3 positionOneSecondAgo;
 //this boolean isn't used by this script, but it is needed for other scripts to register what's going on. toggling path to null and back doesn't work: a new path is spontaneously created for some reason
     public bool isRunning = false;
-    public float speed = 2;
+    public float speed;
     public float changePointThreshhold = 0.5f;
     public float roundToArrived = 0.1f;
     int currentWaypoint = 0;
@@ -20,6 +19,7 @@ public class AidansMovementScript : MonoBehaviour {
     void Start() {
 //The seeker is the script that branches into all the A* pathfinding stuff
         seeker = GetComponent<Seeker>();
+        speed = GetComponent<UnitBlueprint>().speed;
         body = GetComponent<Rigidbody2D>();
     }
 
@@ -27,7 +27,8 @@ public class AidansMovementScript : MonoBehaviour {
         placetoGo = destination;
         transToFollow = movingTransform;
         InvokeRepeating("setRoute", 0, 2);       
-        InvokeRepeating("stuckCheck", 1, 1);
+        StartCoroutine("stuckCheck");
+        GetComponent<Unit>().StartCoroutine("updateFacing");
     }
 
     void setRoute () {
@@ -73,21 +74,26 @@ public class AidansMovementScript : MonoBehaviour {
         else {
             body.AddForce(body.velocity * -0.5f);
         }
-        //transform.position += dirNew * speed * Time.deltaTime;
-        positionOneSecondAgo = transform.position;
     }
 
-    void stuckCheck () {
-        Vector3 change = transform.position - positionOneSecondAgo;
-        if (change.magnitude < 0.1) {
-            Vector2 swayWay = (path.vectorPath[currentWaypoint] - transform.position).normalized;
-            float temp  = swayWay.x;
-            swayWay.x = swayWay.y;
-            swayWay.y = temp;
-            if (Random.value < 0.5) {
-                swayWay *= -1;
+    IEnumerator stuckCheck () {
+        Vector3 positionOneSecondAgo = transform.position;
+        yield return new WaitForSeconds(1);
+        while (true) {
+            Vector3 change = transform.position - positionOneSecondAgo;
+            if (change.magnitude < 0.1f) {
+                Debug.Log("jerking because this unit has moved " + change.magnitude + " in the last second.");
+                Vector2 swayWay = (path.vectorPath[currentWaypoint] - transform.position).normalized;
+                float temp  = swayWay.x;
+                swayWay.x = swayWay.y * -1;
+                swayWay.y = temp;
+                if (Random.value < 0.5) {
+                    swayWay *= -1;
+                }
+                body.AddForce(swayWay * 100);
             }
-            body.AddForce(swayWay * 10);
+            positionOneSecondAgo = transform.position;
+            yield return new WaitForSeconds(1);
         }
     }
 
@@ -95,11 +101,12 @@ public class AidansMovementScript : MonoBehaviour {
         return (desiredCourse - body.velocity);
     }
 
-    void terminatePathfinding () {
+    public void terminatePathfinding () {
         isRunning = false;
         CancelInvoke("moveAlong");
-        CancelInvoke("stuckCheck");
+        StopCoroutine("stuckCheck");
         CancelInvoke("setRoute");
+        GetComponent<Unit>().StopCoroutine("updateFacing");
         path = null;
         currentWaypoint = 0;
         transToFollow = null;

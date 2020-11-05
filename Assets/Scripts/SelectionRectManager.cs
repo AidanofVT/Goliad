@@ -64,17 +64,19 @@ public class SelectionRectManager : MonoBehaviour {
             if (thePosition.y <= topExtreme &&
                 thePosition.y >= bottomExtreme &&
                 thePosition.x >= leftExtreme &&
-                thePosition.x <= rightExtreme) {
+                thePosition.x <= rightExtreme &&
+                maybeInBounds.GetComponent<Unit_local>() != null) {
                 //Debug.Log("Object at " + thePosition + "accepted for activation.");
                 toActivate.Add(maybeInBounds);
             }
         }
         if (toActivate.Count > 0) {
             gameState.clearActive();
-            foreach (GameObject aboutToBeActivated in toActivate) {
-                aboutToBeActivated.GetComponent<Unit>().activate();
-            }
+
         }
+        foreach (GameObject aboutToBeActivated in toActivate) {
+            aboutToBeActivated.GetComponent<Unit_local>().activate();
+        }        
         return;
     }
 

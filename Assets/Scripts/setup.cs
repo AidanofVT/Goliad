@@ -16,7 +16,6 @@ public class setup : MonoBehaviourPunCallbacks {
         Physics2D.IgnoreLayerCollision(10, 8);
         Physics2D.IgnoreLayerCollision(5, 8);
         Physics2D.IgnoreLayerCollision(5, 11);
-        Physics2D.IgnoreLayerCollision(11, 8);
         Physics2D.queriesHitTriggers = false;
     }
 
@@ -41,16 +40,15 @@ public class setup : MonoBehaviourPunCallbacks {
     public override void OnJoinedRoom() {
         Debug.Log("Joined room " + PhotonNetwork.CurrentRoom.Name);
         int me = PhotonNetwork.LocalPlayer.ActorNumber ;
-        int distanceFromCenter = (int) (0.4f * (float) mapSize);
+        int distanceFromCenter = (int) (0.3f * (float) mapSize);
         Vector3 startPlace = Vector3.zero;
         if (me == 1) {
-            startPlace = new Vector3 (-distanceFromCenter, -distanceFromCenter, -.2f);
+            startPlace = new Vector3 (-distanceFromCenter, distanceFromCenter, -.2f);
         }
         else if (me == 2) {
-            startPlace = new Vector3 (distanceFromCenter, distanceFromCenter, -.2f);
+            startPlace = new Vector3 (distanceFromCenter, -distanceFromCenter, -.2f);
         }
-        Debug.Log("instantiating at " + startPlace);
-        PhotonNetwork.Instantiate("homebase", startPlace, Quaternion.identity);
+        PhotonNetwork.Instantiate("Units/homebase", startPlace, Quaternion.identity);
     }
 
     private void OnPlayerConnected() {

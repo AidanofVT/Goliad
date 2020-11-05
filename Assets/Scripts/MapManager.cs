@@ -21,9 +21,11 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
 
 
     void Start() {
-        ShortGrass = new tile_shortGrass();
-        dust = new tile_baren();
-        purple = new tile_purple();
+//the Tilebase class that these derive from is a scriptable object, a thing intended to save memory by having derived classes take references
+// to some standard data rather than having their own copies. They should be instantiated like this.
+        ShortGrass = (tile_shortGrass) ScriptableObject.CreateInstance("tile_shortGrass");
+        dust = (tile_baren) ScriptableObject.CreateInstance("tile_baren");
+        purple = (tile_purple) ScriptableObject.CreateInstance("tile_purple");
 //this arrangement is required: tilemaps must be on objects which are subordinate to an object with a grids.
         mapOfTiles = mapBasis.transform.GetChild(0).gameObject.GetComponent<Tilemap>();
 //arrays are by default passed as references! no special treatment is required for map to act as a reference variable. I checked: it's working.
@@ -42,8 +44,8 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
     void buildMap () {
         int sideLength = map.GetLength(0);
         GameObject.Find("Ground").GetComponent<BoxCollider2D>().size = new Vector2(sideLength, sideLength);
+        GameObject.Find("Perimeter").transform.localScale = new Vector3 (sideLength, sideLength, 1);
         AstarPath.active.data.gridGraph.SetDimensions(sideLength * 2, sideLength * 2, 0.5f);
-        AstarPath.active.Scan();
         for (int i = offset - 1; i >= offset * -1; i--) {
             for (int j = offset - 1; j >= offset * -1; j--) {
                 if ((i % 4 == 0 || i % 4 - 1 == 0) && (j % 4 == 0 || j % 4 - 1 == 0)) {
@@ -54,8 +56,8 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
                     mapOfTiles.SetTile(new Vector3Int(i,j,0), dust);
                 }
             }
-
         }
+        AstarPath.active.Scan();
     }
 
     public bool exploitPatch (Vector2Int targetPatch) {

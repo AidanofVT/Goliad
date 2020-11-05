@@ -55,22 +55,32 @@
   <ItemGroup>
      <Compile Include="Assets\Photon\PhotonRealtime\Demos\DemoLoadBalancing\ConnectAndJoinRandomLb.cs" />
      <Compile Include="Assets\Scripts\AidansMovementScript.cs" />
+     <Compile Include="Assets\Scripts\BarManager.cs" />
      <Compile Include="Assets\Scripts\CameraPanner.cs" />
      <Compile Include="Assets\Scripts\ClickHandler.cs" />
-     <Compile Include="Assets\Scripts\FactoryUnit.cs" />
+     <Compile Include="Assets\Scripts\Cohort.cs" />
+     <Compile Include="Assets\Scripts\Dog_Weapon.cs" />
+     <Compile Include="Assets\Scripts\factory_functions.cs" />
      <Compile Include="Assets\Scripts\GameState.cs" />
      <Compile Include="Assets\Scripts\independentUnit.cs" />
      <Compile Include="Assets\Scripts\MapManager.cs" />
      <Compile Include="Assets\Scripts\MobileUnit.cs" />
+     <Compile Include="Assets\Scripts\MobileUnit_local.cs" />
+     <Compile Include="Assets\Scripts\MobileUnit_remote.cs" />
      <Compile Include="Assets\Scripts\OrbBehavior.cs" />
      <Compile Include="Assets\Scripts\SelectionRectManager.cs" />
      <Compile Include="Assets\Scripts\setup.cs" />
-     <Compile Include="Assets\Scripts\SheepBehavior.cs" />
+     <Compile Include="Assets\Scripts\SheepBehavior_Base.cs" />
+     <Compile Include="Assets\Scripts\SheepBehavior_Local.cs" />
      <Compile Include="Assets\Scripts\ShepherdFunction.cs" />
      <Compile Include="Assets\Scripts\tile_baren.cs" />
      <Compile Include="Assets\Scripts\tile_purple.cs" />
      <Compile Include="Assets\Scripts\tile_shortGrass.cs" />
      <Compile Include="Assets\Scripts\Unit.cs" />
+     <Compile Include="Assets\Scripts\Unit_local.cs" />
+     <Compile Include="Assets\Scripts\Unit_remote.cs" />
+     <Compile Include="Assets\Scripts\UnitBlueprint.cs" />
+     <Compile Include="Assets\Scripts\Weapon.cs" />
      <None Include="Assets\Photon\PhotonLibs\netstandard2.0\Photon3Unity3D.xml" />
      <None Include="Assets\Photon\PhotonLibs\changes-library.txt" />
      <None Include="Assets\Photon\PhotonUnityNetworking\link.xml" />
@@ -296,6 +306,12 @@
  <Reference Include="Pathfinding.Ionic.Zip.Reduced">
  <HintPath>C:/Users/Aidan/Desktop/Proto-RTS/Assets/AstarPathfindingProject/Plugins/DotNetZip/Pathfinding.Ionic.Zip.Reduced.dll</HintPath>
  </Reference>
+ <Reference Include="Photon3Unity3D">
+ <HintPath>C:/Users/Aidan/Desktop/Proto-RTS/Assets/Photon/PhotonLibs/Photon3Unity3D.dll</HintPath>
+ </Reference>
+ <Reference Include="websocket-sharp">
+ <HintPath>C:/Users/Aidan/Desktop/Proto-RTS/Assets/Photon/PhotonLibs/WebSocket/websocket-sharp.dll</HintPath>
+ </Reference>
  <Reference Include="Unity.Analytics.Editor">
  <HintPath>C:/Users/Aidan/Desktop/Proto-RTS/Library/PackageCache/com.unity.analytics@3.2.2/Unity.Analytics.Editor.dll</HintPath>
  </Reference>
@@ -304,12 +320,6 @@
  </Reference>
  <Reference Include="Unity.Analytics.Tracker">
  <HintPath>C:/Users/Aidan/Desktop/Proto-RTS/Library/PackageCache/com.unity.analytics@3.2.2/Unity.Analytics.Tracker.dll</HintPath>
- </Reference>
- <Reference Include="Photon3Unity3D">
- <HintPath>C:/Users/Aidan/Desktop/Proto-RTS/Assets/Photon/PhotonLibs/Photon3Unity3D.dll</HintPath>
- </Reference>
- <Reference Include="websocket-sharp">
- <HintPath>C:/Users/Aidan/Desktop/Proto-RTS/Assets/Photon/PhotonLibs/WebSocket/websocket-sharp.dll</HintPath>
  </Reference>
  <Reference Include="netstandard">
  <HintPath>F:/Documents/Apps and App Files/Unity Engine/2018.4.12f1/Editor/Data/NetStandard/ref/2.0.0/netstandard.dll</HintPath>
@@ -658,12 +668,6 @@
  </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="AstarPathfindingProject.csproj">
-      <Project>{C9B51246-E1D2-C5F4-EE68-7E054D3C976C}</Project>      <Name>AstarPathfindingProject</Name>    </ProjectReference>
-    <ProjectReference Include="PackageToolsEditor.csproj">
-      <Project>{FEE3EB53-0E5D-A40B-69A1-C2CFB7F82227}</Project>      <Name>PackageToolsEditor</Name>    </ProjectReference>
-    <ProjectReference Include="AstarPathfindingProjectEditor.csproj">
-      <Project>{267BEB0F-50B3-0F4A-460C-66743D6D5656}</Project>      <Name>AstarPathfindingProjectEditor</Name>    </ProjectReference>
     <ProjectReference Include="PhotonUnityNetworking.Utilities.PhotonPlayer.Editor.csproj">
       <Project>{C17D974F-9B00-9384-11B7-593186FB1D74}</Project>      <Name>PhotonUnityNetworking.Utilities.PhotonPlayer.Editor</Name>    </ProjectReference>
     <ProjectReference Include="PunDemos.DemoHubEditor.csproj">
@@ -674,6 +678,12 @@
       <Project>{6956363A-E0E8-5053-D4F6-8DAD2E97E748}</Project>      <Name>PhotonUnityNetworking.Demos</Name>    </ProjectReference>
     <ProjectReference Include="PhotonUnityNetworking.Utilities.csproj">
       <Project>{83D860F1-D6FA-281C-831F-92F0BAE8CED4}</Project>      <Name>PhotonUnityNetworking.Utilities</Name>    </ProjectReference>
+    <ProjectReference Include="AstarPathfindingProject.csproj">
+      <Project>{C9B51246-E1D2-C5F4-EE68-7E054D3C976C}</Project>      <Name>AstarPathfindingProject</Name>    </ProjectReference>
+    <ProjectReference Include="PackageToolsEditor.csproj">
+      <Project>{FEE3EB53-0E5D-A40B-69A1-C2CFB7F82227}</Project>      <Name>PackageToolsEditor</Name>    </ProjectReference>
+    <ProjectReference Include="AstarPathfindingProjectEditor.csproj">
+      <Project>{267BEB0F-50B3-0F4A-460C-66743D6D5656}</Project>      <Name>AstarPathfindingProjectEditor</Name>    </ProjectReference>
     <ProjectReference Include="PhotonWebSocket.csproj">
       <Project>{69DFAFE9-7C8F-7846-1DFC-2006CA01272F}</Project>      <Name>PhotonWebSocket</Name>    </ProjectReference>
     <ProjectReference Include="PhotonRealtime.csproj">
