@@ -43,8 +43,11 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
 //buildMap is necessary, but its implementation is negotiable. this is the method to alter to change the map construction.
     void buildMap () {
         int sideLength = map.GetLength(0);
-        GameObject.Find("Ground").GetComponent<BoxCollider2D>().size = new Vector2(sideLength, sideLength);
-        GameObject.Find("Perimeter").transform.localScale = new Vector3 (sideLength, sideLength, 1);
+        GameObject ground = GameObject.Find("Ground");
+        ground.GetComponent<BoxCollider2D>().size = new Vector2(sideLength, sideLength);
+        ground.transform.GetChild(1).localScale = new Vector3 (sideLength, sideLength, 1);
+//the perimeter needs to start off deactivated to stop the A* system from marking the middle of the map non-navigable.
+        ground.transform.GetChild(1).gameObject.SetActive(true);
         AstarPath.active.data.gridGraph.SetDimensions(sideLength * 2, sideLength * 2, 0.5f);
         for (int i = offset - 1; i >= offset * -1; i--) {
             for (int j = offset - 1; j >= offset * -1; j--) {

@@ -37,15 +37,16 @@ public class Unit_local : Unit {
     }
 
     [PunRPC]
-    public override void takeHit (int power, PhotonView pViewOfAttacker) {
+    public override void takeHit (int power) {
         int roll = Random.Range(0, stats.toughness);
         if (roll + power >= stats.toughness) {
             photonView.RPC("deductStrike", RpcTarget.All);
-            takeHit(roll + power - stats.toughness, pViewOfAttacker);
+            takeHit(roll + power - stats.toughness);
         }    
     }
 
     public void attack (GameObject target) {
+        Debug.Log("unit attacking");
         weapon.engage(target);
     }
 

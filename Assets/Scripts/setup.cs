@@ -48,7 +48,17 @@ public class setup : MonoBehaviourPunCallbacks {
         else if (me == 2) {
             startPlace = new Vector3 (distanceFromCenter, -distanceFromCenter, -.2f);
         }
-        PhotonNetwork.Instantiate("Units/homebase", startPlace, Quaternion.identity);
+        GameObject home = PhotonNetwork.Instantiate("Units/homebase", startPlace, Quaternion.identity);
+        StartCoroutine("step2", home);
+    }
+
+    IEnumerator step2 (GameObject home) {
+        yield return new WaitForSeconds(0);
+        AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
+        GameObject dog = home.GetComponent<factory_functions>().orderDog();
+        Debug.Log("setup: " + (dog != null));     
+        dog.GetComponent<Unit>().meat = 1;
+        dog.transform.position = home.transform.position / 4;
     }
 
     private void OnPlayerConnected() {

@@ -6,40 +6,41 @@ using Photon.Pun;
 
 public class Weapon : MonoBehaviour {
 
-    public int power;
-    public int range;
-    public float reloadTime;
+    protected int power;
+    protected int range;
+    protected float reloadTime;
     protected CircleCollider2D rangeCircle;
     protected bool treatAsMobile;
     protected AidansMovementScript legs;
     protected Unit thisUnit;
-    float timeOfLastFire;
-    GameObject target;
+    protected float timeOfLastFire;
+    protected GameObject target;
 
     void Start() {
         if (GetType() == Type.GetType("Weapon")) {
-            Weapon replacement = (Weapon) gameObject.AddComponent(Type.GetType(gameObject.name + "_Weapon"));
-            replacement.setUp(power, range, reloadTime);
+            string weaponName = transform.parent.gameObject.name;
+            weaponName = weaponName.Remove(weaponName.IndexOf("("));
+            weaponName += "_Weapon";
+            gameObject.AddComponent(Type.GetType(weaponName));
             DestroyImmediate(this);
         }
-        if (GetComponentInParent<UnitBlueprint>().isMobile == true) {
-            treatAsMobile = true;
-            legs = GetComponentInParent<AidansMovementScript>();
+        else {
+            thisUnit = GetComponentInParent<Unit>();
+            thisUnit.weapon = this;
+            power = thisUnit.stats.weapon_power;
+            range = thisUnit.stats.weapon_range;
+            reloadTime = thisUnit.stats.weapon_reloadTime;
+            if (GetComponentInParent<UnitBlueprint>().isMobile == true) {
+                treatAsMobile = true;
+                legs = GetComponentInParent<AidansMovementScript>();
+            }
+            rangeCircle = GetComponent<CircleCollider2D>();
+            rangeCircle.radius = range;
         }
-        rangeCircle = GetComponent<CircleCollider2D>();
-        rangeCircle.radius = range;
-        thisUnit = GetComponentInParent<Unit>();
-        thisUnit.weapon = this;
-    }
-
-    public void setUp (int powerIn, int rangeIn, float reloadTimeIn) {
-        power = powerIn;
-        range = rangeIn;
-        reloadTime = reloadTimeIn;
     }
 
     void OnTriggerEnter2D(Collider2D other) {
-        if (other == target) {
+        if (other.gameObject == target) {
             StartCoroutine("fire");
             if (treatAsMobile) {
                 legs.Invoke("terminatePathfinding", 0.5f);
@@ -65,7 +66,7 @@ public class Weapon : MonoBehaviour {
     }
 
     public virtual IEnumerator fire () {
-        while (target.activeInHierarchy == true) {
+        while (target != null) {
             doIt();
             yield return new WaitForSeconds(reloadTime + 0.001f);
         }

@@ -8,6 +8,7 @@ public class MobileUnit_remote : Unit_remote {
 
     void Start () {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
+        transform.GetChild(1).gameObject.SetActive(true);
         statusBar = transform.GetChild(1).GetComponent<BarManager>();
         statusBar.gameObject.GetComponent<SpriteRenderer>().sprite = null;
         stats = GetComponent<UnitBlueprint>();

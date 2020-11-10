@@ -16,9 +16,11 @@ public class Cohort {
             }
             unit.cohort = this;
         }
+        Debug.Log("cohort created with " + members.Count + " members");
     }
 
     public void commenceAttack (GameObject getIt) {
+        Debug.Log("cohort launching attack");
         foreach (Unit_local unit in armedMembers) {
             unit.attack(getIt);
         }

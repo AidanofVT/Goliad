@@ -5,26 +5,33 @@ using Photon.Pun;
 public class factory_functions : MonoBehaviourPun {
     int locationCycler = 0;
     GameState gameState;
-    GameObject MeatReadout;
+    //GameObject MeatReadout;
 
     void Start () {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
-        MeatReadout = transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
+        //MeatReadout = transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
     }
 
-    public void orderMobileUnit() {
-        makeUnit("MobileUnitPrefab");
+    public GameObject orderMobileUnit() {
+        return makeUnit("MobileUnitPrefab");
     }
 
-    public void orderSheep () {
-        makeUnit("Sheep");
+    public GameObject orderSheep () {
+        return makeUnit("Sheep");
     }
 
-    public void orderShepherd () {
-        makeUnit("Shepherd");
+    public GameObject orderShepherd () {
+        return makeUnit("Shepherd");
     }
 
-    public void makeUnit (string unitType) {
+    public GameObject orderDog () {
+        GameObject dog = makeUnit("Dog");
+        Debug.Log("orderDog: " + (dog != null));
+        return dog;
+    }
+
+    public GameObject makeUnit (string unitType) {
+        GameObject toReturn = null;
         unitType = "Units/" + unitType;
         int expense = ((GameObject)Resources.Load(unitType)).GetComponent<UnitBlueprint>().costToBuild;
         Unit factoryUnit = gameObject.GetComponent<Unit>();
@@ -36,11 +43,13 @@ public class factory_functions : MonoBehaviourPun {
             if (factoryUnit.meat >= expense) {
 //In the future, there needs to be a mechanism to detect whether the space around the factory is obstructed, and probably to move those obstructing units. I'd suggest making makeUnit return a boolean
 //which will be false as long as the space is obstructed, and then have the ordering method handle the subsiquent calls and the moving of units.
-                PhotonNetwork.Instantiate(unitType, gameObject.transform.position + nextOutputLocation(), Quaternion.identity);
+                toReturn = PhotonNetwork.Instantiate(unitType, gameObject.transform.position + nextOutputLocation(), Quaternion.identity);
                 factoryUnit.deductMeat(expense);
             }
-            MeatReadout.GetComponent<Text>().text = factoryUnit.meat.ToString();
+            //MeatReadout.GetComponent<Text>().text = factoryUnit.meat.ToString();
         }
+        Debug.Log("makeUnit: " + (toReturn != null));
+        return toReturn;
     }
 
     Vector3 nextOutputLocation () {

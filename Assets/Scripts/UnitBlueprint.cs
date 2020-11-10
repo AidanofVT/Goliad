@@ -18,4 +18,10 @@ public class UnitBlueprint : MonoBehaviour {
 
     public int toughness;
 
+    public int weapon_power;
+
+    public int weapon_range;
+
+    public int weapon_reloadTime;
+
 }

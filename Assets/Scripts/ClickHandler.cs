@@ -31,6 +31,7 @@ public class ClickHandler : MonoBehaviour {
         switch (thingClicked.tag) {
             case "unit":
                 if (thingClicked.GetComponent<PhotonView>().OwnerActorNr != PhotonNetwork.LocalPlayer.ActorNumber) {
+                    Debug.Log("clickhandler");
                     List<Unit_local> members = new List<Unit_local>();
                     foreach (GameObject gOb in gameState.getActiveUnits()) {
                         members.Add(gOb.GetComponent<Unit_local>());

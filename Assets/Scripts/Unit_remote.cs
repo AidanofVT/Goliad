@@ -15,6 +15,7 @@ public class Unit_remote : Unit {
     }
 
     void Start() {
+        transform.GetChild(1).gameObject.SetActive(true);
         statusBar = transform.GetChild(1).GetComponent<BarManager>();
         Destroy(statusBar.gameObject.GetComponent<SpriteRenderer>());
         int radius = Mathf.CeilToInt(GetComponent<CircleCollider2D>().radius);

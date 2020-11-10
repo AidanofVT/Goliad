@@ -54,7 +54,7 @@ public class Unit : MonoBehaviourPun {
     }
 
     [PunRPC]
-    public virtual void takeHit (int power, PhotonView pViewOfAttacker) {  
+    public virtual void takeHit (int power) {  
     }
 
     [PunRPC]
