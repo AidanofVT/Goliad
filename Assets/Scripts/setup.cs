@@ -55,10 +55,10 @@ public class setup : MonoBehaviourPunCallbacks {
     IEnumerator step2 (GameObject home) {
         yield return new WaitForSeconds(0);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
-        GameObject dog = home.GetComponent<factory_functions>().orderDog();
-        Debug.Log("setup: " + (dog != null));     
-        dog.GetComponent<Unit>().meat = 1;
+        GameObject dog = home.GetComponent<factory_functions>().makeUnit("Dog");
         dog.transform.position = home.transform.position / 4;
+        // yield return new WaitForSeconds(1);
+        // dog.GetComponent<Unit>().die();
     }
 
     private void OnPlayerConnected() {

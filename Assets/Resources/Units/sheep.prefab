@@ -63,6 +63,9 @@ MonoBehaviour:
   meatCapacity: 30
   startingMeat: 0
   toughness: 0
+  weapon_power: 0
+  weapon_range: 0
+  weapon_reloadTime: 0
 --- !u!114 &3906374602848986028
 MonoBehaviour:
   m_ObjectHideFlags: 0

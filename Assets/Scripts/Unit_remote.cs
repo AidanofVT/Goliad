@@ -14,10 +14,8 @@ public class Unit_remote : Unit {
         }
     }
 
-    void Start() {
-        transform.GetChild(1).gameObject.SetActive(true);
-        statusBar = transform.GetChild(1).GetComponent<BarManager>();
-        Destroy(statusBar.gameObject.GetComponent<SpriteRenderer>());
+    public override void ignition () {
+        statusBar.gameObject.GetComponent<SpriteRenderer>().sprite = null;
         int radius = Mathf.CeilToInt(GetComponent<CircleCollider2D>().radius);
         AstarPath.active.UpdateGraphs(new Bounds(transform.position, new Vector3 (radius, radius, 1)));
     }

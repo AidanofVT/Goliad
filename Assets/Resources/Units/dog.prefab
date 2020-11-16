@@ -283,7 +283,7 @@ MonoBehaviour:
   speed: 5
   costToBuild: 30
   meatCapacity: 10
-  startingMeat: 0
+  startingMeat: 6
   toughness: 60
   weapon_power: 20
   weapon_range: 3
@@ -454,7 +454,7 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: -0.2}
   m_LocalScale: {x: 0.06, y: 0.06, z: 1}
   m_Children:
-  - {fileID: 1064180775222001032}
+  - {fileID: 5054502412706252721}
   - {fileID: 1064180774353914314}
   m_Father: {fileID: 1064180774609560602}
   m_RootOrder: 0
@@ -532,7 +532,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1064180775222001032}
+  - component: {fileID: 5054502412706252721}
   m_Layer: 0
   m_Name: Dynamically-sized elements
   m_TagString: Untagged
@@ -540,7 +540,7 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!224 &1064180775222001032
+--- !u!224 &5054502412706252721
 RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

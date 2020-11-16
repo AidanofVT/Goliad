@@ -4,15 +4,15 @@ using UnityEngine.UI;
 using Photon.Pun;
 
 public class MobileUnit_local : Unit_local {
-    GameObject MeatReadout;
     AidansMovementScript moveConductor;
 
-    void Start () {
+    void Awake() {
+        stats = GetComponent<UnitBlueprint>();
+    }
+
+    public override void ignition () {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
         gameState.enlivenUnit(gameObject);
-        transform.GetChild(1).gameObject.SetActive(true);
-        statusBar = transform.GetChild(1).GetComponent<BarManager>();
-        stats = GetComponent<UnitBlueprint>();
         moveConductor = GetComponent<AidansMovementScript>();
     }
 

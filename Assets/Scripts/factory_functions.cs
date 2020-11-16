@@ -12,22 +12,20 @@ public class factory_functions : MonoBehaviourPun {
         //MeatReadout = transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
     }
 
-    public GameObject orderMobileUnit() {
-        return makeUnit("MobileUnitPrefab");
+    public void orderDog () {
+        makeUnit("Dog");
     }
 
-    public GameObject orderSheep () {
-        return makeUnit("Sheep");
+    public void orderHoplite () {
+        makeUnit("Hoplite");
     }
 
-    public GameObject orderShepherd () {
-        return makeUnit("Shepherd");
+    public void orderSheep () {
+        makeUnit("Sheep");
     }
 
-    public GameObject orderDog () {
-        GameObject dog = makeUnit("Dog");
-        Debug.Log("orderDog: " + (dog != null));
-        return dog;
+    public void orderShepherd () {
+        makeUnit("Shepherd");
     }
 
     public GameObject makeUnit (string unitType) {
@@ -48,7 +46,6 @@ public class factory_functions : MonoBehaviourPun {
             }
             //MeatReadout.GetComponent<Text>().text = factoryUnit.meat.ToString();
         }
-        Debug.Log("makeUnit: " + (toReturn != null));
         return toReturn;
     }
 
@@ -66,7 +63,6 @@ public class factory_functions : MonoBehaviourPun {
 
     [PunRPC]
     public void slaughterSheep () {
-        Debug.Log("slaughtersheep");
         foreach (Collider2D contact in Physics2D.OverlapCircleAll(transform.position, 15)) {
             if (contact.GetComponent<SheepBehavior_Base>() != null) {
                 contact.GetComponent<Unit>().die();

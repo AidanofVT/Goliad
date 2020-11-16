@@ -19,6 +19,7 @@ public class SheepBehavior_Base : MonoBehaviourPun {
 
     [PunRPC]
     public void transferOwnership (Player newOwner, int [] flockPhotonViews, int [] farFlockPhotonViews, Vector2 flockCenter, int shepherdphotonView, Vector3 currentMostAppealingPatch) {
+        Debug.Log("transferOwnership");
         if (photonView.IsMine) {
             gameObject.AddComponent<SheepBehavior_Base>();
             photonView.TransferOwnership(newOwner);

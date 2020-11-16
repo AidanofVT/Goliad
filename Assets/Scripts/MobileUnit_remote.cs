@@ -6,12 +6,11 @@ using Photon.Pun;
 public class MobileUnit_remote : Unit_remote {
     AidansMovementScript moveConductor;
 
-    void Start () {
-        gameState = GameObject.Find("Goliad").GetComponent<GameState>();
-        transform.GetChild(1).gameObject.SetActive(true);
-        statusBar = transform.GetChild(1).GetComponent<BarManager>();
-        statusBar.gameObject.GetComponent<SpriteRenderer>().sprite = null;
+    void Awake () {
         stats = GetComponent<UnitBlueprint>();
+    }
+
+    public override void ignition () {
         moveConductor = GetComponent<AidansMovementScript>();
     }
 

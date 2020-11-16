@@ -20,7 +20,7 @@ public class BarManager : MonoBehaviourPun {
     }
 
     public void updateBar () {
-        GetComponent<SpriteRenderer>().size = new Vector2(0.75f * (float) thisUnit.meat /  (float) denominator, 0.08f);
+        GetComponent<SpriteRenderer>().size = new Vector2(0.75f * (float) thisUnit.meat / (float) denominator, 0.08f);
     }
 
     [PunRPC]

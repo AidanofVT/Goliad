@@ -19,15 +19,12 @@ public class OrbBehavior_Local : OrbBehavior_Base {
     IEnumerator launchStage () {
 //This yield needs to be here because the object doesn't yet have velocity. forces don't get added immediately: we have to wait for coroutine-call-time in the next frame.
         yield return null;
-        Debug.Log("before loop");
         while (body.velocity.magnitude > 0.5f) {
-            Debug.Log("in loop");
             yield return new WaitForSeconds(0.1f);
         }
-            Debug.Log("after loop");
             CancelInvoke("launchStage");
             activeSearch();
-            parachute();
+            photonView.RPC("parachute", RpcTarget.All);
     }
 
     void activeSearch () {
@@ -64,7 +61,7 @@ public class OrbBehavior_Local : OrbBehavior_Base {
                 target = null;
                 positionLastTime = transform.position;
                 StartCoroutine("stopIt");
-                yield return null;
+                break;
             }
             direction = (target.position - transform.position);
             if (direction.magnitude < 0.5) {

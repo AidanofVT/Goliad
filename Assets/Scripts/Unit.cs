@@ -37,9 +37,20 @@ public class Unit : MonoBehaviourPun {
         }
     }
 
+    public virtual void Start () {
+        statusBar = transform.GetChild(1).GetComponent<BarManager>();
+//this needs to be here, rather than in Awake, so that if there's starting meat then the BarManager sees the right abount of meat when it wakes up
+        statusBar.gameObject.SetActive(true);
+        addMeat(stats.startingMeat);
+        ignition();
+    }
+
+    public virtual void ignition () {
+    }
+
     [PunRPC]
     public void addMeat (int toAdd) {
-        if (meat + toAdd < stats.meatCapacity) {
+        if (meat + toAdd <= stats.meatCapacity) {
             meat += toAdd;
             statusBar.updateBar();
         }

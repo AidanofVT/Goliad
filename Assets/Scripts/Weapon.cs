@@ -68,7 +68,7 @@ public class Weapon : MonoBehaviour {
     public virtual IEnumerator fire () {
         while (target != null) {
             doIt();
-            yield return new WaitForSeconds(reloadTime + 0.001f);
+            yield return new WaitForSeconds(reloadTime);
         }
         target = null;
         rangeCircle.enabled = false;
