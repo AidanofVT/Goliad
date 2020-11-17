@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using Photon.Pun;
 
 public class MobileUnit_local : Unit_local {
-    AidansMovementScript moveConductor;
+    protected AidansMovementScript moveConductor;
 
     void Awake() {
         stats = GetComponent<UnitBlueprint>();

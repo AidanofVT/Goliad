@@ -10,14 +10,14 @@ GameObject:
   m_Component:
   - component: {fileID: 3906374602848986194}
   - component: {fileID: 593793822465630345}
+  - component: {fileID: 7358363340549563705}
+  - component: {fileID: 114800306687386892}
   - component: {fileID: 3906374602848986028}
-  - component: {fileID: 114034169350006862}
   - component: {fileID: 686911080133548533}
   - component: {fileID: 3906374602848986031}
   - component: {fileID: 3906374602848986024}
   - component: {fileID: 3906374602848986025}
   - component: {fileID: 3906374602848986026}
-  - component: {fileID: 7358363340549563705}
   - component: {fileID: 9070210399751897335}
   m_Layer: 11
   m_Name: sheep
@@ -62,10 +62,50 @@ MonoBehaviour:
   costToBuild: 10
   meatCapacity: 30
   startingMeat: 0
-  toughness: 0
+  toughness: 30
   weapon_power: 0
   weapon_range: 0
   weapon_reloadTime: 0
+--- !u!114 &7358363340549563705
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3906374602848986027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  observableSearch: 2
+  Synchronization: 3
+  OwnershipTransfer: 1
+  ObservedComponents:
+  - {fileID: 9070210399751897335}
+  viewIdField: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
+--- !u!114 &114800306687386892
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3906374602848986027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a1cbbeb90eac741ade2d4fd4d73158, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stats: {fileID: 0}
+  weapon: {fileID: 0}
+  facing: 0
+  meat: 0
+  strikes: 3
 --- !u!114 &3906374602848986028
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -82,23 +122,6 @@ MonoBehaviour:
   speed: 2
   changePointThreshhold: 0.5
   roundToArrived: 0.2
---- !u!114 &114034169350006862
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3906374602848986027}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 17f8fb25833c19b49b1c29044c1b73f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stats: {fileID: 0}
-  weapon: {fileID: 0}
-  facing: 0
-  meat: 0
-  strikes: 3
 --- !u!114 &686911080133548533
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -192,29 +215,6 @@ MonoBehaviour:
   tagPenalties: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   graphMask:
     value: -1
---- !u!114 &7358363340549563705
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3906374602848986027}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  observableSearch: 2
-  Synchronization: 3
-  OwnershipTransfer: 1
-  ObservedComponents:
-  - {fileID: 9070210399751897335}
-  viewIdField: 0
-  InstantiationId: 0
-  isRuntimeInstantiated: 0
 --- !u!114 &9070210399751897335
 MonoBehaviour:
   m_ObjectHideFlags: 0

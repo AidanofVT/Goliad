@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
@@ -8,7 +9,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
     GameObject Goliad;
     GameState gameState;
     AidansMovementScript legs;
-    MobileUnit_remote thisSheep;
+    public NeutralUnit thisSheep;
 
     List<GameObject> flock = new List<GameObject>();
     List<GameObject> farFlock = new List<GameObject>();
@@ -21,32 +22,22 @@ public class SheepBehavior_Local : SheepBehavior_Base
     Vector3 currentMostAppealingPatch;
 
     void Awake() {
+        Debug.Log("local sheep awake");
         Goliad = GameObject.Find("Goliad");
         gameState = Goliad.GetComponent<GameState>();
         legs = gameObject.GetComponent<AidansMovementScript>();
-        thisSheep = GetComponent<MobileUnit_remote>();
 //a positive z value sholud be used as an indicator that the targetPatch variable is inactive
         currentMostAppealingPatch = transform.position + new Vector3(0,0,1000);
         flock.Add(gameObject);
+        StartCoroutine("Start2");
+    }
+
+    IEnumerator Start2 () {
+        yield return new WaitForSeconds(0);
+        thisSheep = GetComponent<NeutralUnit>();
         thisSheep.facing = Random.Range(-1, 1);
         InvokeRepeating("updateFlockCenter", 0.1f, 5);
         InvokeRepeating("idle", 0.2f, 1.0f);
-    }
-
-    public void configure (int [] flockPhotonViews, int [] farFlockPhotonViews, Vector2 incomingFlockCenter, int shepherdphotonView, Vector3 incomingMostAppealingPatch) {
-        foreach (int id in flockPhotonViews) {
-            flock.Add(PhotonNetwork.GetPhotonView(id).gameObject);
-        }
-        foreach (int id in farFlockPhotonViews) {
-            farFlock.Add(PhotonNetwork.GetPhotonView(id).gameObject);
-        }
-        flockCenter = incomingFlockCenter;
-        shepherd = PhotonNetwork.GetPhotonView(shepherdphotonView).gameObject;
-        shepherdMultiplier = 3;
-        for (int i = 0; i < shepherdMultiplier; ++i) {
-            Invoke("decayShepherdPower", 7);
-        }
-        currentMostAppealingPatch = incomingMostAppealingPatch;
     }
 
     void idle () {
@@ -218,30 +209,25 @@ public class SheepBehavior_Local : SheepBehavior_Base
 
     [PunRPC]
     public override void hearChime (int chimerPhotonID) {
-        Debug.Log("Shepherd changing.");
+        PhotonNetwork.Instantiate("bite", transform.position, Quaternion.identity);
         GameObject chimer = PhotonNetwork.GetPhotonView(chimerPhotonID).gameObject;
         if (chimer != shepherd) {
-            if (shepherd != null) {
+            int newFactionNumber = chimer.GetPhotonView().Owner.ActorNumber;
+            if (shepherd == null) {
+                photonView.RPC("changeFaction", RpcTarget.All, newFactionNumber);
+            }
+            else {
                 shepherd.GetComponent<ShepherdFunction>().flock.Remove(gameObject);
+                if (newFactionNumber != shepherd.GetPhotonView().Owner.ActorNumber) {
+                    photonView.RPC("changeFaction", RpcTarget.All, newFactionNumber);
+                }
             }
             shepherdMultiplier = 1;           
             shepherd = chimer;
-            if (shepherd.GetComponent<PhotonView>().IsMine == false) {
-//the array size is one smaller than the flock, and iterator here is 1, because the sheep is already in it's own flock
-                int[] flockPhotonIDs = new int[flock.Count - 1];
-                for (int i = 1; i < flock.Count - 1; ++i) {
-                    flockPhotonIDs[i] = flock[i].GetPhotonView().ViewID;
-                }
-                int[] farFlockPhotonIDs = new int[farFlock.Count];
-                for (int i = 0; i < farFlock.Count - 1; ++i) {
-                    farFlockPhotonIDs[i] = farFlock[i].GetPhotonView().ViewID;
-                }
-                photonView.RPC("transferOwnership", RpcTarget.All, shepherd.GetPhotonView().Owner, flockPhotonIDs, farFlockPhotonIDs, flockCenter, chimerPhotonID, currentMostAppealingPatch);
-            }
-            //Debug.Log("New shepherd ID: " + chimerPhotonID + "\nPlayer ID: " + PhotonNetwork.GetPhotonView(chimerPhotonID).Owner.ActorNumber);
         }
         shepherdMultiplier *= 2;
         updateFlockCenter();
+        Debug.Log("chime heard");
         Invoke("decayShepherdPower", 7);
     }
 
@@ -264,7 +250,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
         }
 //we have to deduct 1 from the divisors because we're adding multipliers, and if they're both 1 we want the divisor to still be 1.
         flockCenter = new Vector2 (there.x / (flock.Count + shepherdMultiplier - 1), there.y / (flock.Count + shepherdMultiplier - 1));
-        //Debug.Log("Flockcenter updated. Now " + Vector2.Distance(transform.position, flockCenter) + " away at " + flockCenter + ". Shepherd power = " + shepherdMultiplier);
+        Debug.Log("Flockcenter updated. Now " + Vector2.Distance(transform.position, flockCenter) + " away at " + flockCenter + ". Shepherd power = " + shepherdMultiplier);
     }
 
     void safetyNudge () {

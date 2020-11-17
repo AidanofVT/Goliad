@@ -67,6 +67,7 @@
      <Compile Include="Assets\Scripts\MapManager.cs" />
      <Compile Include="Assets\Scripts\MobileUnit_local.cs" />
      <Compile Include="Assets\Scripts\MobileUnit_remote.cs" />
+     <Compile Include="Assets\Scripts\NeutralUnit.cs" />
      <Compile Include="Assets\Scripts\OrbBehavior_Base.cs" />
      <Compile Include="Assets\Scripts\OrbBehavior_Local.cs" />
      <Compile Include="Assets\Scripts\SelectionRectManager.cs" />

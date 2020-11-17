@@ -22,13 +22,13 @@ public class Unit_local : Unit {
         AstarPath.active.UpdateGraphs(new Bounds(transform.position, new Vector3 (radius, radius, 1)));
     }
 
-    public void activate () {
+    public virtual void activate () {
         gameState.activateUnit(gameObject);
         gameObject.transform.GetChild(0).gameObject.SetActive(true);
         transform.GetChild(0).GetChild(0).GetComponent<RectTransform>().localScale = new Vector3(1,1,1) * (Camera.main.orthographicSize / 5);
     }
 
-    public void deactivate () {
+    public virtual void deactivate () {
         gameObject.transform.GetChild(0).gameObject.SetActive(false);
         gameState.deactivateUnit(gameObject);
     }
