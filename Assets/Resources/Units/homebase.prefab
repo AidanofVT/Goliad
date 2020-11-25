@@ -1253,7 +1253,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 5492342238036222761}
-  - {fileID: 7289371781576211119}
+  - {fileID: 5204168644454060592}
   - {fileID: 9074242662461770212}
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -1281,6 +1281,7 @@ MonoBehaviour:
   weapon_power: 0
   weapon_range: 0
   weapon_reloadTime: 0
+  weapon_shotCost: 0
 --- !u!114 &4982516585726961036
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1778,7 +1779,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 178d9eefee423f54780c7bb7694e10c3, type: 3}
---- !u!4 &7289371781576211119 stripped
+--- !u!4 &5204168644454060592 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3247630572699396463, guid: 178d9eefee423f54780c7bb7694e10c3,
     type: 3}

@@ -8,13 +8,14 @@ public class Weapon : MonoBehaviour {
 
     protected int power;
     protected int range;
+    protected int shotCost;
     protected float reloadTime;
     protected CircleCollider2D rangeCircle;
     protected bool treatAsMobile;
     protected AidansMovementScript legs;
     protected Unit thisUnit;
     protected float timeOfLastFire;
-    protected GameObject target;
+    public GameObject target;
 
     void Start() {
         if (GetType() == Type.GetType("Weapon")) {
@@ -29,6 +30,7 @@ public class Weapon : MonoBehaviour {
             thisUnit.weapon = this;
             power = thisUnit.stats.weapon_power;
             range = thisUnit.stats.weapon_range;
+            shotCost = thisUnit.stats.weapon_shotCost;
             reloadTime = thisUnit.stats.weapon_reloadTime;
             if (GetComponentInParent<UnitBlueprint>().isMobile == true) {
                 treatAsMobile = true;
@@ -39,8 +41,30 @@ public class Weapon : MonoBehaviour {
         }
     }
 
+    public virtual void engage (GameObject getIt) {
+        //Debug.Log("Engaging.");
+        target = getIt;
+        rangeCircle.enabled = true;
+//this is needed because ontriggerenter works based on movement, and both units might be stationary.
+        target.transform.Translate(0,0,1);
+        target.transform.Translate(0,0,-1);
+        if (inRange() == false) {
+            legs.setDestination(target.transform.position, target.transform);
+        }
+    }
+
+    public bool inRange () {
+        return Vector2.Distance(transform.position, target.transform.position) > range;
+    }
+
+    public virtual void disengage () {
+        StopCoroutine("fire");
+        rangeCircle.enabled = false;
+        target = null;
+    }
+
     void OnTriggerEnter2D(Collider2D other) {
-        if (other.gameObject == target) {
+        if (other.gameObject == target && other.isTrigger == false) {
             StartCoroutine("fire");
             if (treatAsMobile) {
                 legs.Invoke("terminatePathfinding", 0.5f);
@@ -49,7 +73,7 @@ public class Weapon : MonoBehaviour {
     }
 
     void OnTriggerExit2D(Collider2D other) {
-        if (other == target) {
+        if (other.gameObject == target) {
             StopCoroutine("fire");
             if (treatAsMobile) {
                 legs.setDestination(target.transform.position, target.transform);
@@ -57,18 +81,18 @@ public class Weapon : MonoBehaviour {
         }
     }
 
-    public virtual void engage (GameObject getIt) {
-        target = getIt;
-        rangeCircle.enabled = true;
-        if (Vector2.Distance(transform.position, target.transform.position) > range) {
-            legs.setDestination(target.transform.position, target.transform);
-        }
-    }
-
     public virtual IEnumerator fire () {
+        //Debug.Log("Firing.");
         while (target != null) {
-            doIt();
-            yield return new WaitForSeconds(reloadTime);
+            if (thisUnit.meat >= shotCost) {
+                doIt();
+                thisUnit.deductMeat(shotCost);
+                yield return new WaitForSeconds(reloadTime);
+            }
+            else {
+                StopCoroutine("fire");
+                yield return null;
+            }
         }
         target = null;
         rangeCircle.enabled = false;

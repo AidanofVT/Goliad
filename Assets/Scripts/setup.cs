@@ -24,7 +24,7 @@ public class setup : MonoBehaviourPunCallbacks {
     }
 
     public override void OnConnectedToMaster() {
-        Debug.Log("Connected to master.");
+        Debug.Log("Connected to master. " + PhotonNetwork.CountOfRooms + " rooms open. Game version " + PhotonNetwork.AppVersion + ". Player ID = " + PhotonNetwork.LocalPlayer.UserId);
         if (PhotonNetwork.CountOfRooms == 0) {
             PhotonNetwork.CreateRoom(Random.Range(0, 10000).ToString());
         }
@@ -34,11 +34,11 @@ public class setup : MonoBehaviourPunCallbacks {
     }
 
     public override void OnDisconnected(DisconnectCause cause) {
-        Debug.Log("Connection to PUN failed. CAUSE: " + cause);
+        Debug.Log("PUN connection failure. CAUSE: " + cause);
     }
 
     public override void OnJoinedRoom() {
-        Debug.Log("Joined room " + PhotonNetwork.CurrentRoom.Name);
+        Debug.Log("Joined room " + PhotonNetwork.CurrentRoom.Name + ". Player number " + PhotonNetwork.LocalPlayer.ActorNumber);
         int me = PhotonNetwork.LocalPlayer.ActorNumber ;
         int distanceFromCenter = (int) (0.3f * (float) mapSize);
         Vector3 startPlace = Vector3.zero;
@@ -55,10 +55,9 @@ public class setup : MonoBehaviourPunCallbacks {
     IEnumerator step2 (GameObject home) {
         yield return new WaitForSeconds(0);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
-        GameObject sheep = home.GetComponent<factory_functions>().makeUnit("Sheep");
-        sheep.transform.position = home.transform.position / 5.5f;
-        GameObject shepherd = home.GetComponent<factory_functions>().makeUnit("Shepherd");
-        shepherd.transform.position = home.transform.position / 5;
+        GameObject hoplite = home.GetComponent<factory_functions>().makeUnit("Hoplite");
+        hoplite.transform.position = home.transform.position / 4;
+
     }
 
     private void OnPlayerConnected() {

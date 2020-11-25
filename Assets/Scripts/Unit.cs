@@ -53,6 +53,11 @@ public class Unit : MonoBehaviourPun {
         if (meat + toAdd <= stats.meatCapacity) {
             meat += toAdd;
             statusBar.updateBar();
+            if (weapon != null) {
+                if(weapon.target != null && meat - toAdd < stats.weapon_shotCost && weapon.inRange()) {
+                    weapon.StartCoroutine("fire"); 
+                } 
+            }
         }
     }
 

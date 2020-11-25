@@ -24,4 +24,6 @@ public class UnitBlueprint : MonoBehaviour {
 
     public int weapon_reloadTime;
 
+    public int weapon_shotCost;
+
 }

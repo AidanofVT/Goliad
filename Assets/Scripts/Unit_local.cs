@@ -43,7 +43,6 @@ public class Unit_local : Unit {
     }
 
     public void attack (GameObject target) {
-        Debug.Log("unit attacking");
         weapon.engage(target);
     }
 

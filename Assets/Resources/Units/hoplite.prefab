@@ -334,7 +334,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 6581195443704389056}
-  - {fileID: 8522214226575688895}
+  - {fileID: 6581195443741469728}
   - {fileID: 6581195444453844439}
   - {fileID: 6581195444685069028}
   m_Father: {fileID: 0}
@@ -380,6 +380,7 @@ MonoBehaviour:
   weapon_power: 50
   weapon_range: 15
   weapon_reloadTime: 1
+  weapon_shotCost: 1
 --- !u!58 &6581195444482403786
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -416,7 +417,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!114 &6581195444482403788
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -543,6 +544,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d71450916450f64f81d2af6b30abe07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  target: {fileID: 0}
 --- !u!58 &6581195444685069027
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -638,7 +640,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 178d9eefee423f54780c7bb7694e10c3, type: 3}
---- !u!4 &8522214226575688895 stripped
+--- !u!4 &6581195443741469728 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3247630572699396463, guid: 178d9eefee423f54780c7bb7694e10c3,
     type: 3}

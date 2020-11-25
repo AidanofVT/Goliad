@@ -202,7 +202,6 @@ public class SheepBehavior_Local : SheepBehavior_Base
     void OnTriggerExit2D(Collider2D thing) {
         if (thing.gameObject.GetComponent<SheepBehavior_Base>() != null && thing.isTrigger == false && flock.Contains(thing.gameObject) == true) {
             farFlock.Add(thing.gameObject);
-            //Debug.Log("New friend spotted. Flock count = " + flock.Count);
         }
         InvokeRepeating("forgetFlockMates", 5, 5);
     }

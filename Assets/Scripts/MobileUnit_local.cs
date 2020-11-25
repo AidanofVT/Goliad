@@ -18,6 +18,7 @@ public class MobileUnit_local : Unit_local {
 
 //if network traffic is an issue in the future, and CPU load isn't too bad, maybe we could put these in MobileUnit_Local too and slow down the photon update rate?
     public virtual void move (Vector3 target, Transform movingTransform = null) {
+        weapon.disengage();
         moveConductor.setDestination(target, movingTransform);
     }
 
