@@ -20,12 +20,16 @@ public class GameState : MonoBehaviour
 
     public void activateUnit (GameObject toAdd) {
         //Debug.Log("Attempting to add object to activeUnits.");
-        activeUnits.Add(toAdd);
+        if (activeUnits.Contains(toAdd) == false) {
+            activeUnits.Add(toAdd);
+        }
     }
 
     public void deactivateUnit (GameObject toRem) {
         //Debug.Log("Attempting to remove object from activeUnits.");
-        activeUnits.Remove(toRem);
+        if (activeUnits.Contains(toRem)) {
+            activeUnits.Remove(toRem);
+        }
     }
 
     public void enlivenUnit (GameObject toAdd) {

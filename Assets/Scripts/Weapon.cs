@@ -54,7 +54,7 @@ public class Weapon : MonoBehaviour {
     }
 
     public bool inRange () {
-        return Vector2.Distance(transform.position, target.transform.position) > range;
+        return Vector2.Distance(transform.position, target.transform.position) <= range;
     }
 
     public virtual void disengage () {

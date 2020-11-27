@@ -13,6 +13,7 @@ public class MobileUnit_local : Unit_local {
     public override void ignition () {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
         gameState.enlivenUnit(gameObject);
+        viewManager = GameObject.Find("Player Perspective").GetComponent<ViewManager>();
         moveConductor = GetComponent<AidansMovementScript>();
     }
 

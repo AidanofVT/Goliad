@@ -75,7 +75,7 @@ public class SelectionRectManager : MonoBehaviour {
 
         }
         foreach (GameObject aboutToBeActivated in toActivate) {
-            aboutToBeActivated.GetComponent<Unit_local>().activate();
+            aboutToBeActivated.GetComponent<Unit_local>().activate(true);
         }        
         return;
     }

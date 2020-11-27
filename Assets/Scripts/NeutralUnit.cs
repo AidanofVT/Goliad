@@ -17,7 +17,7 @@ public class NeutralUnit : MobileUnit_local {
         moveConductor = GetComponent<AidansMovementScript>();
     }
 
-    public override void activate () {
+    public override void activate (bool YouAreTryingToActivateANeutralUnit) {
 
     }
 

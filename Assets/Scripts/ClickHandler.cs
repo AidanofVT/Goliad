@@ -26,39 +26,29 @@ public class ClickHandler : MonoBehaviour {
     // }
 
     public void thingRightClicked (GameObject thingClicked) {
-        Vector3 destination;
-        Transform optionalTransform = null;
+        List<Unit_local> members = new List<Unit_local>();
+        foreach (GameObject gOb in gameState.getActiveUnits()) {
+            members.Add(gOb.GetComponent<Unit_local>());
+        }
+        Cohort newCohort = new Cohort(members);
         switch (thingClicked.tag) {
             case "unit":
-                if (thingClicked.GetComponent<PhotonView>().OwnerActorNr != PhotonNetwork.LocalPlayer.ActorNumber) {
-                    Debug.Log("clickhandler");
-                    List<Unit_local> members = new List<Unit_local>();
-                    foreach (GameObject gOb in gameState.getActiveUnits()) {
-                        members.Add(gOb.GetComponent<Unit_local>());
-                    }
-                    Cohort newCohort = new Cohort(members);
+                if (thingClicked.GetComponent<PhotonView>().OwnerActorNr != PhotonNetwork.LocalPlayer.ActorNumber) {                    
                     newCohort.commenceAttack(thingClicked);
-                    return;
                 }
                 else {
-                    destination = thingClicked.transform.position;
-                    optionalTransform = thingClicked.transform;
+                    newCohort.moveCohort(thingClicked.transform.position, thingClicked.transform);
                 }
                 break;
             case "ground":
-                destination = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                newCohort.moveCohort(Camera.main.ScreenToWorldPoint(Input.mousePosition));
                 break;
             case "UI":
                 return;
             default: 
-                destination = new Vector3(0,0,0);
+                newCohort.moveCohort(new Vector3(0,0,0));
                 Debug.Log("PROBLEM: nothing with a valid tag hit by raycast.");
                 break;
-        }
-        foreach (GameObject unit in gameState.getActiveUnits()) {
-            if (unit.GetComponent<MobileUnit_local>() != null) {
-                unit.GetComponent<MobileUnit_local>().move(destination, optionalTransform);
-            }
         }
     }
 
@@ -67,7 +57,7 @@ public class ClickHandler : MonoBehaviour {
             case "unit":
                 gameState.clearActive();
                 if (thingClicked.GetComponent<Unit_local>()) {
-                    thingClicked.GetComponent<Unit_local>().activate();
+                    thingClicked.GetComponent<Unit_local>().activate(true);
                 }
                 break;
             case "ground":

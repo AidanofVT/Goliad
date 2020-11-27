@@ -11,6 +11,7 @@ public class AidansMovementScript : MonoBehaviour {
     Rigidbody2D body;
 //this boolean isn't used by this script, but it is needed for other scripts to register what's going on. toggling path to null and back doesn't work: a new path is spontaneously created for some reason
     public bool isRunning = false;
+    public bool isLeader = false;
     public float speed;
     public float changePointThreshhold = 0.5f;
     public float roundToArrived = 0.1f;
@@ -64,6 +65,10 @@ public class AidansMovementScript : MonoBehaviour {
                 else {
                     //end reached
                     terminatePathfinding();
+                    if (isLeader) {
+                        GetComponent<Unit_local>().cohort.haltCohort();
+                        isLeader = false;
+                    }
                     return;
                 }
             }

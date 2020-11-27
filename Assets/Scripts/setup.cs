@@ -55,9 +55,12 @@ public class setup : MonoBehaviourPunCallbacks {
     IEnumerator step2 (GameObject home) {
         yield return new WaitForSeconds(0);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
-        GameObject hoplite = home.GetComponent<factory_functions>().makeUnit("Hoplite");
-        hoplite.transform.position = home.transform.position / 4;
-
+        // GameObject hoplite = home.GetComponent<factory_functions>().makeUnit("Hoplite");
+        // hoplite.transform.position = home.transform.position / 4;
+        GameObject dog = home.GetComponent<factory_functions>().makeUnit("dog");
+        dog.transform.position = home.transform.position / 4;
+        GameObject dog2 = home.GetComponent<factory_functions>().makeUnit("dog");
+        dog2.transform.position = home.transform.position / 3;
     }
 
     private void OnPlayerConnected() {

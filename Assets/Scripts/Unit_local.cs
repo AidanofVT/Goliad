@@ -4,8 +4,10 @@ using UnityEngine;
 using Photon.Pun;
 
 public class Unit_local : Unit {
+    protected ViewManager viewManager;
 
     void Awake () {
+//can't this be moved to Unit.Start()?
         stats = GetComponent<UnitBlueprint>();
         if (this.GetType() == typeof(Unit_local)) {
             if (stats.isMobile == true) {
@@ -18,14 +20,18 @@ public class Unit_local : Unit {
     public override void ignition () {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
         gameState.enlivenUnit(gameObject);
+        viewManager = GameObject.Find("Player Perspective").GetComponent<ViewManager>();
         int radius = Mathf.CeilToInt(GetComponent<CircleCollider2D>().radius);
         AstarPath.active.UpdateGraphs(new Bounds(transform.position, new Vector3 (radius, radius, 1)));
     }
 
-    public virtual void activate () {
+    public virtual void activate (bool activateOthersInCohort) {
         gameState.activateUnit(gameObject);
         gameObject.transform.GetChild(0).gameObject.SetActive(true);
         transform.GetChild(0).GetChild(0).GetComponent<RectTransform>().localScale = new Vector3(1,1,1) * (Camera.main.orthographicSize / 5);
+        if (cohort != null && activateOthersInCohort == true) {
+            cohort.activate(this);
+        }
     }
 
     public virtual void deactivate () {
@@ -61,6 +67,18 @@ public class Unit_local : Unit {
         }
         gameState.deadenUnit(gameObject);
         PhotonNetwork.Destroy(gameObject);
+    }
+
+    protected void OnMouseOver() {
+        if (cohort != null) {
+            viewManager.paintCohort(this);
+        }
+    }
+
+    void OnMouseExit() {
+        if (cohort != null) {
+            viewManager.unpaintCohort(this);
+        }
     }
 
 }
