@@ -7,24 +7,24 @@ public class OrbBehavior_Local : OrbBehavior_Base {
 
     float speed = 0;
     Vector3 direction;
-    Transform target;
-    Vector3 positionLastTime;
+    public Transform target;
 
     void Start () {
         body = GetComponent<Rigidbody2D>();
+        localCollider = GetComponent<CircleCollider2D>();
         //Destroy(gameObject, 25);
         StartCoroutine("launchStage");
     }
 
     IEnumerator launchStage () {
 //This yield needs to be here because the object doesn't yet have velocity. forces don't get added immediately: we have to wait for coroutine-call-time in the next frame.
-        yield return null;
+        yield return new WaitForSeconds(0);
         while (body.velocity.magnitude > 0.5f) {
             yield return new WaitForSeconds(0.1f);
         }
-            CancelInvoke("launchStage");
             activeSearch();
-            photonView.RPC("parachute", RpcTarget.All);
+            body.velocity = new Vector3(0,0,0);
+            photonView.RPC("seekStage", RpcTarget.All);
     }
 
     void activeSearch () {
@@ -59,7 +59,6 @@ public class OrbBehavior_Local : OrbBehavior_Base {
             if (target == null || target.gameObject.GetComponent<Unit>().roomForMeat() <= 0) {
                 StopCoroutine("goForIt");
                 target = null;
-                positionLastTime = transform.position;
                 StartCoroutine("stopIt");
                 break;
             }
@@ -95,8 +94,18 @@ public class OrbBehavior_Local : OrbBehavior_Base {
         }
     }
 
+    public void embark (GameObject toSeek) {
+        StopCoroutine("launchStage");
+        target = toSeek.transform;
+        if (body != null) {
+            photonView.RPC("seekStage", RpcTarget.All);
+        }
+        StartCoroutine("goForIt");
+    }
+
     void OnTriggerEnter2D(Collider2D other) {
         if (target == null
+        && other.isTrigger == false
         && other.gameObject.GetComponent<Unit>() != null
         && other.gameObject.GetComponent<Unit>().roomForMeat() > 0) {
             target = other.transform;

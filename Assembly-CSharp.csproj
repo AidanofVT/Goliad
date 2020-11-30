@@ -77,6 +77,7 @@
      <Compile Include="Assets\Scripts\SheepBehavior_Base.cs" />
      <Compile Include="Assets\Scripts\SheepBehavior_Local.cs" />
      <Compile Include="Assets\Scripts\ShepherdFunction.cs" />
+     <Compile Include="Assets\Scripts\Task.cs" />
      <Compile Include="Assets\Scripts\tile_baren.cs" />
      <Compile Include="Assets\Scripts\tile_purple.cs" />
      <Compile Include="Assets\Scripts\tile_shortGrass.cs" />

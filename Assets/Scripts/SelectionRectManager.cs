@@ -72,10 +72,12 @@ public class SelectionRectManager : MonoBehaviour {
         }
         if (toActivate.Count > 0) {
             gameState.clearActive();
-
         }
         foreach (GameObject aboutToBeActivated in toActivate) {
-            aboutToBeActivated.GetComponent<Unit_local>().activate(true);
+            Cohort aCohort = aboutToBeActivated.GetComponent<Unit>().cohort;
+            if (gameState.activeCohorts.Contains(aCohort) == false) {
+                aCohort.activate(null);
+            }
         }        
         return;
     }

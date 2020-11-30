@@ -6,6 +6,9 @@ public class GameState : MonoBehaviour
     List<GameObject> activeUnits = new List<GameObject>();
 //aliveUnits is intended for alive ALLIED units.
     List<GameObject> aliveUnits = new List<GameObject>();
+//activeCohorts only exists to facilitate the dissolving of cohorts prior to a new cohort being formed
+//there should never be more than one cohort responding to a single order
+    public List<Cohort> activeCohorts = new List<Cohort>();
 
     //NOTE: CPU becomes a limitiation somewhere between one and ten million tiles on-screen. Memory usage is also significant.
     public short [,] map;
@@ -22,6 +25,23 @@ public class GameState : MonoBehaviour
         //Debug.Log("Attempting to add object to activeUnits.");
         if (activeUnits.Contains(toAdd) == false) {
             activeUnits.Add(toAdd);
+        }
+    }
+
+    public Cohort combineActiveCohorts () {
+        if (activeCohorts.Count == 1) {
+            return activeCohorts[0];
+        }
+        else {
+            Debug.Log("squishing cohorts");
+            List<Unit_local> members = new List<Unit_local>();
+            foreach (Cohort selectedCohort in activeCohorts) {
+                members.AddRange(selectedCohort.members);
+            }
+            Cohort newCohort = new Cohort(members);
+            activeCohorts.Clear();
+            activeCohorts.Add(newCohort);
+            return activeCohorts[0];
         }
     }
 

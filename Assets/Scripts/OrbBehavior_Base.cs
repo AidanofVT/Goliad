@@ -6,6 +6,7 @@ using Photon.Pun;
 public class OrbBehavior_Base : MonoBehaviourPun {
 
     protected Rigidbody2D body;
+    protected CircleCollider2D localCollider;
 
     void Awake () {
         if (photonView.IsMine && this.GetType() == typeof(OrbBehavior_Base)) {
@@ -16,14 +17,16 @@ public class OrbBehavior_Base : MonoBehaviourPun {
 
     void Start () {
         body = GetComponent<Rigidbody2D>();
+        localCollider = GetComponent<CircleCollider2D>();
     }
 
     [PunRPC]
-    protected void parachute () {
+    protected void seekStage () {
+        StopCoroutine("launchStage");
 //note: sometimes this throws a null reference error. is it possible that sometimes, if the orb is instantiated with little or no speed, this line is reached before the rigidbody exists, or before body is assigned a value?
-        body.velocity = new Vector3(0,0,0);
-        Destroy(body);
-        CircleCollider2D localCollider = GetComponent<CircleCollider2D>();
+        if (body != null) {
+            Destroy(body);
+        }
         localCollider.isTrigger = true;
         localCollider.radius = 10;
     }

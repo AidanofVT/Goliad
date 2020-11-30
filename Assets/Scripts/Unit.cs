@@ -8,6 +8,7 @@ public class Unit : MonoBehaviourPun {
     protected BarManager statusBar;
     public UnitBlueprint stats;
     public Weapon weapon;
+    public Cohort soloCohort;
     public Cohort cohort;
     public float facing = 0;
     public int meat = 0;

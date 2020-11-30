@@ -300,6 +300,7 @@ GameObject:
   m_Component:
   - component: {fileID: 542696302}
   - component: {fileID: 542696303}
+  - component: {fileID: 542696304}
   m_Layer: 0
   m_Name: Player Perspective
   m_TagString: Untagged
@@ -334,6 +335,18 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d806d4ebdeccac04fa44ad605c457f95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &542696304
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 542696301}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a635252e0843d6b479cf3095438fd114, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &605750578
