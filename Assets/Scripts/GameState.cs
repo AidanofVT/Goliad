@@ -14,18 +14,14 @@ public class GameState : MonoBehaviour
     public short [,] map;
     public int mapOffset;
 
+    ViewManager vManage;
+
     void Awake () {
 //this is in Awake rather than Start so that the array gets made before other scripts try to access it.
         int mapSize = GetComponent<setup>().mapSize;
         map = new short [mapSize,mapSize];
         mapOffset = map.GetLength(0) / 2;
-    }
-
-    public void activateUnit (GameObject toAdd) {
-        //Debug.Log("Attempting to add object to activeUnits.");
-        if (activeUnits.Contains(toAdd) == false) {
-            activeUnits.Add(toAdd);
-        }
+        vManage = GameObject.Find("Player Perspective").GetComponent<ViewManager>();
     }
 
     public Cohort combineActiveCohorts () {
@@ -45,10 +41,19 @@ public class GameState : MonoBehaviour
         }
     }
 
+    public void activateUnit (GameObject toAdd) {
+        //Debug.Log("Attempting to add object to activeUnits.");
+        if (activeUnits.Contains(toAdd) == false) {
+            activeUnits.Add(toAdd);
+            vManage.attendTo(toAdd);
+        }
+    }
+
     public void deactivateUnit (GameObject toRem) {
         //Debug.Log("Attempting to remove object from activeUnits.");
         if (activeUnits.Contains(toRem)) {
             activeUnits.Remove(toRem);
+            vManage.attendToNoMore(toRem);
         }
     }
 

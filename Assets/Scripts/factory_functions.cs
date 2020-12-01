@@ -9,7 +9,6 @@ public class factory_functions : MonoBehaviourPun {
 
     void Start () {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
-        //MeatReadout = transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
     }
 
     public void orderDog () {

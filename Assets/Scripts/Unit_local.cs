@@ -37,8 +37,8 @@ public class Unit_local : Unit {
 
     public virtual void activate (bool activateOthersInCohort) {
         gameState.activateUnit(gameObject);
-        gameObject.transform.GetChild(0).gameObject.SetActive(true);
-        transform.GetChild(0).GetChild(0).GetComponent<RectTransform>().localScale = new Vector3(1,1,1) * (Camera.main.orthographicSize / 5);
+        transform.GetChild(3).gameObject.SetActive(true);
+        //transform.GetChild(3).GetChild(1).GetComponent<RectTransform>().localScale = new Vector3(1,1,1) * (Camera.main.orthographicSize / 5);
         if (cohort != null && activateOthersInCohort == true) {
             cohort.activate(this);
         }
@@ -49,7 +49,7 @@ public class Unit_local : Unit {
     }
  
     public virtual void deactivate () {
-        gameObject.transform.GetChild(0).gameObject.SetActive(false);
+        transform.GetChild(3).gameObject.SetActive(false);
         gameState.deactivateUnit(gameObject);
     }
 
@@ -110,7 +110,7 @@ public class Unit_local : Unit {
     }
 
     protected void OnMouseOver() {
-        if (transform.GetChild(0).gameObject.activeInHierarchy == false) {
+        if (transform.GetChild(2).GetChild(0).gameObject.activeInHierarchy == false) {
             viewManager.paintCohort(cohort);
         }
     }

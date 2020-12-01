@@ -6,10 +6,12 @@ using Photon.Pun;
 
 public class ClickHandler : MonoBehaviour {
     GameState gameState;
+    ViewManager vManage;
     public GameObject goliad;
     
     void Awake () {
         gameState = goliad.GetComponent<GameState>();
+            vManage = transform.parent.GetComponent<ViewManager>();
     }
     
     void Update() {
@@ -80,7 +82,8 @@ public class ClickHandler : MonoBehaviour {
 
     IEnumerator holdTarget (GameObject target) {
         float timeDown = Time.time;
-        GameObject targetingUI = target.transform.GetChild(5).gameObject;
+        GameObject targetingUI = target.transform.GetChild(2).GetChild(1).gameObject;
+        Debug.Log(targetingUI.name);
         while (true) {
             if (Time.time - timeDown < 0.1f) {
                 if (Input.GetKeyUp(KeyCode.Mouse1)) {
@@ -90,6 +93,7 @@ public class ClickHandler : MonoBehaviour {
             else {
                 if (targetingUI.activeInHierarchy == false) {
                     targetingUI.SetActive(true);
+                    vManage.attendedTransforms.Add(targetingUI.transform.parent.GetComponent<RectTransform>());
                 }
                 if (Input.GetKeyUp(KeyCode.Mouse1)) {
                     m1UpButtonPress(target, targetingUI);
@@ -98,7 +102,9 @@ public class ClickHandler : MonoBehaviour {
             }
             yield return new WaitForSeconds(0);
         }
+        Debug.Log("104");
         targetingUI.SetActive(false);
+        vManage.attendedTransforms.Remove(targetingUI.transform.parent.GetComponent<RectTransform>());
         StopCoroutine("holdTarget");
         yield return null;
     }

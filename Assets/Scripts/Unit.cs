@@ -19,10 +19,10 @@ public class Unit : MonoBehaviourPun {
         spriteAddress = spriteAddress.Remove(spriteAddress.IndexOf("("));
         spriteAddress = "Sprites/" + spriteAddress;
         if (photonView.Owner.ActorNumber == 1) {
-            transform.GetChild(2).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(spriteAddress + "_white");
+            transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(spriteAddress + "_white");
         }
         else if (photonView.Owner.ActorNumber == 2) {
-            transform.GetChild(2).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(spriteAddress + "_orange");
+            transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(spriteAddress + "_orange");
         }
         GetComponent<UnitBlueprint>().factionNumber = photonView.OwnerActorNr;
         if (this.GetType() == typeof(Unit)) {
@@ -96,7 +96,7 @@ public class Unit : MonoBehaviourPun {
             if (velocityNow != Vector2.zero) {
                 velocityNow.Normalize();
                 facing = Mathf.Atan2(velocityNow.y, velocityNow.x);
-                transform.GetChild(2).rotation = Quaternion.AxisAngle(Vector3.forward, facing - Mathf.PI * 1.5f);
+                transform.GetChild(0).rotation = Quaternion.AxisAngle(Vector3.forward, facing - Mathf.PI * 1.5f);
             }
             yield return new WaitForSeconds(0.1f);
         }        
