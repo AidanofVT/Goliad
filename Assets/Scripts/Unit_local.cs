@@ -35,17 +35,25 @@ public class Unit_local : Unit {
     }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    public virtual void activate (bool activateOthersInCohort) {
+    public virtual void activate () {
         gameState.activateUnit(gameObject);
         transform.GetChild(3).gameObject.SetActive(true);
         //transform.GetChild(3).GetChild(1).GetComponent<RectTransform>().localScale = new Vector3(1,1,1) * (Camera.main.orthographicSize / 5);
-        if (cohort != null && activateOthersInCohort == true) {
-            cohort.activate(this);
-        }
     }
 
     public void attack (GameObject target) {
         weapon.engage(target);
+    }
+
+    public void changeCohort (Cohort newCohort = null) {
+        cohort.removeMember(this);
+        if (newCohort == null) {
+            cohort = soloCohort;
+        }
+        else {
+            newCohort.addMember(this);
+            cohort = newCohort;
+        }
     }
  
     public virtual void deactivate () {
@@ -56,18 +64,6 @@ public class Unit_local : Unit {
     [PunRPC]
     public override void die () {
         spindown();
-    }
-
-    public virtual void give (GameObject toWho, int howMuch) {
-        task  = new Task(gameObject, toWho, Task.actions.give, howMuch);
-        if (Vector2.Distance(transform.position, toWho.transform.position) < 10) {
-            StartCoroutine(dispense());
-        }
-        else {
-            CircleCollider2D newCollider = gameObject.AddComponent<CircleCollider2D>();
-            newCollider.isTrigger = true;
-            newCollider.radius = 10;
-        }
     }
 
     protected virtual IEnumerator dispense () {
@@ -98,6 +94,19 @@ public class Unit_local : Unit {
         yield return null;
     }
 
+    public virtual void give (GameObject toWho, int howMuch) {
+        Debug.Log("initiating give");
+        task  = new Task(gameObject, toWho, Task.actions.give, howMuch);
+        if (Vector2.Distance(transform.position, toWho.transform.position) < 10) {
+            StartCoroutine(dispense());
+        }
+        else {
+            CircleCollider2D newCollider = gameObject.AddComponent<CircleCollider2D>();
+            newCollider.isTrigger = true;
+            newCollider.radius = 10;
+        }
+    }
+
     void OnTriggerEnter2D(Collider2D contact) {
         if (contact.isTrigger == false && contact.gameObject == task.objectUnit) {
             StartCoroutine(dispense());
@@ -106,13 +115,11 @@ public class Unit_local : Unit {
     }
 
     void OnMouseExit() {
-        viewManager.unpaintCohort(cohort);
+        viewManager.removeFromPalette(this);
     }
 
-    protected void OnMouseOver() {
-        if (transform.GetChild(2).GetChild(0).gameObject.activeInHierarchy == false) {
-            viewManager.paintCohort(cohort);
-        }
+    protected void OnMouseEnter() {
+        viewManager.addToPalette(this);
     }
 
     void spindown () {

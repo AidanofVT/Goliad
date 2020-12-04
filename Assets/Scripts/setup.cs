@@ -57,10 +57,20 @@ public class setup : MonoBehaviourPunCallbacks {
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
         // GameObject hoplite = home.GetComponent<factory_functions>().makeUnit("Hoplite");
         // hoplite.transform.position = home.transform.position / 4;
-        GameObject dog = home.GetComponent<factory_functions>().makeUnit("dog");
-        dog.transform.position = home.transform.position / 4;
+        Vector3 shift = new Vector3(3, 3, 0);
+        GameObject dog1 = home.GetComponent<factory_functions>().makeUnit("dog");
+        dog1.transform.position = (home.transform.position / 4) + shift;
         GameObject dog2 = home.GetComponent<factory_functions>().makeUnit("dog");
-        dog2.transform.position = home.transform.position / 3;
+        dog2.transform.position = (home.transform.position / 2) + shift;
+        GameObject dog3 = home.GetComponent<factory_functions>().makeUnit("dog");
+        dog3.transform.position = (home.transform.position / 4) - shift;
+        GameObject dog4 = home.GetComponent<factory_functions>().makeUnit("dog");
+        dog4.transform.position = (home.transform.position / 2) - shift;
+        yield return new WaitForSeconds(0);
+        Unit_local[] northeastMembers = {dog1.GetComponent<Unit_local>(), dog2.GetComponent<Unit_local>()};
+        Cohort northeast = new Cohort(new List<Unit_local>(northeastMembers));
+        Unit_local[] southwestMembers = {dog3.GetComponent<Unit_local>(), dog4.GetComponent<Unit_local>()};
+        Cohort southwest = new Cohort(new List<Unit_local>(southwestMembers));
     }
 
     private void OnPlayerConnected() {

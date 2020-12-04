@@ -74,9 +74,16 @@ public class SelectionRectManager : MonoBehaviour {
             gameState.clearActive();
         }
         foreach (GameObject aboutToBeActivated in toActivate) {
-            Cohort aCohort = aboutToBeActivated.GetComponent<Unit>().cohort;
-            if (gameState.activeCohorts.Contains(aCohort) == false) {
-                aCohort.activate(null);
+            Unit_local unit = aboutToBeActivated.GetComponent<Unit_local>();
+            if (Input.GetButton("modifier")) {
+                unit.changeCohort();
+                unit.cohort.activate();
+            }
+            else {
+                Cohort aCohort = aboutToBeActivated.GetComponent<Unit>().cohort;
+                if (gameState.activeCohorts.Contains(aCohort) == false) {
+                    aCohort.activate();
+                }
             }
         }        
         return;

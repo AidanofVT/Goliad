@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class ViewManager : MonoBehaviour {
 
-    Cohort paintedCohort = null;
-    bool stayPainted;
     public List<RectTransform> attendedTransforms = new List<RectTransform>();
+    public List<Cohort> consideredCohorts = new List<Cohort>();
+    public List<Cohort> paintedCohorts = new List<Cohort>();
+    public List<GameObject> consideredSprites = new List<GameObject>();
+    public List<GameObject> paintedSprites = new List<GameObject>();
 
     public void attendTo (GameObject focus) {
         attendedTransforms.Add(focus.transform.GetChild(2).GetChild(1).gameObject.GetComponent<RectTransform>());
@@ -18,33 +20,105 @@ public class ViewManager : MonoBehaviour {
         attendedTransforms.Remove(focus.transform.GetChild(3).GetChild(1).gameObject.GetComponent<RectTransform>());
     }
 
+    public void addToPalette (Unit_local toAdd) {
+        consideredCohorts.Add(toAdd.cohort);
+        Debug.Log("added consideredCohorts");
+        foreach (Unit_local jess in toAdd.cohort.members) {
+            consideredSprites.Add(jess.transform.GetChild(2).GetChild(0).gameObject);
+            Debug.Log("added consideredSprites");
+        }
+        if (Input.GetKey(KeyCode.Mouse1) == false) {
+            if (Input.GetButton("modifier") == false) {
+                paintCohort(toAdd.cohort);
+            }
+            else {
+                GameObject sprite = toAdd.transform.GetChild(2).GetChild(0).gameObject;
+                sprite.SetActive(true);
+                paintedSprites.Add(sprite);
+                Debug.Log("paintedSprites add");                
+            }
+        }
+    }
+
+    public void clearPalette () {
+        foreach (GameObject stu in paintedSprites) {
+            stu.SetActive(false);
+        }
+        consideredCohorts.Clear();
+        consideredSprites.Clear();
+        paintedCohorts.Clear();
+        paintedSprites.Clear();
+    }
+
     public void paintCohort (Cohort toPaint) {
         foreach (Unit_local fellow in toPaint.members) {
-            fellow.transform.GetChild(2).GetChild(0).gameObject.SetActive(true);
+            GameObject sprite = fellow.transform.GetChild(2).GetChild(0).gameObject;
+            sprite.SetActive(true);
+            paintedSprites.Add(sprite);
+            Debug.Log("paintedSprites add");
         }
-        paintedCohort = toPaint;
-        StartCoroutine(paintKeep());
+        paintedCohorts.Add(toPaint);
+        Debug.Log("added paintedCohorts");
+    }
+
+    public void removeFromPalette (Unit_local toRem) {
+        consideredCohorts.Remove(toRem.cohort);
+        Debug.Log("removed consideredCohorts");
+        foreach (Unit_local jose in toRem.cohort.members) {
+            consideredSprites.Remove(jose.transform.GetChild(2).GetChild(0).gameObject);
+            Debug.Log("removed consideredSprites");
+        }
+        if (Input.GetKey(KeyCode.Mouse1) == false) {
+            unpaintCohort(toRem.cohort);
+        }
     }
 
     public void unpaintCohort (Cohort toUnpaint) {
-        if (stayPainted == false) {
-            foreach (Unit_local fellow in toUnpaint.members) {
-                fellow.transform.GetChild(2).GetChild(0).gameObject.SetActive(false);
-            }
-            paintedCohort = null;
-            StopCoroutine(paintKeep());
+        foreach (Unit_local fellow in toUnpaint.members) {
+            GameObject sprite = fellow.transform.GetChild(2).GetChild(0).gameObject;
+            sprite.SetActive(false);
+            paintedSprites.Remove(sprite);
+            Debug.Log("removed paintedSprites");
         }
+        paintedCohorts.Remove(toUnpaint);
+        Debug.Log("removed paintedCohorts");
     }
 
-    IEnumerator paintKeep () {
-        if (Input.GetKeyDown(KeyCode.Mouse1)) {
-            stayPainted = true;
+    void Update () {
+        if (Input.GetKeyUp(KeyCode.Mouse1)) {
+            List<Cohort> thisIsToSupressWarnings = new List<Cohort>(paintedCohorts); 
+            foreach (Cohort pntedChrt in thisIsToSupressWarnings) {
+                unpaintCohort(pntedChrt);
+            }
+            foreach (Cohort toPaint in consideredCohorts) {
+                paintCohort(toPaint);
+            }
         }
-        else if (Input.GetKeyUp(KeyCode.Mouse1)) {
-            stayPainted = false;
-            unpaintCohort(paintedCohort);
+        if (Input.GetButtonDown("modifier")) {
+            List<Cohort> thisIsToSupressWarnings = new List<Cohort>(paintedCohorts); 
+            foreach (Cohort pntedChrt in thisIsToSupressWarnings) {
+                unpaintCohort(pntedChrt);
+            }
+            //at some point this will have to be hooked up to the rectangle manager anh altered so that more than one can be painted
+            GameObject toPaint = Physics2D.OverlapPoint(Camera.main.ScreenToWorldPoint(Input.mousePosition)).gameObject;
+            if (toPaint.GetComponent<Unit_local>() != null) {
+                GameObject sprite = toPaint.transform.GetChild(2).GetChild(0).gameObject;
+                sprite.SetActive(true);
+                paintedSprites.Add(sprite);
+                Debug.Log("paintedSprites add");
+            }
         }
-        yield return null;
+        if (Input.GetButtonUp("modifier")) {
+            List<GameObject> thisIsToSupressWarnings = new List<GameObject>(paintedSprites); 
+            foreach (GameObject sprite in thisIsToSupressWarnings) {
+                sprite.SetActive(false);
+                paintedSprites.Remove(sprite);
+                Debug.Log("paintedSprites remove");
+            }
+            foreach (Cohort toPaint in consideredCohorts) {
+                paintCohort(toPaint);
+            }
+        }
     }
 
     public void resizeUIs () {

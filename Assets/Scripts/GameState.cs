@@ -29,7 +29,6 @@ public class GameState : MonoBehaviour
             return activeCohorts[0];
         }
         else {
-            Debug.Log("squishing cohorts");
             List<Unit_local> members = new List<Unit_local>();
             foreach (Cohort selectedCohort in activeCohorts) {
                 members.AddRange(selectedCohort.members);
@@ -81,8 +80,9 @@ public class GameState : MonoBehaviour
     }
 
     public void clearActive () {
-        foreach (GameObject unit in activeUnits.ToArray()) {
-            unit.GetComponent<Unit_local>().deactivate();
+        List <Cohort> thisIsToSupressWarnings = new List<Cohort> (activeCohorts);
+        foreach (Cohort cohort in thisIsToSupressWarnings) {
+            cohort.deactivate();
         }
         //Debug.Log("Clearactive called. activeUnits size = " + activeUnits.Count);
     }
