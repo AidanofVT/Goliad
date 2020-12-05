@@ -8,6 +8,7 @@ public class ClickHandler : MonoBehaviour {
     GameState gameState;
     ViewManager vManage;
     public GameObject goliad;
+    bool targeting;
     
     void Awake () {
         gameState = goliad.GetComponent<GameState>();
@@ -20,13 +21,16 @@ public class ClickHandler : MonoBehaviour {
                 thingLeftClicked(Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition))[0].gameObject);
             }
         }
-        if (Input.GetKeyUp(KeyCode.Mouse1) && !Input.GetKey(KeyCode.Mouse0)) {
+        if (Input.GetKeyUp(KeyCode.Mouse1) && !Input.GetKey(KeyCode.Mouse0) && targeting == false) {
             thingRightClicked(Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition))[0].gameObject);
         }
         if (Input.GetKeyDown(KeyCode.Mouse1)) {
             GameObject underMouse = Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition))[0].gameObject;
             if (underMouse.tag == "unit" && underMouse.GetComponent<Unit_local>() != null) {
-                StartCoroutine(holdTarget(underMouse));
+                Cohort inQuestion = underMouse.GetComponent<Unit_local>().cohort;
+                if (inQuestion.members.Count > 1 || gameState.activeCohorts.Contains(inQuestion) == false) {
+                    StartCoroutine(holdTarget(underMouse));
+                }
             }
         }
     }
@@ -96,6 +100,7 @@ public class ClickHandler : MonoBehaviour {
             }
             else {
                 if (targetingUI.activeInHierarchy == false) {
+                    targeting = true;
                     targetingUI.SetActive(true);
                     vManage.attendedTransforms.Add(targetingUI.transform.parent.GetComponent<RectTransform>());
                 }
@@ -106,6 +111,8 @@ public class ClickHandler : MonoBehaviour {
             }
             yield return new WaitForSeconds(0);
         }
+        Debug.Log("stopping the coroutine");
+        targeting = false;
         targetingUI.SetActive(false);
         vManage.attendedTransforms.Remove(targetingUI.transform.parent.GetComponent<RectTransform>());
         StopCoroutine("holdTarget");
@@ -123,10 +130,10 @@ public class ClickHandler : MonoBehaviour {
             // }
             // Debug.Log(toprint);
             if (contact.gameObject.name == "Button--Give") {
-                newCohort.commenceGive(unit.GetComponent<Unit>().cohort);
+                newCohort.commenceTransact(new Task(newCohort.members[0].gameObject, contact.transform.parent.parent.parent.gameObject, Task.actions.give));
             }
             else {
-                newCohort.commenceTake(unit.GetComponent<Unit>().cohort);
+                newCohort.commenceTransact(new Task(newCohort.members[0].gameObject, contact.transform.parent.parent.parent.gameObject, Task.actions.take));
             }
         }
     }

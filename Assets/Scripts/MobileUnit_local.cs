@@ -18,8 +18,14 @@ public class MobileUnit_local : Unit_local {
     }
 
     protected override void dispenseOutranged() {
-        Transform toSeek = task.objectUnit.transform;
-        moveConductor.setDestination(toSeek.position, toSeek, 7);        
+        if (task.nature == Task.actions.give) {
+            Transform toSeek = task.objectUnit.transform;
+            moveConductor.setDestination(toSeek.position, toSeek, 7);
+        }
+        else {
+            Transform toSeek = task.subjectUnit.transform;
+            task.subjectUnit.GetComponent<AidansMovementScript>().setDestination(toSeek.position, toSeek, 7);
+        }        
     }
     
     public override void ignition () {
@@ -29,7 +35,9 @@ public class MobileUnit_local : Unit_local {
 
 //if network traffic is an issue in the future, and CPU load isn't too bad, maybe we could put these in MobileUnit_Local too and slow down the photon update rate?
     public virtual void move (Vector3 target, Transform movingTransform = null) {
-        weapon.disengage();
+        if (stats.isArmed) {
+            weapon.disengage();
+        }
         task = new Task (gameObject, null, Task.actions.move);
         moveConductor.setDestination(target, movingTransform);
     }

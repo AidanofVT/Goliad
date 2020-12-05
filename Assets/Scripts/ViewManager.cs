@@ -22,10 +22,8 @@ public class ViewManager : MonoBehaviour {
 
     public void addToPalette (Unit_local toAdd) {
         consideredCohorts.Add(toAdd.cohort);
-        Debug.Log("added consideredCohorts");
         foreach (Unit_local jess in toAdd.cohort.members) {
             consideredSprites.Add(jess.transform.GetChild(2).GetChild(0).gameObject);
-            Debug.Log("added consideredSprites");
         }
         if (Input.GetKey(KeyCode.Mouse1) == false) {
             if (Input.GetButton("modifier") == false) {
@@ -35,7 +33,6 @@ public class ViewManager : MonoBehaviour {
                 GameObject sprite = toAdd.transform.GetChild(2).GetChild(0).gameObject;
                 sprite.SetActive(true);
                 paintedSprites.Add(sprite);
-                Debug.Log("paintedSprites add");                
             }
         }
     }
@@ -55,18 +52,14 @@ public class ViewManager : MonoBehaviour {
             GameObject sprite = fellow.transform.GetChild(2).GetChild(0).gameObject;
             sprite.SetActive(true);
             paintedSprites.Add(sprite);
-            Debug.Log("paintedSprites add");
         }
         paintedCohorts.Add(toPaint);
-        Debug.Log("added paintedCohorts");
     }
 
     public void removeFromPalette (Unit_local toRem) {
         consideredCohorts.Remove(toRem.cohort);
-        Debug.Log("removed consideredCohorts");
         foreach (Unit_local jose in toRem.cohort.members) {
             consideredSprites.Remove(jose.transform.GetChild(2).GetChild(0).gameObject);
-            Debug.Log("removed consideredSprites");
         }
         if (Input.GetKey(KeyCode.Mouse1) == false) {
             unpaintCohort(toRem.cohort);
@@ -78,10 +71,8 @@ public class ViewManager : MonoBehaviour {
             GameObject sprite = fellow.transform.GetChild(2).GetChild(0).gameObject;
             sprite.SetActive(false);
             paintedSprites.Remove(sprite);
-            Debug.Log("removed paintedSprites");
         }
         paintedCohorts.Remove(toUnpaint);
-        Debug.Log("removed paintedCohorts");
     }
 
     void Update () {
@@ -105,7 +96,6 @@ public class ViewManager : MonoBehaviour {
                 GameObject sprite = toPaint.transform.GetChild(2).GetChild(0).gameObject;
                 sprite.SetActive(true);
                 paintedSprites.Add(sprite);
-                Debug.Log("paintedSprites add");
             }
         }
         if (Input.GetButtonUp("modifier")) {
@@ -113,7 +103,6 @@ public class ViewManager : MonoBehaviour {
             foreach (GameObject sprite in thisIsToSupressWarnings) {
                 sprite.SetActive(false);
                 paintedSprites.Remove(sprite);
-                Debug.Log("paintedSprites remove");
             }
             foreach (Cohort toPaint in consideredCohorts) {
                 paintCohort(toPaint);

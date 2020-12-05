@@ -67,9 +67,9 @@ public class setup : MonoBehaviourPunCallbacks {
         GameObject dog4 = home.GetComponent<factory_functions>().makeUnit("dog");
         dog4.transform.position = (home.transform.position / 2) - shift;
         yield return new WaitForSeconds(0);
-        Unit_local[] northeastMembers = {dog1.GetComponent<Unit_local>(), dog2.GetComponent<Unit_local>()};
+        Unit_local[] northeastMembers = {dog1.GetComponent<Unit_local>(), dog2.GetComponent<Unit_local>(), dog3.GetComponent<Unit_local>()};
         Cohort northeast = new Cohort(new List<Unit_local>(northeastMembers));
-        Unit_local[] southwestMembers = {dog3.GetComponent<Unit_local>(), dog4.GetComponent<Unit_local>()};
+        Unit_local[] southwestMembers = {dog4.GetComponent<Unit_local>()};
         Cohort southwest = new Cohort(new List<Unit_local>(southwestMembers));
     }
 

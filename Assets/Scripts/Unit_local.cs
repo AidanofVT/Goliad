@@ -67,18 +67,32 @@ public class Unit_local : Unit {
     }
 
     protected virtual IEnumerator dispense () {
+        GameObject to;
+        GameObject from;
+        if (task.nature == Task.actions.give) {
+            to = task.objectUnit;
+            from = task.subjectUnit;
+        }
+        else {
+            to = task.subjectUnit;
+            from = task.objectUnit;
+        }
+        Transform toTrans = to.transform;
+        Transform fromTrans = from.transform;
         int dispensed = 0;
-        while (meat > 0 && dispensed < task.quantity && task.objectUnit.GetComponent<Unit>().roomForMeat() > 0) {
+        while (from.GetComponent<Unit>().meat > 0 && dispensed < task.quantity && to.GetComponent<Unit>().roomForMeat() > 0) {
             if (Vector2.Distance(transform.position, task.objectUnit.transform.position) > 10) {
                 task.quantity -= dispensed;
-                dispenseOutranged();
+                if (task.nature == Task.actions.give) {
+                    dispenseOutranged();
+                }
                 yield return null;
             }
-            deductMeat(1);
-            Vector3 startOut = (task.objectUnit.transform.position - transform.position).normalized * (GetComponent<CircleCollider2D>().radius + 1) + transform.position;
+            from.GetComponent<Unit>().deductMeat(1);
+            Vector3 startOut = (toTrans.position - fromTrans.position).normalized * (from.GetComponent<CircleCollider2D>().radius + 1) + fromTrans.position;
             GameObject newOrb = PhotonNetwork.Instantiate("Orb", startOut, Quaternion.identity);
-            newOrb.GetComponent<Rigidbody2D>().velocity = (task.objectUnit.transform.position - transform.position).normalized * 4;
-            StartCoroutine(dispenseThrow(newOrb, task.objectUnit));
+            newOrb.GetComponent<Rigidbody2D>().velocity = (toTrans.position - fromTrans.position).normalized * 4;
+            StartCoroutine(dispenseThrow(newOrb, to));
             ++dispensed;
             yield return new WaitForSeconds(0.15f);
         }
@@ -86,7 +100,11 @@ public class Unit_local : Unit {
         yield return null;
     }
 
-    protected virtual void dispenseOutranged () { }
+    protected virtual void dispenseOutranged () {
+        CircleCollider2D newCollider = gameObject.AddComponent<CircleCollider2D>();
+        newCollider.isTrigger = true;
+        newCollider.radius = 10;
+    }
 
     protected virtual IEnumerator dispenseThrow (GameObject thrownOrb, GameObject recipient) {
         yield return new WaitForSeconds(0);
@@ -101,9 +119,7 @@ public class Unit_local : Unit {
             StartCoroutine(dispense());
         }
         else {
-            CircleCollider2D newCollider = gameObject.AddComponent<CircleCollider2D>();
-            newCollider.isTrigger = true;
-            newCollider.radius = 10;
+            dispenseOutranged();
         }
     }
 
@@ -132,6 +148,17 @@ public class Unit_local : Unit {
         }
         gameState.deadenUnit(gameObject);
         PhotonNetwork.Destroy(gameObject);
+    }
+
+    public virtual void take (GameObject fromWho, int howMuch) {
+        Debug.Log("initiating take");
+        task = new Task(gameObject, fromWho, Task.actions.take, howMuch);
+        if (Vector2.Distance(transform.position, fromWho.transform.position) < 10) {
+            StartCoroutine(dispense());
+        }
+        else {
+            dispenseOutranged();
+        }
     }
 
     [PunRPC]

@@ -8,6 +8,7 @@ public class Cohort {
 
     public List<Unit_local> members = new List<Unit_local>();
     public List<Unit_local> armedMembers = new List<Unit_local>();
+    Task task;
     Hashtable remainingToGive = new Hashtable();
     Hashtable remainingToTake = new Hashtable();
     
@@ -33,38 +34,47 @@ public class Cohort {
         recruit.cohort = this;        
     }
 
-    public void assignGiveWork (Unit_local worker) {
-        Debug.Log("assigning work");
+    public void assignTransactionWork (Unit_local worker) {
         float bestDistance = 999999;
-        Unit_local recipient = null;
-        foreach (Unit_local reciever in remainingToTake.Keys) {
-            Debug.Log("checking distance to a target");
+        Unit_local otherOne = null;
+        Hashtable counterParties = null;
+        if (task.nature == Task.actions.give) {
+            counterParties = remainingToTake;
+        }
+        else {
+            counterParties = remainingToGive;
+        }
+        foreach (Unit_local reciever in counterParties.Keys) {
             Unit_local maybeThis = reciever;
             float distanceTo = Vector2.Distance(maybeThis.transform.position, worker.transform.position);
             if (distanceTo < bestDistance) {
-                recipient = maybeThis;
+                otherOne = maybeThis;
                 bestDistance = distanceTo;
             }
         }
-        if (recipient != null) {
-            int meatRoom = recipient.roomForMeat();
-            if (meatRoom <= worker.meat) {
-                Debug.Log("putting the unit to work");
-                worker.give(recipient.gameObject, meatRoom);
-                remainingToTake.Remove(recipient);
-                int stillHave = (int) remainingToGive[worker];
-                remainingToGive[worker] = stillHave - meatRoom;
+        if (task.nature == Task.actions.give) {
+            if (otherOne.roomForMeat() <= worker.meat) {
+                worker.give(otherOne.gameObject, otherOne.roomForMeat());
+                remainingToTake.Remove(otherOne);
+                remainingToGive[worker] = (int) remainingToGive[worker] - otherOne.roomForMeat();
             }
-            else {
-                Debug.Log("putting the unit to work");
-                worker.give(recipient.gameObject, worker.meat);
+            else{
+                worker.give(otherOne.gameObject, worker.meat);
                 remainingToGive.Remove(worker);
-                int stillOpen = (int) remainingToTake[recipient];
-                remainingToTake[recipient] = stillOpen - worker.meat;
+                remainingToTake[otherOne] = (int) remainingToTake[otherOne] - worker.meat;                   
             }
         }
         else {
-            remainingToGive.Clear();
+            if (worker.roomForMeat() <= otherOne.meat) {
+                worker.take(otherOne.gameObject, worker.roomForMeat());
+                remainingToTake.Remove(worker);
+                remainingToGive[otherOne] = (int) remainingToGive[otherOne] - worker.roomForMeat();
+            }
+            else{
+                worker.take(otherOne.gameObject, otherOne.meat);
+                remainingToGive.Remove(otherOne);
+                remainingToTake[worker] = (int) remainingToTake[worker] - otherOne.meat;                   
+            }
         }
     }
 
@@ -76,27 +86,44 @@ public class Cohort {
         }
     }
 
-    public void commenceGive (Cohort target) {
-        Debug.Log("commenceGive in a cohort with " + members.Count + " members");
-        foreach (Unit_local member in members) {
-            if (member.meat > 0) {
-                remainingToGive.Add(member, member.meat);
+    public void commenceTransact (Task transaction) {
+        task = transaction;
+        Cohort from;
+        Cohort to;
+        if (task.nature == Task.actions.give) {
+            from = this;
+            to = task.objectUnit.GetComponent<Unit>().cohort;
+        }
+        else {
+            from = task.objectUnit.GetComponent<Unit>().cohort;
+            to = this;
+        }
+        foreach (Unit_local giver in from.members) {
+            if (giver.meat > 0) {
+                remainingToGive.Add(giver, giver.meat);
             }
         }
-        foreach (Unit_local recipient in target.members) {
+        foreach (Unit_local recipient in to.members) {
             if (recipient.roomForMeat() > 0) {
                 remainingToTake.Add(recipient, recipient.roomForMeat());
             }
         }
-        Hashtable thisIsToSupressWarnings = new Hashtable(remainingToGive);
-        foreach (Unit_local worker in thisIsToSupressWarnings.Keys) {
-            Debug.Log("trying to assign work");
-            assignGiveWork(worker);
+        Hashtable workers;
+        if (task.nature == Task.actions.give) {
+            workers = new Hashtable(remainingToGive);
         }
-    }
-
-    public void commenceTake (Cohort target) {
-
+        else {
+            workers = new Hashtable(remainingToTake);
+        }
+        foreach (Unit_local worker in workers.Keys) {
+            assignTransactionWork(worker);
+            if (remainingToGive.Count <= 0 || remainingToTake.Count <= 0) {
+                remainingToGive.Clear();
+                remainingToTake.Clear();
+                task = null;
+                break;
+            }
+        }
     }
 
     public void deactivate () {
@@ -142,7 +169,7 @@ public class Cohort {
             case Task.actions.give:
             Unit_local worker = task.subjectUnit.GetComponent<Unit_local>();
                 if (worker.meat > 0 && remainingToTake.Count > 0) {
-                    assignGiveWork(worker);
+                    assignTransactionWork(worker);
                 }
                 break;
             default:
