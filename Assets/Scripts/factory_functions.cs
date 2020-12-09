@@ -11,6 +11,10 @@ public class factory_functions : MonoBehaviourPun {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
     }
 
+    public void orderCourier () {
+        makeUnit("courier");
+    }
+    
     public void orderDog () {
         makeUnit("Dog");
     }
@@ -56,8 +60,8 @@ public class factory_functions : MonoBehaviourPun {
 
     Vector3 nextOutputLocation () {
 //In the future, this should account for things like obstructing terrain, and also the size of the unit being created.
-        float distanceAlongCircumferenc = locationCycler * Mathf.PI / 3.5f;
-        Vector2 direction = new Vector2 (Mathf.Sin(distanceAlongCircumferenc), Mathf.Cos(distanceAlongCircumferenc));
+        float distanceAlongCircumference = locationCycler * Mathf.PI / 3.5f;
+        Vector2 direction = new Vector2 (Mathf.Sin(distanceAlongCircumference), Mathf.Cos(distanceAlongCircumference));
         Vector3 result = new Vector3(direction.x, direction.y, gameObject.transform.position.z) * 2f;
         ++locationCycler;
         if (locationCycler == 7) {

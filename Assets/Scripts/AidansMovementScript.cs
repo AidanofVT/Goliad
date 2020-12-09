@@ -56,17 +56,22 @@ public class AidansMovementScript : MonoBehaviour {
             return;
         }
 //if you are within a specified range of the next waypoint
-            if (Vector2.Distance(transform.position, path.vectorPath[currentWaypoint]) < changePointThreshhold) {
-//and if the number of the next waypoint would not exceeed the number of waypoints in the path
-                if (currentWaypoint + 1 <= path.vectorPath.Count - 1) {
-//increment the currentWaypoint (I think there should be another break here, but it's not in the example)
-                    currentWaypoint++;
+            try {
+                if (Vector2.Distance(transform.position, path.vectorPath[currentWaypoint]) < changePointThreshhold) {
+    //and if the number of the next waypoint would not exceeed the number of waypoints in the path
+                    if (currentWaypoint + 1 <= path.vectorPath.Count - 1) {
+    //increment the currentWaypoint (I think there should be another break here, but it's not in the example)
+                        currentWaypoint++;
+                    }
+                    else {
+                        //end reached
+                        terminatePathfinding();
+                        return;
+                    }
                 }
-                else {
-                    //end reached
-                    terminatePathfinding();
-                    return;
-                }
+            }
+            catch {
+                Debug.Log("CAUGHT IT. Tried to access index " + currentWaypoint + "when the size of the path is " + path.vectorPath.Count + "entries long.");
             }
         Vector2 dirNew = (path.vectorPath[currentWaypoint] - transform.position).normalized * speed;
         if (Mathf.Sqrt(Mathf.Pow(body.velocity.x, 2) + Mathf.Pow(body.velocity.y, 2)) <= speed) {
@@ -83,7 +88,7 @@ public class AidansMovementScript : MonoBehaviour {
         while (true) {
             Vector3 change = transform.position - positionOneSecondAgo;
             if (change.magnitude < 0.1f) {
-                Debug.Log("jerking because this unit has moved " + change.magnitude + " in the last second.");
+                // Debug.Log("jerking because this unit has moved " + change.magnitude + " in the last second.");
                 Vector2 swayWay = (path.vectorPath[currentWaypoint] - transform.position).normalized;
                 float temp  = swayWay.x;
                 swayWay.x = swayWay.y * -1;
@@ -102,18 +107,20 @@ public class AidansMovementScript : MonoBehaviour {
         return (desiredCourse - body.velocity);
     }
 
-    public void terminatePathfinding () {
+    public void terminatePathfinding (bool passUpward = true) {
         isRunning = false;
         CancelInvoke("moveAlong");
         StopCoroutine("stuckCheck");
         CancelInvoke("setRoute");
         GetComponent<Unit>().StopCoroutine("updateFacing");
-        SendMessage("pathEnded");
         roundToArrived = 0.1f;
         path = null;
         currentWaypoint = 0;
         transToFollow = null;
         body.velocity = new Vector2(0, 0);
+        if (passUpward) {
+            SendMessage("pathEnded");
+        }
     }
 
 }

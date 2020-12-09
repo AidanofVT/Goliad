@@ -9,7 +9,9 @@ public class NeutralUnit : MobileUnit_local {
             gameObject.AddComponent<MobileUnit_remote>();
             DestroyImmediate(this);
         }
-        stats = GetComponent<UnitBlueprint>();
+        else {
+            stats = GetComponent<UnitBlueprint>();
+        }
     }
 
     public override void ignition () {
@@ -22,6 +24,22 @@ public class NeutralUnit : MobileUnit_local {
     }
 
     public override void deactivate () {
+
+    }
+
+    public void OnMouseEnter () {
+
+    }
+
+    public void OnMouseExit () {
+        
+    }
+
+    public void OnTriggerEnter2D(Collider2D other) {
+        
+    }
+
+    public override void pathEnded () {
 
     }
 

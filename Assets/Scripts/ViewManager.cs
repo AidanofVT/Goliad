@@ -110,9 +110,12 @@ public class ViewManager : MonoBehaviour {
         }
     }
 
-    public void resizeUIs () {
-        foreach (RectTransform toAlter in attendedTransforms) {
-            toAlter.localScale = new Vector3(1,1,1) * (Camera.main.orthographicSize / 5);
+    public void resizeUIs (float magnitude) {
+        foreach (RectTransform folder in attendedTransforms) {
+            folder.transform.localScale *= magnitude;
+            for (int i = 0; i < folder.childCount; ++i) {
+                folder.GetChild(i).transform.localPosition *= 1 / magnitude;
+            }
         }
     }
 }

@@ -49,8 +49,10 @@ public class CameraPanner : MonoBehaviour
 
     void obeyCameraZoomInputs () {
         if (Input.GetAxis("zoom") != 0) {
+            float oldSize = Camera.main.orthographicSize;
             Camera.main.orthographicSize -= Input.GetAxis("zoom") * zoomMultiplier * distanceMultiplier;
-            vManage.resizeUIs();
+            float newSize = Camera.main.orthographicSize;
+            vManage.resizeUIs(newSize / oldSize);
         }
     }
 

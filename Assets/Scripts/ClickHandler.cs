@@ -18,11 +18,15 @@ public class ClickHandler : MonoBehaviour {
     void Update() {
         if (Input.GetKeyUp(KeyCode.Mouse0) && !Input.GetKey(KeyCode.Mouse1)) {
             if (gameObject.GetComponent<SelectionRectManager>().rectOn == false) {
-                thingLeftClicked(Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition))[0].gameObject);
+                Collider2D[] detectedThings = Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+                thingLeftClicked(detectedThings[0].gameObject);
             }
         }
         if (Input.GetKeyUp(KeyCode.Mouse1) && !Input.GetKey(KeyCode.Mouse0) && targeting == false) {
-            thingRightClicked(Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition))[0].gameObject);
+            if (gameObject.GetComponent<SelectionRectManager>().rectOn == false) {
+                Collider2D[] detectedThings = Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+                thingRightClicked(detectedThings[0].gameObject);
+            }
         }
         if (Input.GetKeyDown(KeyCode.Mouse1)) {
             GameObject underMouse = Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition))[0].gameObject;
@@ -46,16 +50,17 @@ public class ClickHandler : MonoBehaviour {
                     newCohort.commenceAttack(thingClicked);
                 }
                 else {
-                    newCohort.moveCohort(thingClicked.transform.position, thingClicked.transform);
+                    newCohort.moveCohort(thingClicked);
                 }
                 break;
             case "ground":
-                newCohort.moveCohort(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+                GameObject waypoint = new GameObject("waypoint");
+                waypoint.transform.position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                newCohort.moveCohort(waypoint);
                 break;
             case "UI":
                 return;
             default: 
-                newCohort.moveCohort(new Vector3(0,0,0));
                 Debug.Log("PROBLEM: nothing with a valid tag hit by raycast.");
                 break;
         }
@@ -64,15 +69,21 @@ public class ClickHandler : MonoBehaviour {
     void thingLeftClicked (GameObject thingClicked) {
         switch (thingClicked.tag) {
             case "unit":
-                gameState.clearActive();
                 Unit_local unit = thingClicked.GetComponent<Unit_local>();
-                if (unit != null) {
-                    gameState.activeCohorts.Clear();
-                    vManage.clearPalette();
-                    if (Input.GetButton("modifier")) {
-                        unit.changeCohort();
+                if (Input.GetButton("excluder") == false) {
+                    gameState.clearActive();
+                    if (unit != null) {
+                        gameState.activeCohorts.Clear();
+                        vManage.clearPalette();
+                        if (Input.GetButton("modifier")) {
+                            unit.changeCohort();
+                        }
+                        unit.cohort.activate();
                     }
-                    unit.cohort.activate();
+                }
+                else if (unit.gameObject.transform.GetChild(3).gameObject.activeInHierarchy == true) {
+                    unit.cohort.removeMember(unit);
+                    unit.deactivate();
                 }
                 break;
             case "ground":
@@ -111,7 +122,6 @@ public class ClickHandler : MonoBehaviour {
             }
             yield return new WaitForSeconds(0);
         }
-        Debug.Log("stopping the coroutine");
         targeting = false;
         targetingUI.SetActive(false);
         vManage.attendedTransforms.Remove(targetingUI.transform.parent.GetComponent<RectTransform>());

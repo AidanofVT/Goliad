@@ -29,11 +29,13 @@ public class GameState : MonoBehaviour
             return activeCohorts[0];
         }
         else {
-            List<Unit_local> members = new List<Unit_local>();
+            Cohort newCohort = new Cohort();
             foreach (Cohort selectedCohort in activeCohorts) {
-                members.AddRange(selectedCohort.members);
+                List<Unit_local> thisIsAlsoToSupressWarnings = new List<Unit_local>(selectedCohort.members);
+                foreach (Unit_local individual in thisIsAlsoToSupressWarnings) {
+                    individual.changeCohort(newCohort);
+                }
             }
-            Cohort newCohort = new Cohort(members);
             activeCohorts.Clear();
             activeCohorts.Add(newCohort);
             return activeCohorts[0];

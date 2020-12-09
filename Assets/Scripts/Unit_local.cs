@@ -5,7 +5,7 @@ using Photon.Pun;
 
 public class Unit_local : Unit {
     protected ViewManager viewManager;
-    protected Task task;
+    public Task task;
 
     void Awake () {
 //can't this be moved to Unit.Start()?
@@ -38,7 +38,6 @@ public class Unit_local : Unit {
     public virtual void activate () {
         gameState.activateUnit(gameObject);
         transform.GetChild(3).gameObject.SetActive(true);
-        //transform.GetChild(3).GetChild(1).GetComponent<RectTransform>().localScale = new Vector3(1,1,1) * (Camera.main.orthographicSize / 5);
     }
 
     public void attack (GameObject target) {
@@ -46,14 +45,16 @@ public class Unit_local : Unit {
     }
 
     public void changeCohort (Cohort newCohort = null) {
-        cohort.removeMember(this);
         if (newCohort == null) {
-            cohort = soloCohort;
+            newCohort = soloCohort;
         }
-        else {
+        if (cohort != soloCohort) {
+            cohort.removeMember(this);
+        }
+        if (newCohort != soloCohort) {
             newCohort.addMember(this);
-            cohort = newCohort;
         }
+        cohort = newCohort;
     }
  
     public virtual void deactivate () {
@@ -65,6 +66,7 @@ public class Unit_local : Unit {
     public override void die () {
         spindown();
     }
+
 
     protected virtual IEnumerator dispense () {
         GameObject to;
@@ -96,6 +98,7 @@ public class Unit_local : Unit {
             ++dispensed;
             yield return new WaitForSeconds(0.15f);
         }
+        cohort.taskCompleted(task);
         task = null;
         yield return null;
     }
@@ -112,16 +115,7 @@ public class Unit_local : Unit {
         yield return null;
     }
 
-    public virtual void give (GameObject toWho, int howMuch) {
-        Debug.Log("initiating give");
-        task  = new Task(gameObject, toWho, Task.actions.give, howMuch);
-        if (Vector2.Distance(transform.position, toWho.transform.position) < 10) {
-            StartCoroutine(dispense());
-        }
-        else {
-            dispenseOutranged();
-        }
-    }
+    public virtual void move (GameObject goTo, float precision = -1) { }
 
     void OnTriggerEnter2D(Collider2D contact) {
         if (contact.isTrigger == false && contact.gameObject == task.objectUnit) {
@@ -134,7 +128,7 @@ public class Unit_local : Unit {
         viewManager.removeFromPalette(this);
     }
 
-    protected void OnMouseEnter() {
+    void OnMouseEnter() {
         viewManager.addToPalette(this);
     }
 
@@ -150,17 +144,6 @@ public class Unit_local : Unit {
         PhotonNetwork.Destroy(gameObject);
     }
 
-    public virtual void take (GameObject fromWho, int howMuch) {
-        Debug.Log("initiating take");
-        task = new Task(gameObject, fromWho, Task.actions.take, howMuch);
-        if (Vector2.Distance(transform.position, fromWho.transform.position) < 10) {
-            StartCoroutine(dispense());
-        }
-        else {
-            dispenseOutranged();
-        }
-    }
-
     [PunRPC]
     public override void takeHit (int power) {
         int roll = Random.Range(0, stats.toughness);
@@ -170,4 +153,23 @@ public class Unit_local : Unit {
         }    
     }
 
+    public virtual void work (Task newTask) {
+        task = newTask;
+        if (task.nature == Task.actions.give || task.nature == Task.actions.take) {
+            if (Vector2.Distance(transform.position, task.objectUnit.transform.position) < 10) {
+                StartCoroutine(dispense());
+            }
+            else {
+                dispenseOutranged();
+            }
+        }
+        else if (task.nature == Task.actions.move) {
+            if (task.objectUnit.tag == "unit") {
+                move(task.objectUnit);
+            }
+            else {
+                move(task.objectUnit);
+            }
+        }
+    }
 }
