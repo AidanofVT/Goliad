@@ -24,7 +24,7 @@ public class setup : MonoBehaviourPunCallbacks {
     }
 
     public override void OnConnectedToMaster() {
-        Debug.Log("Connected to master. " + PhotonNetwork.CountOfRooms + " rooms open. Game version " + PhotonNetwork.AppVersion + ". Player ID = " + PhotonNetwork.LocalPlayer.UserId);
+        Debug.Log("Connected to master. " + PhotonNetwork.CountOfRooms + " rooms open in " + PhotonNetwork.ServerAddress + ". Game version " + PhotonNetwork.AppVersion + ". Player ID = " + PhotonNetwork.LocalPlayer.UserId);
         if (PhotonNetwork.CountOfRooms == 0) {
             PhotonNetwork.CreateRoom(Random.Range(0, 10000).ToString());
         }

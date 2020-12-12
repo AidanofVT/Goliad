@@ -30,7 +30,7 @@ public class SelectionRectManager : MonoBehaviour {
             downTime = 1000000;
             selectorSquare.gameObject.SetActive(false); 
         }
-        else if (Time.time - downTime >= 0.15) {
+        else if (Time.time - downTime >= 0.22) {
             if (selectorSquare.gameObject.activeInHierarchy == false) {
                 selectorSquare.gameObject.SetActive(true);
                 rectOn = true;

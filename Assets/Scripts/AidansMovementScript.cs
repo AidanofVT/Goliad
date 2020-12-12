@@ -9,6 +9,7 @@ public class AidansMovementScript : MonoBehaviour {
     Vector3 placetoGo;
     Transform transToFollow = null;
     Rigidbody2D body;
+    Collider2D selfToIgnore;
 //this boolean isn't used by this script, but it is needed for other scripts to register what's going on. toggling path to null and back doesn't work: a new path is spontaneously created for some reason
     public bool isRunning = false;
     public float speed;
@@ -21,6 +22,7 @@ public class AidansMovementScript : MonoBehaviour {
         seeker = GetComponent<Seeker>();
         speed = GetComponent<UnitBlueprint>().speed;
         body = GetComponent<Rigidbody2D>();
+        selfToIgnore = GetComponent<Collider2D>();
     }
 
     public void setDestination (Vector3 destination, Transform movingTransform = null, float acceptableDistance = 0.1f) {
@@ -105,6 +107,21 @@ public class AidansMovementScript : MonoBehaviour {
 
     Vector2 neededPush (Vector2 desiredCourse) {
         return (desiredCourse - body.velocity);
+    }
+
+    public bool isNavigable (Vector3 where) {
+        float girth = GetComponent<CircleCollider2D>().radius * transform.localScale.magnitude * 1.1f;
+        Collider2D[] occupants = Physics2D.OverlapCircleAll(where, girth);
+        List<Collider2D> listFormat = new List<Collider2D>(occupants);
+        foreach (Collider2D contact in listFormat) {
+            if (contact.tag == "unit" || contact.tag == "obstacle" || contact.tag == "out of bounds") {
+                if (contact != selfToIgnore) {
+                    Debug.Log("Point obstructed by " + contact.name + ".");
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public void terminatePathfinding (bool passUpward = true) {
