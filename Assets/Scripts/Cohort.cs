@@ -8,6 +8,7 @@ public class Cohort {
 
     public List<Unit_local> members = new List<Unit_local>();
     public List<Unit_local> armedMembers = new List<Unit_local>();
+    public List<Unit_local> mobileMembers = new List<Unit_local>();
     Task task;
     public List<Task> assignments = new List<Task>();
     Hashtable remainingToProvide = new Hashtable();
@@ -16,7 +17,7 @@ public class Cohort {
     public Cohort (List<Unit_local> recruits = null) {
         if (recruits != null) {
             foreach (Unit_local unit in recruits) {
-                addMember(unit);
+                unit.changeCohort(this);
             }        
         }
         //Debug.Log("cohort created with " + members.Count + " members");
@@ -33,6 +34,9 @@ public class Cohort {
         members.Add(recruit);
         if (recruit.stats.isArmed) {
             armedMembers.Add(recruit);
+        }
+        if (recruit.stats.isMobile) {
+            mobileMembers.Add(recruit);
         }
     }
 
@@ -164,7 +168,7 @@ public class Cohort {
         task = new Task (null, goTo, Task.actions.move);
         List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(members);
         foreach (Unit_local toMove in thisIsToSupressWarnings) {
-            if (toMove.stats.isMobile) {
+            if (mobileMembers.Contains(toMove)) {
                 Task moveTask = new Task(toMove.gameObject, goTo, Task.actions.move);
                 toMove.work(moveTask);
                 assignments.Add(moveTask);        
@@ -182,12 +186,16 @@ public class Cohort {
         if (reject.stats.isArmed) {
             armedMembers.Remove(reject);
         }
+        if (reject.stats.isMobile) {
+            mobileMembers.Remove(reject);
+        }
         Debug.Log("removed a member from the cohort. there are now " + members.Count + " members");
     }
 
     public void taskCompleted (Task completedTask) {
         assignments.Remove(completedTask);
         Unit_local worker = completedTask.subjectUnit.GetComponent<Unit_local>();
+        Debug.Log("task completed");
         switch (completedTask.nature) {
             case Task.actions.give:
                 if (worker.meat > 0 && remainingToAccept.Count > 0) {

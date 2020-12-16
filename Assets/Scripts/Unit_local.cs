@@ -64,11 +64,13 @@ public class Unit_local : Unit {
 
     [PunRPC]
     public override void die () {
+        SendMessage("deathProtocal");
         spindown();
     }
 
 
     protected virtual IEnumerator dispense () {
+        Debug.Log("dispensing");
         GameObject to;
         GameObject from;
         if (task.nature == Task.actions.give) {
@@ -82,24 +84,36 @@ public class Unit_local : Unit {
         Transform toTrans = to.transform;
         Transform fromTrans = from.transform;
         int dispensed = 0;
-        while (from.GetComponent<Unit>().meat > 0 && dispensed < task.quantity && to.GetComponent<Unit>().roomForMeat() > 0) {
-            if (Vector2.Distance(transform.position, task.objectUnit.transform.position) > 10) {
-                task.quantity -= dispensed;
-                if (task.nature == Task.actions.give) {
+        while (true) {
+            Debug.Log(from.GetComponent<Unit>().meat > 0);
+            Debug.Log(dispensed < task.quantity);
+            Debug.Log(to.GetComponent<Unit>().roomForMeat() > 0);
+            Debug.Log("\n ~~~~~~");
+            if (from.GetComponent<Unit>().meat > 0 && dispensed < task.quantity && to.GetComponent<Unit>().roomForMeat() > 0) {
+                if (Vector2.Distance(transform.position, task.objectUnit.transform.position) > 10) {
+                    Debug.Log("outranged?");
+                    task.quantity -= dispensed;
                     dispenseOutranged();
+                    StopCoroutine(dispense());
+                    yield return null;
                 }
-                yield return null;
+                from.GetComponent<Unit>().deductMeat(1);
+                Vector3 startOut = (toTrans.position - fromTrans.position).normalized * (from.GetComponent<CircleCollider2D>().radius + 1) + fromTrans.position;
+                GameObject newOrb = PhotonNetwork.Instantiate("Orb", startOut, Quaternion.identity);
+                newOrb.GetComponent<Rigidbody2D>().velocity = (toTrans.position - fromTrans.position).normalized * 4;
+                ++dispensed;
+                StartCoroutine(dispenseThrow(newOrb, to));
             }
-            from.GetComponent<Unit>().deductMeat(1);
-            Vector3 startOut = (toTrans.position - fromTrans.position).normalized * (from.GetComponent<CircleCollider2D>().radius + 1) + fromTrans.position;
-            GameObject newOrb = PhotonNetwork.Instantiate("Orb", startOut, Quaternion.identity);
-            newOrb.GetComponent<Rigidbody2D>().velocity = (toTrans.position - fromTrans.position).normalized * 4;
-            StartCoroutine(dispenseThrow(newOrb, to));
-            ++dispensed;
+            else {
+                break;
+            }
             yield return new WaitForSeconds(0.15f);
         }
-        cohort.taskCompleted(task);
+        Debug.Log("nulling");
+//this has to be this way because if the taskcompleted call comes before the null assignment, then task will be set to null while the next dispnse coroutine is working on it.
+        Task test = task;
         task = null;
+        cohort.taskCompleted(test);
         yield return null;
     }
 

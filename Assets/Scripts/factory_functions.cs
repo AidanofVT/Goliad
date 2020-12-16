@@ -44,13 +44,7 @@ public class factory_functions : MonoBehaviourPun {
             if (factoryUnit.meat >= expense) {
 //In the future, there needs to be a mechanism to detect whether the space around the factory is obstructed, and probably to move those obstructing units. I'd suggest making makeUnit return a boolean
 //which will be false as long as the space is obstructed, and then have the ordering method handle the subsiquent calls and the moving of units.
-                if (unitType != "Units/Sheep") {
-                    toReturn = PhotonNetwork.Instantiate(unitType, gameObject.transform.position + nextOutputLocation(), Quaternion.identity);
-                }
-                else {
-                    Debug.Log("creating sheep");
-                    toReturn = PhotonNetwork.Instantiate(unitType, gameObject.transform.position + nextOutputLocation(), Quaternion.identity);
-                }
+                toReturn = PhotonNetwork.Instantiate(unitType, gameObject.transform.position + nextOutputLocation(), Quaternion.identity);
                 factoryUnit.deductMeat(expense);
             }
             //MeatReadout.GetComponent<Text>().text = factoryUnit.meat.ToString();
@@ -73,8 +67,8 @@ public class factory_functions : MonoBehaviourPun {
     [PunRPC]
     public void slaughterSheep () {
         foreach (Collider2D contact in Physics2D.OverlapCircleAll(transform.position, 10)) {
-            if (contact.GetComponent<SheepBehavior_Base>() != null) {
-                contact.GetComponent<Unit>().die();
+            if (contact.gameObject.name.Contains("sheep")) {
+                contact.gameObject.GetPhotonView().RPC("die", RpcTarget.All);
             }
         }
     }

@@ -57,12 +57,12 @@ public class AidansMovementScript : MonoBehaviour {
             terminatePathfinding();
             return;
         }
-//if you are within a specified range of the next waypoint
             try {
+//if you are within a specified range of the next waypoint
                 if (Vector2.Distance(transform.position, path.vectorPath[currentWaypoint]) < changePointThreshhold) {
     //and if the number of the next waypoint would not exceeed the number of waypoints in the path
                     if (currentWaypoint + 1 <= path.vectorPath.Count - 1) {
-    //increment the currentWaypoint (I think there should be another break here, but it's not in the example)
+        //increment the currentWaypoint
                         currentWaypoint++;
                     }
                     else {
@@ -73,7 +73,7 @@ public class AidansMovementScript : MonoBehaviour {
                 }
             }
             catch {
-                Debug.Log("CAUGHT IT. Tried to access index " + currentWaypoint + "when the size of the path is " + path.vectorPath.Count + "entries long.");
+                Debug.Log("CAUGHT IT. Tried to access index " + currentWaypoint + " when the size of the path is " + path.vectorPath.Count + "entries long.");
             }
         Vector2 dirNew = (path.vectorPath[currentWaypoint] - transform.position).normalized * speed;
         if (Mathf.Sqrt(Mathf.Pow(body.velocity.x, 2) + Mathf.Pow(body.velocity.y, 2)) <= speed) {
@@ -116,7 +116,7 @@ public class AidansMovementScript : MonoBehaviour {
         foreach (Collider2D contact in listFormat) {
             if (contact.tag == "unit" || contact.tag == "obstacle" || contact.tag == "out of bounds") {
                 if (contact != selfToIgnore) {
-                    Debug.Log("Point obstructed by " + contact.name + ".");
+                    //Debug.Log("Point obstructed by " + contact.name + ".");
                     return false;
                 }
             }

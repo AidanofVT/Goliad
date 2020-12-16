@@ -7,6 +7,7 @@ public class SheepBehavior_Base : MonoBehaviourPun {
     void Start() {
         changeFaction(photonView.OwnerActorNr);
         if (photonView.IsMine && this.GetType() == typeof(SheepBehavior_Base)) {
+            transform.GetChild(1).gameObject.GetComponent<SpriteRenderer>().sprite = null;
             gameObject.AddComponent<SheepBehavior_Local>();
             DestroyImmediate(this);
         }

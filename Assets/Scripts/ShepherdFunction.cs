@@ -18,4 +18,10 @@ public class ShepherdFunction : MonoBehaviourPun {
         }
     }
 
+    void deathProtocal () {
+        foreach (GameObject ward in flock) {
+            ward.GetComponent<SheepBehavior_Local>().shepherd = null;
+        }
+    }
+
 }

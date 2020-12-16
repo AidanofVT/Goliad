@@ -49,28 +49,30 @@ public class setup : MonoBehaviourPunCallbacks {
             startPlace = new Vector3 (distanceFromCenter, -distanceFromCenter, -.2f);
         }
         GameObject home = PhotonNetwork.Instantiate("Units/homebase", startPlace, Quaternion.identity);
-        StartCoroutine("step2", home);
+        //StartCoroutine("step2", home);
     }
 
     IEnumerator step2 (GameObject home) {
+        factory_functions maker = home.GetComponent<factory_functions>();
         yield return new WaitForSeconds(0);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
-        // GameObject hoplite = home.GetComponent<factory_functions>().makeUnit("Hoplite");
-        // hoplite.transform.position = home.transform.position / 4;
-        // Vector3 shift = new Vector3(3, 3, 0);
-        // GameObject dog1 = home.GetComponent<factory_functions>().makeUnit("dog");
-        // dog1.transform.position = (home.transform.position / 4) + shift;
-        // GameObject dog2 = home.GetComponent<factory_functions>().makeUnit("dog");
-        // dog2.transform.position = (home.transform.position / 2) + shift;
-        // GameObject dog3 = home.GetComponent<factory_functions>().makeUnit("dog");
-        // dog3.transform.position = (home.transform.position / 4) - shift;
-        // GameObject dog4 = home.GetComponent<factory_functions>().makeUnit("dog");
-        // dog4.transform.position = (home.transform.position / 2) - shift;
-        // yield return new WaitForSeconds(0);
-        // Unit_local[] northeastMembers = {dog1.GetComponent<Unit_local>(), dog2.GetComponent<Unit_local>(), dog3.GetComponent<Unit_local>()};
-        // Cohort northeast = new Cohort(new List<Unit_local>(northeastMembers));
-        // Unit_local[] southwestMembers = {dog4.GetComponent<Unit_local>()};
-        // Cohort southwest = new Cohort(new List<Unit_local>(southwestMembers));
+        GameObject hoplite = maker.makeUnit("Hoplite");
+        hoplite.transform.position = home.transform.position / 4;
+        GameObject dog1 = maker.makeUnit("dog");
+        dog1.transform.position = new Vector2(3, 3);
+        GameObject dog2 = maker.makeUnit("dog");
+        dog2.transform.position = new Vector2(3, -3);
+        GameObject dog3 = maker.makeUnit("dog");
+        dog3.transform.position = new Vector2(-3, -3);
+        GameObject dog4 = maker.makeUnit("dog");
+        dog4.transform.position = new Vector2(-3, 3);
+        GameObject courier = maker.makeUnit("courier");
+        courier.transform.position = Vector2.zero;
+        yield return new WaitForSeconds(0);
+        Unit_local[] dogsMembers = {dog1.GetComponent<Unit_local>(), dog2.GetComponent<Unit_local>(), dog3.GetComponent<Unit_local>(), dog4.GetComponent<Unit_local>()};
+        Cohort dogs = new Cohort(new List<Unit_local>(dogsMembers));
+        courier.GetComponent<Unit_local>().addMeat(30);
+        courier.GetComponent<Unit_local>().cohort.commenceTransact(new Task(courier, dog1, Task.actions.give));
     }
 
     private void OnPlayerConnected() {

@@ -259,8 +259,15 @@ public class SheepBehavior_Local : SheepBehavior_Base
 
     Vector2 updateFlockCenter () {
         Vector2 there = new Vector2(0,0);
-        foreach (GameObject fellow in flock) {
-            there += (Vector2) fellow.transform.position;
+        for (int i = 0; i < flock.Count; ++i) {
+            GameObject inQuestion = flock[i];
+            if (inQuestion == null || inQuestion.activeInHierarchy == false) {
+                farFlock.Remove(flock[i]);
+                flock.RemoveAt(i);
+            }
+            else {
+                there += (Vector2) flock[i].transform.position;
+            }
         }
         if (shepherd != null) {
             there += (Vector2) shepherd.transform.position * shepherdMultiplier;
@@ -287,6 +294,13 @@ public class SheepBehavior_Local : SheepBehavior_Base
                 flock.Remove(flockMate);
                 //Debug.Log("Friend lost. Flock size: " + flock.Count);
             }
+        }
+    }
+
+    void deathProtocal () {
+        Debug.Log("dead!");
+        if (shepherd != null) {
+            shepherd.GetComponent<ShepherdFunction>().flock.Remove(gameObject);
         }
     }
 
