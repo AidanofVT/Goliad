@@ -25,7 +25,7 @@ public class CameraPanner : MonoBehaviour
     {
         obeyCameraPanInputs();
         obeyCameraZoomInputs();
-        distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, zoomExponent) / 10;   
+        distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, zoomExponent) / 10;
     }
 
     void obeyCameraPanInputs () {
@@ -52,7 +52,7 @@ public class CameraPanner : MonoBehaviour
             float oldSize = Camera.main.orthographicSize;
             Camera.main.orthographicSize -= Input.GetAxis("zoom") * zoomMultiplier * distanceMultiplier;
             float newSize = Camera.main.orthographicSize;
-            vManage.resizeUIs(newSize / oldSize);
+            vManage.resizeUIs();
         }
     }
 

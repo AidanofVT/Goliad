@@ -150,9 +150,10 @@ public class SheepBehavior_Local : SheepBehavior_Base
     void consume () {
         //Debug.Log("Exploiting " + Mathf.FloorToInt(transform.position.x) + Mathf.FloorToInt(transform.position.y));
         if (Goliad.GetComponent<MapManager>().exploitPatch(new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y)))) {
-            gameObject.GetComponent<Unit>().addMeat(1);
+            if (gameObject.GetComponent<Unit>().addMeat(1) == true) {
+                        transform.localScale *= 1.05f;
+            }
         }
-        transform.localScale *= 1.05f;
         CancelInvoke("walkToFood");
         CancelInvoke("checkFoodTarget");
         StartCoroutine(idle(0));

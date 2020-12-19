@@ -732,7 +732,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameState: {fileID: 0}
-  mapSize: 40
+  mapSize: 80
 --- !u!114 &1416085385
 MonoBehaviour:
   m_ObjectHideFlags: 0

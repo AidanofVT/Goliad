@@ -91,6 +91,7 @@ public class Cohort {
         Debug.Log("cohort attacking " + getIt.name);
         foreach (Unit_local unit in armedMembers) {
             Debug.Log("instructing " + unit.name + " to attack");
+            unit.task = new Task(unit.gameObject, getIt, Task.actions.attack);
             unit.attack(getIt);
         }
     }

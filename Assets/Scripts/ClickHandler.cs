@@ -67,6 +67,7 @@ public class ClickHandler : MonoBehaviour {
     }
 
     void thingLeftClicked (GameObject thingClicked) {
+        Debug.Log(thingClicked.name);
         switch (thingClicked.tag) {
             case "unit":
                 Unit_local unit = thingClicked.GetComponent<Unit_local>();
@@ -113,7 +114,7 @@ public class ClickHandler : MonoBehaviour {
                 if (targetingUI.activeInHierarchy == false) {
                     targeting = true;
                     targetingUI.SetActive(true);
-                    vManage.attendedTransforms.Add(targetingUI.transform.parent.GetComponent<RectTransform>());
+                    vManage.attendTo(target);
                 }
                 if (Input.GetKeyUp(KeyCode.Mouse1)) {
                     m1UpButtonPress(target, targetingUI);
@@ -124,7 +125,7 @@ public class ClickHandler : MonoBehaviour {
         }
         targeting = false;
         targetingUI.SetActive(false);
-        vManage.attendedTransforms.Remove(targetingUI.transform.parent.GetComponent<RectTransform>());
+        vManage.attendToNoMore(target);
         StopCoroutine("holdTarget");
         yield return null;
     }

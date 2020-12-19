@@ -54,6 +54,8 @@ public class MobileUnit_local : Unit_local {
                     case "take":
                         StartCoroutine(dispense());
                         break;
+                    case "attack":
+                        break;
                     default:
                         Debug.Log("a path-ended message was sent while there was no valid task");
                         break;

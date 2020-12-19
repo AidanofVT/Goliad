@@ -13,7 +13,7 @@ public class AidansMovementScript : MonoBehaviour {
 //this boolean isn't used by this script, but it is needed for other scripts to register what's going on. toggling path to null and back doesn't work: a new path is spontaneously created for some reason
     public bool isRunning = false;
     public float speed;
-    public float changePointThreshhold = 0.5f;
+    public float changePointThreshhold;
     public float roundToArrived = 0.1f;
     int currentWaypoint = 0;
 
@@ -23,6 +23,9 @@ public class AidansMovementScript : MonoBehaviour {
         speed = GetComponent<UnitBlueprint>().speed;
         body = GetComponent<Rigidbody2D>();
         selfToIgnore = GetComponent<Collider2D>();
+        if (changePointThreshhold != 0) {
+            changePointThreshhold = GetComponent<CircleCollider2D>().radius;
+        }
     }
 
     public void setDestination (Vector3 destination, Transform movingTransform = null, float acceptableDistance = 0.1f) {

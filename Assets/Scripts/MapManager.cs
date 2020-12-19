@@ -48,7 +48,7 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
         ground.transform.GetChild(1).localScale = new Vector3 (sideLength, sideLength, 1);
 //the perimeter needs to start off deactivated to stop the A* system from marking the middle of the map non-navigable.
         ground.transform.GetChild(1).gameObject.SetActive(true);
-        AstarPath.active.data.gridGraph.SetDimensions(sideLength * 2, sideLength * 2, 0.5f);
+        AstarPath.active.data.gridGraph.SetDimensions(sideLength * 2, sideLength * 2, 1);
         for (int i = offset - 1; i >= offset * -1; i--) {
             for (int j = offset - 1; j >= offset * -1; j--) {
                 if ((i % 4 == 0 || i % 4 - 1 == 0) && (j % 4 == 0 || j % 4 - 1 == 0)) {

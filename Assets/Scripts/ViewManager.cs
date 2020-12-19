@@ -4,15 +4,24 @@ using UnityEngine;
 
 public class ViewManager : MonoBehaviour {
 
-    public List<RectTransform> attendedTransforms = new List<RectTransform>();
+    float cameraBaseline;
+    public List<Transform> attendedTransforms = new List<Transform>();
     public List<Cohort> consideredCohorts = new List<Cohort>();
     public List<Cohort> paintedCohorts = new List<Cohort>();
     public List<GameObject> consideredSprites = new List<GameObject>();
     public List<GameObject> paintedSprites = new List<GameObject>();
 
+    void Start () {
+        cameraBaseline = Camera.main.orthographicSize;
+    }
+
     public void attendTo (GameObject focus) {
-        attendedTransforms.Add(focus.transform.GetChild(2).GetChild(1).gameObject.GetComponent<RectTransform>());
-        attendedTransforms.Add(focus.transform.GetChild(3).GetChild(1).gameObject.GetComponent<RectTransform>());
+        Transform targetUI = focus.transform.GetChild(2).GetChild(1);
+        attendedTransforms.Add(targetUI);
+        resizeUIs(targetUI);
+        Transform activeUI = focus.transform.GetChild(3).GetChild(1);
+        attendedTransforms.Add(activeUI);
+        resizeUIs(activeUI);
     }
 
     public void attendToNoMore (GameObject focus) {
@@ -90,7 +99,7 @@ public class ViewManager : MonoBehaviour {
             foreach (Cohort pntedChrt in thisIsToSupressWarnings) {
                 unpaintCohort(pntedChrt);
             }
-            //at some point this will have to be hooked up to the rectangle manager anh altered so that more than one can be painted
+            //at some point this will have to be hooked up to the rectangle manager and altered so that more than one can be painted
             GameObject toPaint = Physics2D.OverlapPoint(Camera.main.ScreenToWorldPoint(Input.mousePosition)).gameObject;
             if (toPaint.GetComponent<Unit_local>() != null) {
                 GameObject sprite = toPaint.transform.GetChild(2).GetChild(0).gameObject;
@@ -110,11 +119,21 @@ public class ViewManager : MonoBehaviour {
         }
     }
 
-    public void resizeUIs (float magnitude) {
-        foreach (RectTransform folder in attendedTransforms) {
-            folder.transform.localScale *= magnitude;
+    public void resizeUIs (Transform singleSubject = null) {
+        List <Transform> toResize;
+        if (singleSubject != null) {
+            toResize = new List<Transform>();
+            toResize.Add(singleSubject);
+        }
+        else {
+            toResize = attendedTransforms;
+        }
+        float scale = Camera.main.orthographicSize / cameraBaseline;
+        Vector3 twoDScale = new Vector3 (scale, scale, 1);
+        foreach (RectTransform folder in toResize) {
             for (int i = 0; i < folder.childCount; ++i) {
-                folder.GetChild(i).transform.localPosition *= 1 / magnitude;
+                folder.GetChild(i).transform.localScale = twoDScale;
+                //folder.GetChild(i).transform.localPosition *= scale;
             }
         }
     }

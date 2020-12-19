@@ -64,10 +64,11 @@ public class Weapon : MonoBehaviour {
     }
 
     void OnTriggerEnter2D(Collider2D other) {
+        Debug.Log("trigger entered: " + other.gameObject.name);
         if (other.gameObject == target && other.isTrigger == false) {
             StartCoroutine("fire");
             if (treatAsMobile) {
-                legs.Invoke("terminatePathfinding", 0.5f);
+                legs.terminatePathfinding();
             }
         }
     }
@@ -82,7 +83,7 @@ public class Weapon : MonoBehaviour {
     }
 
     public virtual IEnumerator fire () {
-        //Debug.Log("Firing.");
+        Debug.Log("Firing.");
         while (target != null) {
             if (thisUnit.meat >= shotCost) {
                 doIt();

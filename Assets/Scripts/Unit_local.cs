@@ -70,7 +70,6 @@ public class Unit_local : Unit {
 
 
     protected virtual IEnumerator dispense () {
-        Debug.Log("dispensing");
         GameObject to;
         GameObject from;
         if (task.nature == Task.actions.give) {
@@ -81,35 +80,28 @@ public class Unit_local : Unit {
             to = task.subjectUnit;
             from = task.objectUnit;
         }
-        Transform toTrans = to.transform;
-        Transform fromTrans = from.transform;
         int dispensed = 0;
         while (true) {
-            Debug.Log(from.GetComponent<Unit>().meat > 0);
-            Debug.Log(dispensed < task.quantity);
-            Debug.Log(to.GetComponent<Unit>().roomForMeat() > 0);
-            Debug.Log("\n ~~~~~~");
             if (from.GetComponent<Unit>().meat > 0 && dispensed < task.quantity && to.GetComponent<Unit>().roomForMeat() > 0) {
                 if (Vector2.Distance(transform.position, task.objectUnit.transform.position) > 10) {
-                    Debug.Log("outranged?");
                     task.quantity -= dispensed;
                     dispenseOutranged();
                     StopCoroutine(dispense());
                     yield return null;
                 }
-                from.GetComponent<Unit>().deductMeat(1);
-                Vector3 startOut = (toTrans.position - fromTrans.position).normalized * (from.GetComponent<CircleCollider2D>().radius + 1) + fromTrans.position;
-                GameObject newOrb = PhotonNetwork.Instantiate("Orb", startOut, Quaternion.identity);
-                newOrb.GetComponent<Rigidbody2D>().velocity = (toTrans.position - fromTrans.position).normalized * 4;
-                ++dispensed;
-                StartCoroutine(dispenseThrow(newOrb, to));
+                Transform toTrans = to.transform;
+                Transform fromTrans = from.transform;
+                Vector3 startOut = (toTrans.position - fromTrans.position).normalized * (from.GetComponent<CircleCollider2D>().radius + 0.5f) + fromTrans.position;
+                int leftToDispense = task.quantity - dispensed;
+                GameObject newOrb = spawnOrb(startOut, leftToDispense, from.GetComponent<Unit_local>());
+                dispensed += newOrb.GetComponent<OrbMeatContainer>().meat;
+                StartCoroutine(passOrb(to, newOrb));
             }
             else {
                 break;
             }
-            yield return new WaitForSeconds(0.15f);
+            yield return new WaitForSeconds(0.2f);
         }
-        Debug.Log("nulling");
 //this has to be this way because if the taskcompleted call comes before the null assignment, then task will be set to null while the next dispnse coroutine is working on it.
         Task test = task;
         task = null;
@@ -123,19 +115,46 @@ public class Unit_local : Unit {
         newCollider.radius = 10;
     }
 
-    protected virtual IEnumerator dispenseThrow (GameObject thrownOrb, GameObject recipient) {
+    GameObject spawnOrb (Vector3 where, int poolSize, Unit_local pullFrom) {
+        int payload;
+        if (poolSize >= 70) {
+            payload = Random.Range(5, 8);
+        }
+        else if (poolSize >= 20) {
+            payload = Random.Range(3, 6);
+        }
+        else if (poolSize >= 5) {
+            payload = Random.Range(2, 5);
+        }
+        else {
+            payload = poolSize;
+        }
+        GameObject newOrb = PhotonNetwork.Instantiate("Orb", where, Quaternion.identity);
+        newOrb.GetComponent<OrbMeatContainer>().fill(payload);
+        if (pullFrom != null) {
+            pullFrom.deductMeat(payload);
+        }
+        return newOrb;
+    }
+    
+    public IEnumerator passOrb (GameObject to, GameObject newOrb) {
         yield return new WaitForSeconds(0);
-        thrownOrb.GetComponent<OrbBehavior_Local>().embark(recipient);
+        OrbBehavior_Local inQuestion = newOrb.GetComponent<OrbBehavior_Local>();
+        inQuestion.embark(to);
         yield return null;
     }
 
     public virtual void move (GameObject goTo, float precision = -1) { }
 
     void OnTriggerEnter2D(Collider2D contact) {
-        if (contact.isTrigger == false && contact.gameObject == task.objectUnit) {
-            StartCoroutine(dispense());
-            Destroy(gameObject.GetComponents<CircleCollider2D>()[1]);
-        }
+        if (contact.isTrigger == false && task !=  null) {
+            if (task.nature == Task.actions.give || task.nature == Task.actions.take) {
+                if (contact.gameObject == task.objectUnit) {
+                    StartCoroutine(dispense());
+                    Destroy(gameObject.GetComponents<CircleCollider2D>()[1]);
+                }
+            }
+        } 
     }
 
     void OnMouseExit() {
@@ -148,10 +167,10 @@ public class Unit_local : Unit {
 
     void spindown () {
         GameObject orb = (GameObject)Resources.Load("Orb");
-        float quantityMultiplier = (float) (meat / 20) + 1;
-        for (; meat > 0; --meat) {
+        float quantityMultiplier = (float) (meat / 15) + 1;
+        while (meat > 0) {
             Vector3 place = new Vector3(transform.position.x + Random.Range(-.5f, 0.5f) * quantityMultiplier, transform.position.y + Random.Range(-.5f, 0.5f) * quantityMultiplier, -.2f);
-            GameObject lastOrb = PhotonNetwork.Instantiate("orb", place, Quaternion.identity);
+            GameObject lastOrb = spawnOrb(place, meat, this);
             lastOrb.GetComponent<Rigidbody2D>().AddForce((lastOrb.transform.position - transform.position).normalized * Random.Range(0, 2) * quantityMultiplier);
         }
         gameState.deadenUnit(gameObject);

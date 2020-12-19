@@ -50,7 +50,7 @@ public class Unit : MonoBehaviourPun {
     }
 
     [PunRPC]
-    public void addMeat (int toAdd) {
+    public bool addMeat (int toAdd) {
         if (meat + toAdd <= stats.meatCapacity) {
             meat += toAdd;
             statusBar.updateBar();
@@ -59,6 +59,10 @@ public class Unit : MonoBehaviourPun {
                     weapon.StartCoroutine("fire"); 
                 } 
             }
+            return true;
+        }
+        else {
+            return false;
         }
     }
 

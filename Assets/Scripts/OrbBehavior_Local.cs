@@ -22,9 +22,9 @@ public class OrbBehavior_Local : OrbBehavior_Base {
         while (body.velocity.magnitude > 0.5f) {
             yield return new WaitForSeconds(0.1f);
         }
-            activeSearch();
-            body.velocity = new Vector3(0,0,0);
-            photonView.RPC("seekStage", RpcTarget.All);
+        activeSearch();
+        body.velocity = new Vector3(0,0,0);
+        photonView.RPC("seekStage", RpcTarget.All);
     }
 
     void activeSearch () {
@@ -64,7 +64,7 @@ public class OrbBehavior_Local : OrbBehavior_Base {
             }
             direction = (target.position - transform.position);
             if (direction.magnitude < 0.5) {
-                target.gameObject.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, 1);
+                target.gameObject.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, GetComponent<OrbMeatContainer>().meat);
                 PhotonNetwork.Destroy(gameObject);
             }
             if (speed < 12) {
@@ -98,7 +98,7 @@ public class OrbBehavior_Local : OrbBehavior_Base {
         StopCoroutine("launchStage");
         target = toSeek.transform;
         if (body != null) {
-            photonView.RPC("seekStage", RpcTarget.All);
+            photonView.RPC("seekStage", RpcTarget.AllViaServer);
         }
         StartCoroutine("goForIt");
     }
