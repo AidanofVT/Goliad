@@ -1,0 +1,74 @@
+- Tile Type Library - 
+TypeCount :18
+TypeID :0
+Name :Grass01
+SPath :0
+-
+TypeID :1
+Name :Grass02
+SPath :1
+-
+TypeID :2
+Name :Water
+SPath :2
+-
+TypeID :3
+Name :Tree01
+SPath :3
+-
+TypeID :4
+Name :Tree02
+SPath :4
+-
+TypeID :5
+Name :Grass03
+SPath :5
+-
+TypeID :6
+Name :Flowers01
+SPath :6
+-
+TypeID :53
+Name :Grass03_Frame1
+SPath :53
+-
+TypeID :54
+Name :Grass03_Frame2
+SPath :54
+-
+TypeID :55
+Name :GrassSign
+SPath :55
+-
+TypeID :56
+Name :TransparentTree
+SPath :56
+-
+TypeID :57
+Name :FenceA01
+SPath :Fences/FA01
+-
+TypeID :58
+Name :FenceA02
+SPath :Fences/FA02
+-
+TypeID :59
+Name :FenceA03
+SPath :Fences/FA03
+-
+TypeID :60
+Name :FenceB01
+SPath :Fences/FB01
+-
+TypeID :61
+Name :FenceB02
+SPath :Fences/FB02
+-
+TypeID :62
+Name :FenceB03
+SPath :Fences/FB03
+-
+TypeID :63
+Name :TRANSPARENT
+SPath :TRANSPARENT
+-

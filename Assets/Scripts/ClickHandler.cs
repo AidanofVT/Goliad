@@ -67,7 +67,6 @@ public class ClickHandler : MonoBehaviour {
     }
 
     void thingLeftClicked (GameObject thingClicked) {
-        Debug.Log(thingClicked.name);
         switch (thingClicked.tag) {
             case "unit":
                 Unit_local unit = thingClicked.GetComponent<Unit_local>();

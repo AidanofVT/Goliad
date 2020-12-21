@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Pathfinding;
+using Photon.Pun;
 
-public class AidansMovementScript : MonoBehaviour {
+public class AidansMovementScript : MonoBehaviourPun {
     Seeker seeker;
     ABPath path = null;
     Vector3 placetoGo;
     Transform transToFollow = null;
     Rigidbody2D body;
     Collider2D selfToIgnore;
+    Unit thisUnit;
 //this boolean isn't used by this script, but it is needed for other scripts to register what's going on. toggling path to null and back doesn't work: a new path is spontaneously created for some reason
     public bool isRunning = false;
     public float speed;
@@ -23,6 +25,7 @@ public class AidansMovementScript : MonoBehaviour {
         speed = GetComponent<UnitBlueprint>().speed;
         body = GetComponent<Rigidbody2D>();
         selfToIgnore = GetComponent<Collider2D>();
+        thisUnit = GetComponent<Unit>();
         if (changePointThreshhold != 0) {
             changePointThreshhold = GetComponent<CircleCollider2D>().radius;
         }
@@ -34,7 +37,7 @@ public class AidansMovementScript : MonoBehaviour {
         roundToArrived = acceptableDistance;
         InvokeRepeating("setRoute", 0, 2);       
         StartCoroutine("stuckCheck");
-        GetComponent<Unit>().StartCoroutine("updateFacing");
+        photonView.RPC("startTurning", RpcTarget.All);
     }
 
     void setRoute () {
@@ -132,7 +135,7 @@ public class AidansMovementScript : MonoBehaviour {
         CancelInvoke("moveAlong");
         StopCoroutine("stuckCheck");
         CancelInvoke("setRoute");
-        GetComponent<Unit>().StopCoroutine("updateFacing");
+        photonView.SendMessage("stopTurning");
         roundToArrived = 0.1f;
         path = null;
         currentWaypoint = 0;

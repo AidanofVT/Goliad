@@ -5,6 +5,12 @@ using Photon.Pun;
 public class ShepherdFunction : MonoBehaviourPun {
     public List<GameObject> flock = new List<GameObject>();
 
+    void Start () {
+        if (photonView.IsMine == false) {
+            Destroy(this);
+        }
+    }
+
     public void chime () {
         foreach (Collider2D contact in Physics2D.OverlapCircleAll(transform.position, 20)) {
             if (contact.gameObject.GetComponent<SheepBehavior_Base>() != null) {
@@ -20,7 +26,7 @@ public class ShepherdFunction : MonoBehaviourPun {
 
     void deathProtocal () {
         foreach (GameObject ward in flock) {
-            ward.GetComponent<SheepBehavior_Local>().shepherd = null;
+                ward.GetComponent<SheepBehavior_Local>().shepherd = null;
         }
     }
 

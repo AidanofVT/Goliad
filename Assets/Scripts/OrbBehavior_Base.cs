@@ -18,7 +18,6 @@ public class OrbBehavior_Base : MonoBehaviourPun {
     void Start () {
         body = GetComponent<Rigidbody2D>();
         localCollider = GetComponent<CircleCollider2D>();
-        Debug.Log(localCollider != null);
     }
 
     //this NEEDS to be swapped over to a coroutine. investigate the problem that's preventing this.

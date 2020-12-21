@@ -1,0 +1,182 @@
+- Tile Type Library - 
+TypeCount :30
+TypeID :0
+Name :Transparent
+SPath :IsometricTiles/TRANSPARENT
+Isometric :False
+IsoLayer :0
+-
+TypeID :1
+Name :Water
+SPath :IsometricTiles/0
+Isometric :False
+IsoLayer :0
+-
+TypeID :2
+Name :Grass
+SPath :IsometricTiles/1
+Isometric :False
+IsoLayer :0
+-
+TypeID :3
+Name :Grass2
+SPath :IsometricTiles/2
+Isometric :False
+IsoLayer :0
+-
+TypeID :4
+Name :CubeBase
+SPath :IsometricTiles/CubeParts/part_0
+Isometric :False
+IsoLayer :0
+-
+TypeID :5
+Name :CubeLeft
+SPath :IsometricTiles/CubeParts/part_1
+Isometric :False
+IsoLayer :0
+-
+TypeID :6
+Name :CubeRight
+SPath :IsometricTiles/CubeParts/part_2
+Isometric :False
+IsoLayer :0
+-
+TypeID :7
+Name :CubeTop
+SPath :IsometricTiles/CubeParts/part_3
+Isometric :False
+IsoLayer :0
+-
+TypeID :8
+Name :BuildingBase
+SPath :IsometricTiles/BuildingParts/part_0
+Isometric :False
+IsoLayer :0
+-
+TypeID :9
+Name :BuildingL1
+SPath :IsometricTiles/BuildingParts/part_1
+Isometric :False
+IsoLayer :0
+-
+TypeID :10
+Name :BuildingR1
+SPath :IsometricTiles/BuildingParts/part_2
+Isometric :False
+IsoLayer :0
+-
+TypeID :11
+Name :BuildingB2
+SPath :IsometricTiles/BuildingParts/part_3
+Isometric :False
+IsoLayer :0
+-
+TypeID :12
+Name :BuildingL2
+SPath :IsometricTiles/BuildingParts/part_4
+Isometric :False
+IsoLayer :0
+-
+TypeID :13
+Name :BuildingR2
+SPath :IsometricTiles/BuildingParts/part_5
+Isometric :False
+IsoLayer :0
+-
+TypeID :14
+Name :BuildingTop
+SPath :IsometricTiles/BuildingParts/part_6
+Isometric :False
+IsoLayer :0
+-
+TypeID :15
+Name :SmallBuildingBase
+SPath :IsometricTiles/SmallBuildingParts/part_0
+Isometric :False
+IsoLayer :0
+-
+TypeID :16
+Name :SmallBuildingL1
+SPath :IsometricTiles/SmallBuildingParts/part_1
+Isometric :False
+IsoLayer :0
+-
+TypeID :17
+Name :SmallBuildingR1
+SPath :IsometricTiles/SmallBuildingParts/part_2
+Isometric :False
+IsoLayer :0
+-
+TypeID :18
+Name :SmallBuildingTop
+SPath :IsometricTiles/SmallBuildingParts/part_3
+Isometric :False
+IsoLayer :0
+-
+TypeID :19
+Name :ThinBuildingBase
+SPath :IsometricTiles/BuildingThinParts/part_0
+Isometric :False
+IsoLayer :0
+-
+TypeID :20
+Name :ThinBuildingL1
+SPath :IsometricTiles/BuildingThinParts/part_1
+Isometric :False
+IsoLayer :0
+-
+TypeID :21
+Name :ThinBuildingR1
+SPath :IsometricTiles/BuildingThinParts/part_2
+Isometric :False
+IsoLayer :0
+-
+TypeID :22
+Name :ThinBuildingB2
+SPath :IsometricTiles/BuildingThinParts/part_3
+Isometric :False
+IsoLayer :0
+-
+TypeID :23
+Name :ThinBuildingL2
+SPath :IsometricTiles/BuildingThinParts/part_4
+Isometric :False
+IsoLayer :0
+-
+TypeID :24
+Name :ThinBuildingR2
+SPath :IsometricTiles/BuildingThinParts/part_5
+Isometric :False
+IsoLayer :0
+-
+TypeID :25
+Name :ThinBuildingTop
+SPath :IsometricTiles/BuildingThinParts/part_6
+Isometric :False
+IsoLayer :0
+-
+TypeID :26
+Name :BuildingCubeBase
+SPath :IsometricTiles/TreeParts/part_0
+Isometric :False
+IsoLayer :0
+-
+TypeID :27
+Name :BuildingCubeLeft
+SPath :IsometricTiles/TreeParts/part_1
+Isometric :False
+IsoLayer :0
+-
+TypeID :28
+Name :BuildingCubeRight
+SPath :IsometricTiles/TreeParts/part_2
+Isometric :False
+IsoLayer :0
+-
+TypeID :29
+Name :BuildingCubeTop
+SPath :IsometricTiles/TreeParts/part_3
+Isometric :False
+IsoLayer :0
+-
