@@ -163,147 +163,147 @@ namespace TileMapAccelerator.Scripts
 
         }
 
-        private void Update()
-        {
-            playerWorldPos = new Vector2(playerObj.position.x, playerObj.position.y);
-            playerTileMapPoint = WorldPointToTileMapPoint(playerWorldPos);
+        // private void Update()
+        // {
+        //     playerWorldPos = new Vector2(playerObj.position.x, playerObj.position.y);
+        //     playerTileMapPoint = WorldPointToTileMapPoint(playerWorldPos);
 
-            if(activeLayerManager!=null)
-                editCountText.text = "Live Edit Count : " + activeLayerManager.activeSprites.Count;
+        //     if(activeLayerManager!=null)
+        //         editCountText.text = "Live Edit Count : " + activeLayerManager.activeSprites.Count;
 
-            if (camFollow)
-            {
-                cam.transform.position = new Vector3(playerWorldPos.x, playerWorldPos.y, cam.transform.position.z);
-            }
+        //     if (camFollow)
+        //     {
+        //         cam.transform.position = new Vector3(playerWorldPos.x, playerWorldPos.y, cam.transform.position.z);
+        //     }
 
-            if (Input.GetKey(KeyCode.A))
-            {
-                camMove.x = -.01f;
-            }
-            else if (Input.GetKey(KeyCode.D))
-            {
-                camMove.x = .01f;
-            }
-            else
-            {
-                camMove.x = 0;
-            }
+        //     if (Input.GetKey(KeyCode.A))
+        //     {
+        //         camMove.x = -.01f;
+        //     }
+        //     else if (Input.GetKey(KeyCode.D))
+        //     {
+        //         camMove.x = .01f;
+        //     }
+        //     else
+        //     {
+        //         camMove.x = 0;
+        //     }
 
-            if (Input.GetKey(KeyCode.W))
-            {
-                camMove.y = .01f;
-            }
-            else if (Input.GetKey(KeyCode.S))
-            {
-                camMove.y = -.01f;
-            }
-            else
-            {
-                camMove.y = 0;
-            }
+        //     if (Input.GetKey(KeyCode.W))
+        //     {
+        //         camMove.y = .01f;
+        //     }
+        //     else if (Input.GetKey(KeyCode.S))
+        //     {
+        //         camMove.y = -.01f;
+        //     }
+        //     else
+        //     {
+        //         camMove.y = 0;
+        //     }
 
-            if (Input.GetKey(KeyCode.Equals))
-            {
-                ZoomCamera(currentZoom * 0.99f);
-            }
-            else if (Input.GetKey(KeyCode.Minus))
-            {
-                ZoomCamera(currentZoom / 0.99f);
-            }
+        //     if (Input.GetKey(KeyCode.Equals))
+        //     {
+        //         ZoomCamera(currentZoom * 0.99f);
+        //     }
+        //     else if (Input.GetKey(KeyCode.Minus))
+        //     {
+        //         ZoomCamera(currentZoom / 0.99f);
+        //     }
 
-            if (Input.GetMouseButton(0))
-            {
-                SelectTile();
+        //     if (Input.GetMouseButton(0))
+        //     {
+        //         SelectTile();
 
-                if (editMode)
-                {
-                    slp.x = (int)SelectedTile.x;
-                    slp.y = (int)SelectedTile.y;
+        //         if (editMode)
+        //         {
+        //             slp.x = (int)SelectedTile.x;
+        //             slp.y = (int)SelectedTile.y;
 
-                    activeLayerManager.PlaceSprite(slp, TileMapPointToWorldPoint(slp), TileMapManager.ManualTileTypes[brush]);
-                }
+        //             activeLayerManager.PlaceSprite(slp, TileMapPointToWorldPoint(slp), TileMapManager.ManualTileTypes[brush]);
+        //         }
 
-                //UpdateColliders(cam.ScreenToWorldPoint(Input.mousePosition));
-            }
+        //         //UpdateColliders(cam.ScreenToWorldPoint(Input.mousePosition));
+        //     }
 
-            if (Input.GetKeyDown(KeyCode.F))
-            {
-                if(!camFollow)
-                    ZoomCamera(FocusZoom);
+        //     if (Input.GetKeyDown(KeyCode.F))
+        //     {
+        //         if(!camFollow)
+        //             ZoomCamera(FocusZoom);
 
-                camFollow = !camFollow;
-            }
+        //         camFollow = !camFollow;
+        //     }
 
-            if (Input.GetKeyDown(KeyCode.X))
-            {
-                RawTileMap.SaveToFile(RawTileMap.ToRawTileMap(mapManager.mapGenerator), mapManager.mapFilePath, mapManager.compressedData);
-                //Debug.Log("Map Export Success!");
-            }
+        //     if (Input.GetKeyDown(KeyCode.X))
+        //     {
+        //         RawTileMap.SaveToFile(RawTileMap.ToRawTileMap(mapManager.mapGenerator), mapManager.mapFilePath, mapManager.compressedData);
+        //         //Debug.Log("Map Export Success!");
+        //     }
             
 
-            if(activeLayerManager!= null)
-            {
+        //     if(activeLayerManager!= null)
+        //     {
 
 
 
-                if (Input.GetKeyDown(KeyCode.Alpha0))
-                {
-                    slp.x = (int)SelectedTile.x;
-                    slp.y = (int)SelectedTile.y;
-                    brush = TileType.WATER;
-                    brushText.text = "Current Brush : Water";
-                }
+        //         if (Input.GetKeyDown(KeyCode.Alpha0))
+        //         {
+        //             slp.x = (int)SelectedTile.x;
+        //             slp.y = (int)SelectedTile.y;
+        //             brush = TileType.WATER;
+        //             brushText.text = "Current Brush : Water";
+        //         }
 
-                if (Input.GetKeyDown(KeyCode.Alpha1))
-                {
-                    slp.x = (int)SelectedTile.x;
-                    slp.y = (int)SelectedTile.y;
-                    brush = TileType.GRASS_01;
-                    brushText.text = "Current Brush : Grass";
-                }
+        //         if (Input.GetKeyDown(KeyCode.Alpha1))
+        //         {
+        //             slp.x = (int)SelectedTile.x;
+        //             slp.y = (int)SelectedTile.y;
+        //             brush = TileType.GRASS_01;
+        //             brushText.text = "Current Brush : Grass";
+        //         }
 
-                if (Input.GetKeyDown(KeyCode.Alpha2))
-                {
-                    slp.x = (int)SelectedTile.x;
-                    slp.y = (int)SelectedTile.y;
-                    brush = TileType.TREE_01;
-                    brushText.text = "Current Brush : Tree 1";
-                }
+        //         if (Input.GetKeyDown(KeyCode.Alpha2))
+        //         {
+        //             slp.x = (int)SelectedTile.x;
+        //             slp.y = (int)SelectedTile.y;
+        //             brush = TileType.TREE_01;
+        //             brushText.text = "Current Brush : Tree 1";
+        //         }
 
-                if (Input.GetKeyDown(KeyCode.Alpha3))
-                {
-                    slp.x = (int)SelectedTile.x;
-                    slp.y = (int)SelectedTile.y;
-                    brush = TileType.TREE_02;
-                    brushText.text = "Current Brush : Tree 2";
-                }
+        //         if (Input.GetKeyDown(KeyCode.Alpha3))
+        //         {
+        //             slp.x = (int)SelectedTile.x;
+        //             slp.y = (int)SelectedTile.y;
+        //             brush = TileType.TREE_02;
+        //             brushText.text = "Current Brush : Tree 2";
+        //         }
 
-                if (Input.GetMouseButton(1) && editMode)
-                {
-                    SelectTile();
-                    slp.x = (int)SelectedTile.x;
-                    slp.y = (int)SelectedTile.y;
-                    activeLayerManager.RemoveSprite(slp, true);
-                }
+        //         if (Input.GetMouseButton(1) && editMode)
+        //         {
+        //             SelectTile();
+        //             slp.x = (int)SelectedTile.x;
+        //             slp.y = (int)SelectedTile.y;
+        //             activeLayerManager.RemoveSprite(slp, true);
+        //         }
 
-                if (Input.GetKeyDown(KeyCode.Return))
-                {
-                    BakeActiveLayerToShaderMap();
-                    UpdateColliders(playerWorldPos);
-                }
+        //         if (Input.GetKeyDown(KeyCode.Return))
+        //         {
+        //             BakeActiveLayerToShaderMap();
+        //             UpdateColliders(playerWorldPos);
+        //         }
 
-                if (Input.GetKeyDown(KeyCode.E))
-                {
-                    editMode = !editMode;
-                    editModePanel.SetActive(editMode);
+        //         if (Input.GetKeyDown(KeyCode.E))
+        //         {
+        //             editMode = !editMode;
+        //             editModePanel.SetActive(editMode);
 
-                }
-            }
+        //         }
+        //     }
 
             
             
 
-        }
+        // }
 
         // Update is called once per frame
         void FixedUpdate()

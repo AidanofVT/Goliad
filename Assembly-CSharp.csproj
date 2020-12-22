@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Photon\PhotonRealtime\Demos\DemoLoadBalancing\ConnectAndJoinRandomLb.cs" />
+     <Compile Include="Assets\Scripts\AidansMapGenerator.cs" />
      <Compile Include="Assets\Scripts\AidansMovementScript.cs" />
      <Compile Include="Assets\Scripts\BarManager.cs" />
      <Compile Include="Assets\Scripts\BeamLifeSpan.cs" />
@@ -66,6 +67,7 @@
      <Compile Include="Assets\Scripts\factory_functions.cs" />
      <Compile Include="Assets\Scripts\GameState.cs" />
      <Compile Include="Assets\Scripts\hoplite_Weapon.cs" />
+     <Compile Include="Assets\Scripts\Horticulture.cs" />
      <Compile Include="Assets\Scripts\MapManager.cs" />
      <Compile Include="Assets\Scripts\MobileUnit_local.cs" />
      <Compile Include="Assets\Scripts\MobileUnit_remote.cs" />

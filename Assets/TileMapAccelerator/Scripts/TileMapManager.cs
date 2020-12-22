@@ -29,6 +29,9 @@ namespace TileMapAccelerator.Scripts
         [HideInInspector]
         uint[,] tileTypeArray;
 
+        int xOffset;
+        int yOffset;
+
         public int TextureSize;
 
         bool forceUpdate = false;
@@ -99,8 +102,11 @@ namespace TileMapAccelerator.Scripts
                 mapGeneratorInfo.mapSize = (int)rtemp.width;
             }
             
+            xOffset = tileTypeArray.GetLength(0) / 2;
+            yOffset = tileTypeArray.GetLength(1) / 2;
 
             GetComponent<MeshRenderer>().sharedMaterial.SetInt("_TileMapSize", mapGenerator.GetMapInfo().mapSize);
+            GetComponent<Horticulture>().Online(ref tileTypeArray);
 
             //Do the Grass AutoTile pass and store the resulting texture
 
@@ -600,9 +606,9 @@ namespace TileMapAccelerator.Scripts
             return toret;
         }
 
-        public uint[,] GetTileMap()
+        public ref uint[,] GetTileMap()
         {
-            return tileTypeArray;
+            return ref tileTypeArray;
         }
 
         public static Texture2D TileTypeArrayToTexture2D(uint[,] map, int size)
@@ -742,11 +748,11 @@ namespace TileMapAccelerator.Scripts
 
                 if(changes[p].type.typeID == TileType.GRASS_01)
                 {
-                    tileTypeArray[p.x, p.y] = GrassTypes[rand.Next(GrassTypes.Length)];
+                    tileTypeArray[p.x + xOffset, p.y + xOffset] = GrassTypes[rand.Next(GrassTypes.Length)];
                 }
                 else
                 {
-                    tileTypeArray[p.x, p.y] = changes[p].type.typeID;
+                    tileTypeArray[p.x + xOffset, p.y + xOffset] = changes[p].type.typeID;
                 }
 
                 //If auto chunk mode is on, build list of chunks that must be updated

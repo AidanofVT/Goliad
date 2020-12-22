@@ -9,7 +9,7 @@ namespace TileMapAccelerator.Scripts
         //For sorting
         public float activeLayerZPos = -1f;
 
-        public GameObject tree1, tree2, grass01, water;
+        public GameObject grass01, water;
 
         public Dictionary<TMPoint, ActiveLayerTile> activeSprites = new Dictionary<TMPoint, ActiveLayerTile>();
 
@@ -23,12 +23,6 @@ namespace TileMapAccelerator.Scripts
 
             //Next checking for input tile type and instantiating the correct AS sprite object.
             gtemp.type = type;
-            
-            if(type.typeID == TileType.TREE_01)
-                gtemp.gameobject = GameObject.Instantiate(tree1);
-
-            if (type.typeID == TileType.TREE_02)
-                gtemp.gameobject = GameObject.Instantiate(tree2);
 
             if (type.typeID == TileType.GRASS_01)
                 gtemp.gameobject = GameObject.Instantiate(grass01);
