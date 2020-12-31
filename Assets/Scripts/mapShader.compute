@@ -1,0 +1,59 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+
+
+RWStructuredBuffer<int> newImage;
+RWStructuredBuffer<float> imageLibrary;
+RWStructuredBuffer<float> bugger;
+RWStructuredBuffer<int> input;
+RWStructuredBuffer<float> output;
+RWTexture2D<float> ColorGrid;
+
+#pragma kernel test
+[numthreads(1,1,1)]
+void test () {
+    uint numStructs, stride;
+    imageLibrary.GetDimensions(numStructs, stride);
+    int howMany = numStructs / 128 / 128;
+    bugger[0] = howMany;
+}
+
+#pragma kernel action
+RWStructuredBuffer<int> world;
+RWStructuredBuffer<int> scale;
+float2 hereNow;
+
+[numthreads(1,1,1)]
+void action (uint3 group : SV_GroupID, uint3 thread : SV_GroupThreadID) {
+    uint width = 128;
+    uint height = 128;
+    uint sectorSideLength = width; //THIS CHANGES WHEN THE GROUP/THREAD COUNT CHANGES
+    uint subsectorSideLength = width; //THIS CHANGES WHEN THE GROUP/THREAD COUNT CHANGES
+    uint xStart = group.x * sectorSideLength + thread.x * subsectorSideLength;
+    uint yStart = group.y * sectorSideLength + thread.y * subsectorSideLength;
+    uint members, stride;
+    // imageLibrary.GetDimensions(members, stride);
+    // bugger[0] = members;
+    // bugger[1] = stride;
+    // for (int i = 0; i < 128 * 128; ++i) {
+    //     output[i] = imageLibrary.Load(i + 16384 * 3);
+    // }
+    // Texture2D tileHere;
+    int k = 0;
+    for (uint i = yStart; i < yStart + subsectorSideLength; ++i) {
+        for (uint j = xStart; j < xStart + subsectorSideLength; ++j) {
+            float worldX = hereNow.x + ((float)(xStart - width / (float) 2) + (float) j) / (float) 128;
+            float worldY = hereNow.y + ((float)(yStart - height / (float) 2) + (float) i) / (float) 128;
+            int xInSquare = floor(worldX);
+            int yInSquare = floor(worldY);
+            int tileType = world[(xInSquare + 1) + (yInSquare + 1) * 2]; //THE INTEGERS IN HERE CHANGE WHEN MAP SIZE CHANGES
+            int2 fromPixel = int2((float)(worldX - xInSquare) * 128, (float)(worldY - yInSquare) * 128);
+            int2 toPixel = int2 (j + xStart, i + yStart);
+            output[128 * toPixel.y + toPixel.x] = imageLibrary.Load(16384 * tileType + 128 * fromPixel.y + fromPixel.x);
+            bugger[k] = 16384 * tileType + 128 * fromPixel.y + fromPixel.x;
+            ++k;
+        }
+    }    
+    // for (i = 0; i < 4; ++i ) {
+    //     bugger[i] = world[i];
+    // }
+}

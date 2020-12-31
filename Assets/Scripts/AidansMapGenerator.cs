@@ -35,8 +35,24 @@ using TileMapAccelerator.Scripts;
         public void Generate () {
             data = new uint [size, size];
             for (int i = 0; i < size; ++i) {
-                for (int j = 0; j < 0; ++i) {
-                    data [i, j] = TileType.GRASS_01;
+                for (int j = 0; j < size; ++j) {
+                    int variety = Random.Range(1, 5);
+                    uint whichTile = 99;
+                    switch (variety) {
+                        case 1:
+                            whichTile = 0;
+                            break;
+                        case 2:
+                            whichTile = 1;
+                            break;
+                        case 3:
+                            whichTile = 5;
+                            break;
+                        case 4:
+                            whichTile = 6; 
+                            break;
+                    }
+                    data [i, j] = whichTile;
                 }
             }
         }
