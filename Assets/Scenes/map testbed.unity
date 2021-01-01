@@ -306,7 +306,7 @@ MonoBehaviour:
   second: {fileID: 2800000, guid: 34f84816a1db18c4f99b3d7c7fb7026d, type: 3}
   third: {fileID: 2800000, guid: 5da778bbb03dd6c4cb6fb3306e91c817, type: 3}
   fourth: {fileID: 2800000, guid: 5904304714c31264583a45f342512140, type: 3}
-  spriteSize: 0
+  spriteSize: 128
   myShader: {fileID: 7200000, guid: 26cb2b46b934a8249bc5cf30754beab0, type: 3}
 --- !u!1 &1365321609
 GameObject:
@@ -360,7 +360,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 10
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
