@@ -21,17 +21,17 @@ void action (uint3 group : SV_GroupID, uint3 thread : SV_GroupThreadID) {
     uint offset, nevermind;
     world.GetDimensions(offset, nevermind);
     offset = sqrt(offset) / 2;
-    uint sectorLength = totalWidth / 4; //THE DIVISOR CHANGES IF THE THREAD COUNT IS CHANGED
-    uint sectorHeight = totalHeight / 4; //THE DIVISOR CHANGES IF THE THREAD COUNT IS CHANGED
+    uint sectorLength = totalWidth / 8; //THE DIVISOR CHANGES IF THE THREAD COUNT IS CHANGED
+    uint sectorHeight = totalHeight / 8; //THE DIVISOR CHANGES IF THE THREAD COUNT IS CHANGED
     uint xStart = group.x * sectorLength;
     uint yStart = group.y * sectorHeight;
     // uint members, stride;
     // imageLibrary.GetDimensions(members, stride);
     // bugger[0] = scale[0].x;
     // bugger[1] = scale[0].y;
-    // for (int i = 0; i < 128 * 128; ++i) {
-    //     output[i] = imageLibrary.Load(i + 16384 * 3);
-    // }
+    for (int i = 0; i < 64; ++i) {
+        bugger[i] = world[i];
+    }
     int k = 0;
     for (uint i = 0; i < sectorHeight; ++i) {
         for (uint j = 0; j < sectorLength; ++j) {
@@ -39,14 +39,14 @@ void action (uint3 group : SV_GroupID, uint3 thread : SV_GroupThreadID) {
             float worldY = hereNow[0].y + ((float)(yStart - halfHeight) + (float) i) * scale[0].y / halfHeight;
             int xInSquare = floor(worldX);
             int yInSquare = floor(worldY);
-            int tileType = world[(xInSquare + offset) + (yInSquare + offset) * offset * 2];
+            int tileType = world[(xInSquare + offset) * offset * 2 + (yInSquare + offset)];
             int2 fromPixel = int2((float)(worldX - xInSquare) * 128, (float)(worldY - yInSquare) * 128);
             int2 toPixel = int2 (j + xStart, i + yStart);
             output[cameraDimensions[0].x * toPixel.y + toPixel.x] = imageLibrary.Load(16384 * tileType + 128 * fromPixel.y + fromPixel.x);
-            if (group.x == 1 && group.y == 0) {
-                bugger[k] = toPixel.x;
-                ++k;
-            }
+            // if (group.x == 1 && group.y == 0) {
+            //     bugger[k] = toPixel.x;
+            //     ++k;
+            // }
         }
     }
     //bugger[group.x * 2 + group.y] = xStart;

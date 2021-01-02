@@ -40,8 +40,9 @@ public class ShaderLab : MonoBehaviour {
     ComputeBuffer outputBuffer;
     ComputeBuffer bugBuffer;
 
-    void Start () {
-        makeMap(1000, 1000);
+    public void On () {
+        mapData = GameObject.Find("Goliad").GetComponent<GameState>().map;        
+        tileLibrary = new Texture2D [] {first, second, third, fourth};
         pixelsWide = (int) transform.parent.GetComponent<RectTransform>().sizeDelta.x;
         pixelsTall = (int) transform.parent.GetComponent<RectTransform>().sizeDelta.y;
         aspectRatio = (float) pixelsWide / (float) pixelsTall;
@@ -50,7 +51,10 @@ public class ShaderLab : MonoBehaviour {
         rawImageComponent = GetComponent<RawImage>();
         rawImageComponent.texture = myTexture;
         ShaderStart();
-        //UnleashShaderPower();
+        // for (int i = 0; i < 160; i++) {
+        //     Debug.Log(mapData);
+        // }
+        UnleashShaderPower();
     }
 
     float[] cameraPosAsArray () {
@@ -69,8 +73,7 @@ public class ShaderLab : MonoBehaviour {
         return toReturn;
     }
 
-    void makeMap (int width, int height) {
-        tileLibrary = new Texture2D [] {first, second, third, fourth};
+    void GenerateExampleMap (int width, int height) {
         mapData = new int[width, height];
         for (int i = 0; i < height / 2; ++i) {
             for (int j = 0; j < width / 2; ++j) {
@@ -119,27 +122,21 @@ public class ShaderLab : MonoBehaviour {
         cameraSpot.SetData(cameraPosAsArray());
         float scale = Camera.main.orthographicSize;
         scaleBuffer.SetData(new float[] {scale * aspectRatio, scale});
-        myShader.Dispatch(kernelNumber, 4, 4, 1);
+        myShader.Dispatch(kernelNumber, 8, 8, 1);
         outputBuffer.GetData(pixelsOut);
         myTexture.SetPixels32(pixelsOut);
         myTexture.Apply();
         rawImageComponent.SetNativeSize();
         // bugBuffer.GetData(bugger);
         // string debugOut = "Done: ";
-        // for (int i = 0; i < 1000; ++i) {
+        // for (int i = 0; i < 64; ++i) {
         //     debugOut += bugger[i] + ", ";
         // }
         // Debug.Log(debugOut);
     }
 
     void Update () {
-        Debug.Log("Frame time: " + Time.deltaTime);
-        if (Camera.main.orthographicSize == 150) {
-            Camera.main.orthographicSize = 300;
-        }
-        else {
-            Camera.main.orthographicSize = 150;
-        }
+        //Debug.Log("Frame time: " + Time.deltaTime);
         UnleashShaderPower();
     }
 

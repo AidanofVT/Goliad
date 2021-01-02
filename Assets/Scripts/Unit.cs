@@ -107,7 +107,6 @@ public class Unit : MonoBehaviourPun {
     [PunRPC]
     public IEnumerator updateFacing () {
         while (true) {
-            Debug.Log("looping");
             Vector2 velocityNow = gameObject.GetComponent<Rigidbody2D>().velocity;
             if (velocityNow != Vector2.zero) {
                 velocityNow.Normalize();
