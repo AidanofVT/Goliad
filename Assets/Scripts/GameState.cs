@@ -10,7 +10,7 @@ public class GameState : MonoBehaviour
 //there should never be more than one cohort responding to a single order
     public List<Cohort> activeCohorts = new List<Cohort>();
 
-    //NOTE: CPU becomes a limitiation somewhere between one and ten million tiles on-screen. Memory usage is also significant.
+    //NOTE: If you want to go bigger by using a smaller sort of number, you'll have to do something in the shader, because it needs things passed to it as 32-bit words. 
     public int [,] map;
     public int mapOffset;
 

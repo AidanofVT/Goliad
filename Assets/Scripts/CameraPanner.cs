@@ -8,52 +8,79 @@ public class CameraPanner : MonoBehaviour
     ViewManager vManage;
 //changes to panMultiplier and zoomMultiplier change the magnitude of these inputs by a static, linear amount.
     public float panMultiplier = 0.05f;
+    public float followMouseMultiplier = 1f;
     public float zoomMultiplier = 9f;
 //zoomExponent determines how exponentially greater zoom inputs should become as camera size increases
     public float zoomExponent = 1.1f;
 //zoomMultiplier simply compensates for camera size, allowing the movement of things across the screen to seem static regardless of zoom 
     float distanceMultiplier;
-    enum buttonState {up, upLeft, left, leftDown, down, downRight, right, rightUp}
+    int mapExtent;
+    float screenRatio;
+    Vector2 cameraPos = Vector2.zero;
+    float cameraZoom;
 
     private void Awake() {
         distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, zoomExponent) / 5;
         Goliad = GameObject.Find("Goliad");
         vManage = transform.parent.GetComponent<ViewManager>();
+        mapExtent = Goliad.GetComponent<setup>().mapSize / 2;
+        screenRatio = (float) Screen.width / (float) Screen.height;
     }
 
-    void Update()
-    {
-        obeyCameraPanInputs();
-        obeyCameraZoomInputs();
-        distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, zoomExponent) / 10;
+    void Update() {
+        bool pan = Input.GetButton("panRight") || Input.GetButton("panLeft") || Input.GetButton("panUp") || Input.GetButton("panDown");
+        bool zoom = Input.GetAxis("zoom") != 0;
+        if (pan || zoom) {
+            cameraPos = Camera.main.transform.position;
+            if (zoom) {
+                obeyCameraZoomInputs();
+                cameraZoom = Mathf.Clamp(cameraZoom * screenRatio, mapExtent * -1, mapExtent) / screenRatio;
+                cameraZoom = Mathf.Clamp(cameraZoom, mapExtent * -1, mapExtent);
+                Camera.main.orthographicSize = cameraZoom;
+            }
+            if (pan) {
+                obeyCameraPanInputs();
+            }
+            Debug.Log("xMin: " + (mapExtent * -1 + cameraZoom * screenRatio));
+            cameraPos = new Vector2(
+                Mathf.Clamp(cameraPos.x, mapExtent * -1 + cameraZoom * screenRatio, mapExtent - cameraZoom * screenRatio),
+                Mathf.Clamp(cameraPos.y, mapExtent * -1 + cameraZoom, mapExtent - cameraZoom)
+                );
+            Camera.main.transform.position = cameraPos;
+            vManage.resizeUIs();
+            distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, zoomExponent) / 10;
+        }
     }
 
     void obeyCameraPanInputs () {
-        float cameraX = Camera.main.transform.position.x;
-        float cameraY = Camera.main.transform.position.y;
+        float deltaX = 0;
+        float deltaY = 0;
         if (Input.GetButton("panRight") == true) {
-            cameraX += panMultiplier * distanceMultiplier;
+            deltaX = panMultiplier * distanceMultiplier;
         }
         if (Input.GetButton("panLeft") == true) {
-            cameraX -= panMultiplier * distanceMultiplier;
+            deltaX = panMultiplier * distanceMultiplier * -1;
         }
         if (Input.GetButton("panUp") == true) {
-            cameraY += panMultiplier * distanceMultiplier;
+            deltaY = panMultiplier * distanceMultiplier;
         }
         if (Input.GetButton("panDown") == true) {
-            cameraY -= panMultiplier * distanceMultiplier;
+            deltaY = panMultiplier * distanceMultiplier * -1;
         }
-        Vector3 newCamPosition = new Vector3 (cameraX, cameraY, Camera.main.transform.position.z);
-                Camera.main.transform.position = newCamPosition;     
+        cameraPos += new Vector2 (deltaX, deltaY);     
     }
 
     void obeyCameraZoomInputs () {
-        if (Input.GetAxis("zoom") != 0) {
-            float oldSize = Camera.main.orthographicSize;
-            Camera.main.orthographicSize -= Input.GetAxis("zoom") * zoomMultiplier * distanceMultiplier;
-            float newSize = Camera.main.orthographicSize;
-            vManage.resizeUIs();
+        float inputThisFrame = Input.GetAxis("zoom");
+        cameraZoom = Camera.main.orthographicSize - inputThisFrame * zoomMultiplier * distanceMultiplier;
+        Vector2 mouseOffset = Input.mousePosition;
+        Vector2 screenCartesian = new Vector2(Screen.width, Screen.height);
+        mouseOffset -= screenCartesian / 2;
+        mouseOffset /= screenCartesian;
+        if (inputThisFrame < 0) {
+            mouseOffset *= -1;
         }
+        cameraPos += mouseOffset * followMouseMultiplier * distanceMultiplier;
     }
 
 }

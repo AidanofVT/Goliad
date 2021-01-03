@@ -21,6 +21,13 @@ public class setup : MonoBehaviourPunCallbacks {
 
     void Start () {
         PhotonNetwork.ConnectUsingSettings();
+        // string debugOut = "";
+        // float w  = Random.Range(0, 1000000);
+        // float v  = Random.Range(0, 1000000);
+        // for (float i = 0; i < 100; ++i) {
+        //     debugOut += (int) ((Mathf.PerlinNoise(w + i / 100, (v + i / 100)) + 0.1f) * 2) + ", ";
+        // }
+        // Debug.Log(debugOut);
     }
 
     public override void OnConnectedToMaster() {

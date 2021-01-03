@@ -462,6 +462,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   panMultiplier: 0.05
+  followMouseMultiplier: 2
   zoomMultiplier: 9
   zoomExponent: 1.1
 --- !u!1 &1013844932
@@ -818,7 +819,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameState: {fileID: 0}
-  mapSize: 80
+  mapSize: 500
 --- !u!114 &1416085385
 MonoBehaviour:
   m_ObjectHideFlags: 0

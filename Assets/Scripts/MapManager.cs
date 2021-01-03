@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using Photon.Pun;
@@ -26,7 +27,8 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
         map = gameObject.GetComponent<GameState>().map;
 //this offset is crucial: the tilemap has negative values, but the list does not. note that as this is currently set up, only square maps are possible.
         offset = gameObject.GetComponent<GameState>().map.GetLength(0) / 2;
-        buildMap();
+        importMap();
+        AstarPath.active.Scan();
         shaderGateway.On();
     }
 
@@ -48,6 +50,33 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
 
 //buildMap is necessary, but its implementation is negotiable. this is the method to alter to change the map construction.
     void buildMap () {
+        //This seed looks good at map-size 500;
+        float noiseOrigin = 147586; // Random.Range(0, 1111000);
+        float noiseScale = 90;
+        Debug.Log(noiseOrigin);
+        List <byte> forExport = new List<byte>();    
+        for (int i = offset * 2 - 1; i >= 0; i--) {
+            for (int j = offset * 2 - 1; j >= i; j--) {
+                float terrainHere = (Mathf.Clamp01(Mathf.PerlinNoise(noiseOrigin + (i / noiseScale), noiseOrigin + (j / noiseScale)) -0.1f)) * 2;    
+                map[i, j] = (int) terrainHere;
+                map[j, i] = (int) terrainHere;
+                //forExport.Add((byte) terrainHere);
+                //This is the original test map:     
+                    // if ((i % 4 == 0 || i % 4 - 1 == 0) && (j % 4 == 0 || j % 4 - 1 == 0)) {
+                    //     map[i + offset, j + offset] = Random.Range(1, 4);
+                    // }
+                    // else {
+                    //     map[i + offset, j + offset] = 0;
+                    // }
+            }
+        }
+        string mapFilepath = Directory.GetCurrentDirectory() + "/Assets/Resources/stored map.dat";
+        if (!File.Exists(mapFilepath)) {
+            File.WriteAllBytes(mapFilepath, forExport.ToArray());
+        }
+    }
+
+    void importMap () {
         int sideLength = map.GetLength(0);
         GameObject ground = GameObject.Find("Ground");
         ground.GetComponent<BoxCollider2D>().size = new Vector2(sideLength, sideLength);
@@ -55,33 +84,17 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
 //the perimeter needs to start off deactivated to stop the A* system from marking the middle of the map non-navigable.
         ground.transform.GetChild(0).gameObject.SetActive(true);
         AstarPath.active.data.gridGraph.SetDimensions(sideLength * 2, sideLength * 2, 1);
-        // for (int a = 0; a < offset; ++a) {
-        //     for (int b = 0; b < offset; ++b) {
-        //         map[a,b] = 0;
-        //     }
-        //     for (int b = offset; b < offset * 2; ++b) {
-        //         map[a,b] = 3;
-        //     }
-        // }
-        // for (int a = offset; a < offset * 2; ++a) {
-        //     for (int b = 0; b < offset; ++b) {
-        //         map[a,b] = 2;
-        //     }
-        //     for (int b = offset; b < offset * 2; ++b) {
-        //         map[a,b] = 1;
-        //     }
-        // }
-        for (int i = offset - 1; i >= offset * -1; i--) {
-            for (int j = offset - 1; j >= offset * -1; j--) {                
-                if ((i % 4 == 0 || i % 4 - 1 == 0) && (j % 4 == 0 || j % 4 - 1 == 0)) {
-                    map[i + offset, j + offset] = Random.Range(1, 4);
-                }
-                else {
-                    map[i + offset, j + offset] = 0;
-                }
+        byte[] fromImport = File.ReadAllBytes(Directory.GetCurrentDirectory() + "/Assets/Resources/stored map.dat");
+        int c = 0;
+        for (int i = offset * 2 - 1; i >= 0; i--) {
+            for (int j = offset * 2 - 1; j >= i; j--) {
+                //float terrainHere = (Mathf.Clamp01(Mathf.PerlinNoise(noiseOrigin + (i / noiseScale), noiseOrigin + (j / noiseScale)) -0.1f)) * 2;    
+                int terrainHere = (int) fromImport[c];
+                map[i, j] = (int) terrainHere;
+                map[j, i] = (int) terrainHere;
+                ++c;
             }
         }
-        AstarPath.active.Scan();
     }
 
     public bool exploitPatch (Vector2Int targetPatch) {
