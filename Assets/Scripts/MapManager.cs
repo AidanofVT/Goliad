@@ -11,7 +11,8 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
     ShaderLab shaderGateway;
 
     public int growInterval = 30;
-    int [,] map;
+    int [,] mapState;
+    int [,] mapBase;
     int offset;
     
     List <Vector2Int> growing = new List<Vector2Int>();
@@ -24,28 +25,21 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
     void Start() {
         shaderGateway = Camera.main.transform.GetChild(0).GetChild(0).GetComponent<ShaderLab>();
 //arrays are by default passed as references! no special treatment is required for map to act as a reference variable. I checked: it's working.
-        map = gameObject.GetComponent<GameState>().map;
+        mapState = gameObject.GetComponent<GameState>().map;
 //this offset is crucial: the tilemap has negative values, but the list does not. note that as this is currently set up, only square maps are possible.
         offset = gameObject.GetComponent<GameState>().map.GetLength(0) / 2;
-        importMap();
-        AstarPath.active.Scan();
+        loadMap();
+        //AstarPath.active.Scan();
         shaderGateway.On();
     }
 
     private void Update() {
         //I must create a second map[] with data about the base state of the map before grow() can be used for maps that aren't just all green.
-        //grow();
-        // if (counter % 30 == 0) {
-        //     if (map[6, 2] == 1) {
-        //         Debug.Log("cutting spot");
-        //         exploitPatch(new Vector2Int(2, -2));
-        //     }
-        //     else {
-        //         Debug.Log("restoring spot");
-        //         map[6, 2] = 1;
-        //     }
-        // }
-        // counter++;
+        // int sideExtent = mapState.GetLength(0) / 2;
+        // int ex = Random.Range(-1 * sideExtent, sideExtent);
+        // int wy = Random.Range(-1 * sideExtent, sideExtent);
+        // exploitPatch(new Vector2Int(ex, wy));
+        grow();
     }
 
 //buildMap is necessary, but its implementation is negotiable. this is the method to alter to change the map construction.
@@ -57,10 +51,13 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
         List <byte> forExport = new List<byte>();    
         for (int i = offset * 2 - 1; i >= 0; i--) {
             for (int j = offset * 2 - 1; j >= i; j--) {
-                float terrainHere = (Mathf.Clamp01(Mathf.PerlinNoise(noiseOrigin + (i / noiseScale), noiseOrigin + (j / noiseScale)) -0.1f)) * 2;    
-                map[i, j] = (int) terrainHere;
-                map[j, i] = (int) terrainHere;
-                //forExport.Add((byte) terrainHere);
+                float terrainHere = (Mathf.Clamp01(Mathf.PerlinNoise(noiseOrigin + (i / noiseScale), noiseOrigin + (j / noiseScale)) -0.1f)) * 2;
+                if (terrainHere >= 1) {
+                    terrainHere = Random.Range((int) 1, (int) 4);
+                }    
+                mapState[i, j] = (int) terrainHere;
+                mapState[j, i] = (int) terrainHere;
+                forExport.Add((byte) terrainHere);
                 //This is the original test map:     
                     // if ((i % 4 == 0 || i % 4 - 1 == 0) && (j % 4 == 0 || j % 4 - 1 == 0)) {
                     //     map[i + offset, j + offset] = Random.Range(1, 4);
@@ -71,13 +68,12 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
             }
         }
         string mapFilepath = Directory.GetCurrentDirectory() + "/Assets/Resources/stored map.dat";
-        if (!File.Exists(mapFilepath)) {
-            File.WriteAllBytes(mapFilepath, forExport.ToArray());
-        }
+        File.Delete(mapFilepath);
+        File.WriteAllBytes(mapFilepath, forExport.ToArray());
     }
 
-    void importMap () {
-        int sideLength = map.GetLength(0);
+    void loadMap () {
+        int sideLength = mapState.GetLength(0);
         GameObject ground = GameObject.Find("Ground");
         ground.GetComponent<BoxCollider2D>().size = new Vector2(sideLength, sideLength);
         ground.transform.GetChild(0).localScale = new Vector3 (sideLength, sideLength, 1);
@@ -86,20 +82,23 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
         AstarPath.active.data.gridGraph.SetDimensions(sideLength * 2, sideLength * 2, 1);
         byte[] fromImport = File.ReadAllBytes(Directory.GetCurrentDirectory() + "/Assets/Resources/stored map.dat");
         int c = 0;
+        Debug.Log(fromImport.Length);
         for (int i = offset * 2 - 1; i >= 0; i--) {
             for (int j = offset * 2 - 1; j >= i; j--) {
-                //float terrainHere = (Mathf.Clamp01(Mathf.PerlinNoise(noiseOrigin + (i / noiseScale), noiseOrigin + (j / noiseScale)) -0.1f)) * 2;    
-                int terrainHere = (int) fromImport[c];
-                map[i, j] = (int) terrainHere;
-                map[j, i] = (int) terrainHere;
-                ++c;
+                    int terrainHere = (int) fromImport[c];
+                    mapState[i, j] = (int) terrainHere;
+                    mapState[j, i] = (int) terrainHere;
+                    ++c;
+                    Debug.Log("Caught it: " + c + " when i = " + i + " and j = " + j);
+                    break;
             }
         }
+        mapBase = (int[,]) mapState.Clone();
     }
 
     public bool exploitPatch (Vector2Int targetPatch) {
         Debug.Log("exploitPatch called on patch " + targetPatch.ToString());
-        if (map[targetPatch.x + offset, targetPatch.y + offset] > 0) {
+        if (mapState[targetPatch.x + offset, targetPatch.y + offset] > 0) {
             photonView.RPC("changeMap", RpcTarget.All, targetPatch.x, targetPatch.y);
             return true;
         }
@@ -111,8 +110,8 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
     [PunRPC]
     public void changeMap (int x, int y) {
         Debug.Log("changeMap called for index " + (x + offset) + "," + (y + offset));
-        if (map[x + offset, y + offset] > 0) {
-            map[x + offset, y + offset] -= 1;
+        if (mapState[x + offset, y + offset] > 0) {
+            mapState[x + offset, y + offset] -= 1;
             growing.Add(new Vector2Int(x, y));
             timesOfLastChange.Add(Time.time);            
         }
@@ -123,8 +122,8 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
         int i = 0;
         int loopBreaker = 10000;
         while (growing.Count - i - 1 >= 0 && Time.time - timesOfLastChange[i] >= 3) {
-            map[growing[i].x + offset, growing[i].y + offset] += 1;
-            if (map[growing[i].x + offset, growing[i].y + offset] >= 1) {
+            mapState[growing[i].x + offset, growing[i].y + offset] += 1;
+            if (mapState[growing[i].x + offset, growing[i].y + offset] >= 1) {
 //when the time comes to add more growth levels, remember that patches will have to move to the back of the lines wehenever they grow a level but aren't yet fully grown.
 //this assumes that every degree of growth takes the same amount of time.
                 growing.RemoveAt(i);

@@ -16,7 +16,8 @@ public class CameraPanner : MonoBehaviour
     float distanceMultiplier;
     int mapExtent;
     float screenRatio;
-    Vector2 cameraPos = Vector2.zero;
+    float cameraBaseZ;
+    Vector3 cameraPos = Vector3.zero;
     float cameraZoom;
 
     private void Awake() {
@@ -25,6 +26,7 @@ public class CameraPanner : MonoBehaviour
         vManage = transform.parent.GetComponent<ViewManager>();
         mapExtent = Goliad.GetComponent<setup>().mapSize / 2;
         screenRatio = (float) Screen.width / (float) Screen.height;
+        cameraBaseZ = Camera.main.transform.position.z;
     }
 
     void Update() {
@@ -41,11 +43,10 @@ public class CameraPanner : MonoBehaviour
             if (pan) {
                 obeyCameraPanInputs();
             }
-            Debug.Log("xMin: " + (mapExtent * -1 + cameraZoom * screenRatio));
-            cameraPos = new Vector2(
+            cameraPos = new Vector3(
                 Mathf.Clamp(cameraPos.x, mapExtent * -1 + cameraZoom * screenRatio, mapExtent - cameraZoom * screenRatio),
-                Mathf.Clamp(cameraPos.y, mapExtent * -1 + cameraZoom, mapExtent - cameraZoom)
-                );
+                Mathf.Clamp(cameraPos.y, mapExtent * -1 + cameraZoom, mapExtent - cameraZoom),
+                cameraBaseZ);
             Camera.main.transform.position = cameraPos;
             vManage.resizeUIs();
             distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, zoomExponent) / 10;
@@ -67,7 +68,7 @@ public class CameraPanner : MonoBehaviour
         if (Input.GetButton("panDown") == true) {
             deltaY = panMultiplier * distanceMultiplier * -1;
         }
-        cameraPos += new Vector2 (deltaX, deltaY);     
+        cameraPos += new Vector3 (deltaX, deltaY, 0);     
     }
 
     void obeyCameraZoomInputs () {
@@ -80,7 +81,7 @@ public class CameraPanner : MonoBehaviour
         if (inputThisFrame < 0) {
             mouseOffset *= -1;
         }
-        cameraPos += mouseOffset * followMouseMultiplier * distanceMultiplier;
+        cameraPos += (Vector3) mouseOffset * followMouseMultiplier * distanceMultiplier;
     }
 
 }
