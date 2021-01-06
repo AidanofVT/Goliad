@@ -67,10 +67,14 @@ public class Unit : MonoBehaviourPun {
     }
 
     [PunRPC]
-    public void deductMeat (int toDeduct) {
+    public bool deductMeat (int toDeduct) {
         if (meat - toDeduct >= 0) {
             meat -= toDeduct;
             statusBar.updateBar();
+            return true;
+        }
+        else {
+            return false;
         }
     }
 

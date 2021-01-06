@@ -62,6 +62,7 @@
      <Compile Include="Assets\Scripts\CameraPanner.cs" />
      <Compile Include="Assets\Scripts\ClickHandler.cs" />
      <Compile Include="Assets\Scripts\Cohort.cs" />
+     <Compile Include="Assets\Scripts\CohortUIManager.cs" />
      <Compile Include="Assets\Scripts\Dog_Weapon.cs" />
      <Compile Include="Assets\Scripts\factory_functions.cs" />
      <Compile Include="Assets\Scripts\GameState.cs" />

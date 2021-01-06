@@ -13,7 +13,7 @@ public class GameState : MonoBehaviour
     //NOTE: If you want to go bigger by using a smaller sort of number, you'll have to do something in the shader, because it needs things passed to it as 32-bit words. 
     public int [,] map;
     public int mapOffset;
-
+    public bool activeCohortsChangedFlag = false;
     ViewManager vManage;
 
     void Awake () {

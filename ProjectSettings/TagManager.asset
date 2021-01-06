@@ -45,9 +45,9 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: strike blocks
+  - name: lower UI
     uniqueID: 276028819
     locked: 0
-  - name: meat bars
+  - name: upper UI
     uniqueID: 2671098565
     locked: 0

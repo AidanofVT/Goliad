@@ -55,7 +55,8 @@ public class setup : MonoBehaviourPunCallbacks {
         else if (me == 2) {
             startPlace = new Vector3 (distanceFromCenter, -distanceFromCenter, -.2f);
         }
-        GameObject home = PhotonNetwork.Instantiate("Units/homebase", startPlace, Quaternion.identity);
+        Camera.main.transform.position = startPlace + new Vector3(0, 0, 0.2f);
+        GameObject home = PhotonNetwork.Instantiate("Units/depot", startPlace, Quaternion.identity);
         StartCoroutine("step2", home);
     }
 
@@ -63,11 +64,24 @@ public class setup : MonoBehaviourPunCallbacks {
         factory_functions maker = home.GetComponent<factory_functions>();
         yield return new WaitForSeconds(0);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
-        // GameObject hoplite = maker.makeUnit("hoplite");
+        // GameObject dogOne = maker.makeUnit("dog");
+        // dogOne.transform.position = home.transform.position + new Vector3 (8, 4, 0);
+        // GameObject dogTwo = maker.makeUnit("dog");
+        // dogTwo.transform.position = home.transform.position + new Vector3 (8, -4, 0);
+        // GameObject dogThree = maker.makeUnit("dog");
+        // dogThree.transform.position = home.transform.position + new Vector3 (4, 4, 0);
+        // GameObject dogFour = maker.makeUnit("dog");
+        // dogFour.transform.position = home.transform.position + new Vector3 (4, -4, 0);
         // yield return new WaitForSeconds(0);
-        // hoplite.transform.position = Vector3.zero;
-        // hoplite.GetComponent<Unit>().addMeat(20);
-        yield return null;
+        // List <Unit_local> listOfDogs = new List<Unit_local>{dogOne.GetComponent<Unit_local>(), 
+        //                                                     dogTwo.GetComponent<Unit_local>(), 
+        //                                                     dogThree.GetComponent<Unit_local>(), 
+        //                                                     dogFour.GetComponent<Unit_local>()};
+        // Cohort cohortOfDogs = new Cohort(listOfDogs);
+        // Debug.Log("made it this far");
+        // yield return new WaitForSeconds(0);
+        // cohortOfDogs.makeUnit("dog");
+        // yield return null;
         //home.GetComponent<Unit>().die();
     }
 

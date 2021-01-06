@@ -79,7 +79,7 @@ public class AidansMovementScript : MonoBehaviourPun {
                 }
             }
             catch {
-                Debug.Log("CAUGHT IT. Tried to access index " + currentWaypoint + " when the size of the path is " + path.vectorPath.Count + "entries long.");
+                Debug.Log("CAUGHT IT. Tried to access index " + currentWaypoint + " when the size of the path is " + path.vectorPath.Count + " entries long.");
             }
         Vector2 dirNew = (path.vectorPath[currentWaypoint] - transform.position).normalized * speed;
         if (Mathf.Sqrt(Mathf.Pow(body.velocity.x, 2) + Mathf.Pow(body.velocity.y, 2)) <= speed) {

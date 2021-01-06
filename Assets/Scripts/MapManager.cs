@@ -29,7 +29,8 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
 //this offset is crucial: the tilemap has negative values, but the list does not. note that as this is currently set up, only square maps are possible.
         offset = gameObject.GetComponent<GameState>().map.GetLength(0) / 2;
         loadMap();
-        //AstarPath.active.Scan();
+        AstarPath.active.threadCount = Pathfinding.ThreadCount.AutomaticHighLoad;
+        AstarPath.active.Scan();
         shaderGateway.On();
     }
 
@@ -82,15 +83,12 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
         AstarPath.active.data.gridGraph.SetDimensions(sideLength * 2, sideLength * 2, 1);
         byte[] fromImport = File.ReadAllBytes(Directory.GetCurrentDirectory() + "/Assets/Resources/stored map.dat");
         int c = 0;
-        Debug.Log(fromImport.Length);
         for (int i = offset * 2 - 1; i >= 0; i--) {
             for (int j = offset * 2 - 1; j >= i; j--) {
                     int terrainHere = (int) fromImport[c];
                     mapState[i, j] = (int) terrainHere;
                     mapState[j, i] = (int) terrainHere;
                     ++c;
-                    Debug.Log("Caught it: " + c + " when i = " + i + " and j = " + j);
-                    break;
             }
         }
         mapBase = (int[,]) mapState.Clone();
