@@ -8,11 +8,11 @@ using Photon.Pun;
 
 public class MapManager : MonoBehaviourPun, IPunObservable {
 
-    ShaderLab shaderGateway;
+    ShaderHandler shaderGateway;
 
     public int growInterval = 30;
-    int [,] mapState;
-    int [,] mapBase;
+    byte [,] mapState;
+    byte [,] mapBase;
     int offset;
     
     List <Vector2Int> growing = new List<Vector2Int>();
@@ -23,7 +23,7 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
     int counter = 0;
 
     void Start() {
-        shaderGateway = Camera.main.transform.GetChild(0).GetChild(0).GetComponent<ShaderLab>();
+        shaderGateway = Camera.main.transform.GetChild(0).GetChild(0).GetComponent<ShaderHandler>();
 //arrays are by default passed as references! no special treatment is required for map to act as a reference variable. I checked: it's working.
         mapState = gameObject.GetComponent<GameState>().map;
 //this offset is crucial: the tilemap has negative values, but the list does not. note that as this is currently set up, only square maps are possible.
@@ -40,7 +40,7 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
         // int ex = Random.Range(-1 * sideExtent, sideExtent);
         // int wy = Random.Range(-1 * sideExtent, sideExtent);
         // exploitPatch(new Vector2Int(ex, wy));
-        grow();
+        // grow();
     }
 
 //buildMap is necessary, but its implementation is negotiable. this is the method to alter to change the map construction.
@@ -53,12 +53,10 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
         for (int i = offset * 2 - 1; i >= 0; i--) {
             for (int j = offset * 2 - 1; j >= i; j--) {
                 float terrainHere = (Mathf.Clamp01(Mathf.PerlinNoise(noiseOrigin + (i / noiseScale), noiseOrigin + (j / noiseScale)) -0.1f)) * 2;
-                if (terrainHere >= 1) {
-                    terrainHere = Random.Range((int) 1, (int) 4);
-                }    
-                mapState[i, j] = (int) terrainHere;
-                mapState[j, i] = (int) terrainHere;
-                forExport.Add((byte) terrainHere);
+                int scaled = (int) (terrainHere * 4) + Random.Range(0, 4);                   
+                mapState[i, j] = (byte) scaled;
+                mapState[j, i] = (byte) scaled;
+                forExport.Add((byte) scaled);
                 //This is the original test map:     
                     // if ((i % 4 == 0 || i % 4 - 1 == 0) && (j % 4 == 0 || j % 4 - 1 == 0)) {
                     //     map[i + offset, j + offset] = Random.Range(1, 4);
@@ -86,12 +84,12 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
         for (int i = offset * 2 - 1; i >= 0; i--) {
             for (int j = offset * 2 - 1; j >= i; j--) {
                     int terrainHere = (int) fromImport[c];
-                    mapState[i, j] = (int) terrainHere;
-                    mapState[j, i] = (int) terrainHere;
+                    mapState[i, j] = (byte) terrainHere;
+                    mapState[j, i] = (byte) terrainHere;
                     ++c;
             }
         }
-        mapBase = (int[,]) mapState.Clone();
+        mapBase = (byte[,]) mapState.Clone();
     }
 
     public bool exploitPatch (Vector2Int targetPatch) {

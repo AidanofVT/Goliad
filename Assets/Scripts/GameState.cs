@@ -11,7 +11,7 @@ public class GameState : MonoBehaviour
     public List<Cohort> activeCohorts = new List<Cohort>();
 
     //NOTE: If you want to go bigger by using a smaller sort of number, you'll have to do something in the shader, because it needs things passed to it as 32-bit words. 
-    public int [,] map;
+    public byte [,] map;
     public int mapOffset;
     public bool activeCohortsChangedFlag = false;
     ViewManager vManage;
@@ -19,7 +19,7 @@ public class GameState : MonoBehaviour
     void Awake () {
 //this is in Awake rather than Start so that the array gets made before other scripts try to access it.
         int mapSize = GetComponent<setup>().mapSize;
-        map = new int [mapSize,mapSize];
+        map = new byte [mapSize,mapSize];
         mapOffset = map.GetLength(0) / 2;
         vManage = GameObject.Find("Player Perspective").GetComponent<ViewManager>();
     }

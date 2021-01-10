@@ -701,7 +701,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b517640b580bab0428d9552a249fb167, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  panMultiplier: 0.05
+  panMultiplier: 0.1
   followMouseMultiplier: 2
   zoomMultiplier: 9
   zoomExponent: 1.1
@@ -1399,7 +1399,7 @@ GameObject:
   - component: {fileID: 1076269392}
   - component: {fileID: 1076269394}
   m_Layer: 10
-  m_Name: RawImage
+  m_Name: Ground Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1466,13 +1466,25 @@ MonoBehaviour:
   m_GameObject: {fileID: 1076269390}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9fdeb029be3437d4eb39e4ce5a6af0ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 0adaddea29fc7724a9c8349e4e135fe9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  first: {fileID: 2800000, guid: 0b05b8fe9b8aa5a47a15c25e1c22127c, type: 3}
-  second: {fileID: 2800000, guid: 9bb977f39036a464588ad1a55db61814, type: 3}
-  third: {fileID: 2800000, guid: 34f84816a1db18c4f99b3d7c7fb7026d, type: 3}
-  fourth: {fileID: 2800000, guid: 5da778bbb03dd6c4cb6fb3306e91c817, type: 3}
+  first: {fileID: 2800000, guid: 9d81f7691cc83454699ed9b28e4e51ce, type: 3}
+  second: {fileID: 2800000, guid: 480b51a1c8ea6a94aad681e8822d0f28, type: 3}
+  third: {fileID: 2800000, guid: 9950feff3d567214499d853549f41839, type: 3}
+  fourth: {fileID: 2800000, guid: 08481d6a0ab5a524980d85e7874331ad, type: 3}
+  fifth: {fileID: 2800000, guid: 23b8cc6cefe33cd40bfa551d0873ebf1, type: 3}
+  sixth: {fileID: 2800000, guid: 1adee755312068945b60848a9161697a, type: 3}
+  seventh: {fileID: 2800000, guid: b331029a83454104ea55e8ec09647839, type: 3}
+  eighth: {fileID: 2800000, guid: 94acbec83c944614a8bcd9855f2423d4, type: 3}
+  ninth: {fileID: 2800000, guid: ffc0be1c6314b7046ab3ee89d9809603, type: 3}
+  tenth: {fileID: 2800000, guid: c2776156ff1d25c45bbe5c1f8d7d8354, type: 3}
+  eleventh: {fileID: 2800000, guid: bfdd8b6209f5ac24dabaaee0eb30e354, type: 3}
+  twelvth: {fileID: 2800000, guid: 6d9d7720b8ee2b94bb3136c1226c2c01, type: 3}
+  thirteenth: {fileID: 2800000, guid: 55d52147793d2754dbc2fae9f7742db5, type: 3}
+  fourteenth: {fileID: 2800000, guid: 34b2c8b9cc9d0554699988f481c93ba1, type: 3}
+  fifteenth: {fileID: 2800000, guid: 7896fed53b3ee5749a0c491c43096ea6, type: 3}
+  sixteenth: {fileID: 2800000, guid: 0cadc241bcccf1740aeae9530fc530d7, type: 3}
   spriteSize: 128
   myShader: {fileID: 7200000, guid: 26cb2b46b934a8249bc5cf30754beab0, type: 3}
 --- !u!1 &1183405489
@@ -2166,7 +2178,7 @@ GameObject:
   - component: {fileID: 1617243235}
   - component: {fileID: 1617243234}
   m_Layer: 10
-  m_Name: Ground Image
+  m_Name: Ground Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
