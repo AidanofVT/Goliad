@@ -36,7 +36,7 @@ public class CameraPanner : MonoBehaviour
             cameraPos = Camera.main.transform.position;
             if (zoom) {
                 obeyCameraZoomInputs();
-                cameraZoom = Mathf.Clamp(cameraZoom * screenRatio, mapExtent * -1, mapExtent) / screenRatio;
+                //cameraZoom = Mathf.Clamp(cameraZoom * screenRatio, mapExtent * -1, mapExtent) / screenRatio;
                 cameraZoom = Mathf.Clamp(cameraZoom, mapExtent * -1, mapExtent);
                 Camera.main.orthographicSize = cameraZoom;
             }
@@ -44,8 +44,8 @@ public class CameraPanner : MonoBehaviour
                 obeyCameraPanInputs();
             }
             cameraPos = new Vector3(
-                Mathf.Clamp(cameraPos.x, mapExtent * -1 + cameraZoom * screenRatio, mapExtent - cameraZoom * screenRatio),
-                Mathf.Clamp(cameraPos.y, mapExtent * -1 + cameraZoom, mapExtent - cameraZoom),
+                Mathf.Clamp(cameraPos.x, mapExtent * -1, mapExtent),
+                Mathf.Clamp(cameraPos.y, mapExtent * -1, mapExtent),
                 cameraBaseZ);
             Camera.main.transform.position = cameraPos;
             vManage.resizeUIs();

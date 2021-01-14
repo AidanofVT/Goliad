@@ -49,11 +49,15 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
         float noiseOrigin = 147586; // Random.Range(0, 1111000);
         float noiseScale = 90;
         Debug.Log(noiseOrigin);
-        List <byte> forExport = new List<byte>();    
+        List <byte> forExport = new List<byte>();
+        string bugOut = "";  
         for (int i = offset * 2 - 1; i >= 0; i--) {
             for (int j = offset * 2 - 1; j >= i; j--) {
-                float terrainHere = (Mathf.Clamp01(Mathf.PerlinNoise(noiseOrigin + (i / noiseScale), noiseOrigin + (j / noiseScale)) -0.1f)) * 2;
-                int scaled = (int) (terrainHere * 4) + Random.Range(0, 4);                   
+                float terrainHere = Mathf.Clamp01((Mathf.PerlinNoise(noiseOrigin + (i / noiseScale), noiseOrigin + (j / noiseScale)) - 0.09f));                
+                int scaled = Mathf.FloorToInt(terrainHere * 4) * 4 + Random.Range(0, 4);                   
+                if (i == 125) {
+                    bugOut += scaled + ", ";
+                }
                 mapState[i, j] = (byte) scaled;
                 mapState[j, i] = (byte) scaled;
                 forExport.Add((byte) scaled);
@@ -66,6 +70,7 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
                     // }
             }
         }
+        Debug.Log(bugOut);
         string mapFilepath = Directory.GetCurrentDirectory() + "/Assets/Resources/stored map.dat";
         File.Delete(mapFilepath);
         File.WriteAllBytes(mapFilepath, forExport.ToArray());

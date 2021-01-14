@@ -27,7 +27,6 @@ public class CohortUIManager : MonoBehaviour {
 
     void Update() {
         if (gameState.activeCohortsChangedFlag == true) {
-            Debug.Log("flag true");
             bool cohortsContainDepot = false;
             if (cohorts.Count <= 0) {
                 bar.SetActive(false);

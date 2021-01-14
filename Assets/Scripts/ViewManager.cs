@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
 public class ViewManager : MonoBehaviour {
 
@@ -10,9 +11,25 @@ public class ViewManager : MonoBehaviour {
     public List<Cohort> paintedCohorts = new List<Cohort>();
     public List<GameObject> consideredSprites = new List<GameObject>();
     public List<GameObject> paintedSprites = new List<GameObject>();
+    public Hashtable unitIconPairs = new Hashtable();
 
     void Start () {
         cameraBaseline = Camera.main.orthographicSize;
+    }
+
+    public void addUnitIcon (PhotonView thisViewer) {
+        GameObject associatedGob = thisViewer.gameObject;
+        string fileName = associatedGob.name + "_miniIcon";
+        if (thisViewer.OwnerActorNr == 1) {
+            fileName += "_white";
+        }
+        else if (thisViewer.OwnerActorNr == 2) {
+            fileName += "_orange";
+        }
+        GameObject newIcon = (GameObject) Resources.Load("Sprites/" + fileName);
+        newIcon.SetActive(false);
+        newIcon.transform.SetParent(transform.GetChild(3));
+        unitIconPairs.Add(associatedGob, newIcon);
     }
 
     public void attendTo (GameObject focus) {

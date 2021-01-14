@@ -55,7 +55,7 @@ public class setup : MonoBehaviourPunCallbacks {
         else if (me == 2) {
             startPlace = new Vector3 (distanceFromCenter, -distanceFromCenter, -.2f);
         }
-        Camera.main.transform.position = startPlace + new Vector3(0, 0, 0.2f);
+        //Camera.main.transform.position = startPlace + new Vector3(0, 0, 0.2f);
         GameObject home = PhotonNetwork.Instantiate("Units/depot", startPlace, Quaternion.identity);
         StartCoroutine("step2", home);
     }

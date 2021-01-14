@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class GameState : MonoBehaviour
-{
+public class GameState : MonoBehaviourPun {
     List<GameObject> activeUnits = new List<GameObject>();
 //aliveUnits is intended for alive ALLIED units.
-    List<GameObject> aliveUnits = new List<GameObject>();
+    List<GameObject> alliedUnits = new List<GameObject>();
 //activeCohorts only exists to facilitate the dissolving of cohorts prior to a new cohort being formed
 //there should never be more than one cohort responding to a single order
     public List<Cohort> activeCohorts = new List<Cohort>();
@@ -60,12 +60,12 @@ public class GameState : MonoBehaviour
 
     public void enlivenUnit (GameObject toAdd) {
         //Debug.Log("Attempting to add object to aliveUnits.");
-        aliveUnits.Add(toAdd);
+        alliedUnits.Add(toAdd);
     }
 
     public void deadenUnit (GameObject toRem) {
         //Debug.Log("Attempting to remove object from aliveUnits.");
-        aliveUnits.Remove(toRem);
+        alliedUnits.Remove(toRem);
         activeUnits.Remove(toRem);
     }
 
@@ -74,7 +74,7 @@ public class GameState : MonoBehaviour
     }
 
     public List<GameObject> getAliveUnits () {
-        return aliveUnits;
+        return alliedUnits;
     }
 
     public int getPatchValue (int x, int y) {

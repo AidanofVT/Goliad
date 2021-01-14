@@ -98,8 +98,9 @@
      <None Include="Assets\TileMapAccelerator\Resources\TileTypeLibrary2.txt" />
      <None Include="Assets\Photon\PhotonUnityNetworking\link.xml" />
      <None Include="Assets\TileMapAccelerator\Resources\IsometricTypeLibraryV2.txt" />
-     <None Include="Assets\Photon\PhotonLibs\Photon3Unity3D.xml" />
      <None Include="Assets\Scripts\mapShader.compute" />
+     <None Include="Assets\Photon\PhotonLibs\Photon3Unity3D.xml" />
+     <None Include="Assets\Scripts\mapShader_Old.compute" />
      <None Include="Assets\TileMapAccelerator\Resources\GridShaderUNLIT.shader" />
      <None Include="Assets\TileMapAccelerator\Resources\FastMapShaderTransparent.shader" />
      <None Include="Assets\TileMapAccelerator\Resources\FastMapShaderTransparentIsometric.shader" />
