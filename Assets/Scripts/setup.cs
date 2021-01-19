@@ -55,15 +55,15 @@ public class setup : MonoBehaviourPunCallbacks {
         else if (me == 2) {
             startPlace = new Vector3 (distanceFromCenter, -distanceFromCenter, -.2f);
         }
-        //Camera.main.transform.position = startPlace + new Vector3(0, 0, 0.2f);
-        GameObject home = PhotonNetwork.Instantiate("Units/depot", startPlace, Quaternion.identity);
-        StartCoroutine("step2", home);
+        Camera.main.transform.position = startPlace + new Vector3(0, 0, -10);
+        StartCoroutine(step2(startPlace));
     }
 
-    IEnumerator step2 (GameObject home) {
-        factory_functions maker = home.GetComponent<factory_functions>();
+    IEnumerator step2 (Vector3 startPlace) {
+        GameObject home = PhotonNetwork.Instantiate("Units/depot", startPlace, Quaternion.identity);
         yield return new WaitForSeconds(0);
-        AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
+        factory_functions maker = home.GetComponent<factory_functions>();
+        home.GetComponent<Unit_local>().addMeat(300);
         // GameObject dogOne = maker.makeUnit("dog");
         // dogOne.transform.position = home.transform.position + new Vector3 (8, 4, 0);
         // GameObject dogTwo = maker.makeUnit("dog");

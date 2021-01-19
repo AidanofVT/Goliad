@@ -167,11 +167,13 @@ public class Unit_local : Unit {
 
     void spindown () {
         GameObject orb = (GameObject)Resources.Load("Orb");
-        float quantityMultiplier = (float) (meat / 15) + 1;
-        while (meat > 0) {
+        int drop = meat + (int) (stats.costToBuild * Random.Range(0.2f, 0.6f));
+        float quantityMultiplier = (float) (drop / 15) + 1;
+        while (drop > 0) {
             Vector3 place = new Vector3(transform.position.x + Random.Range(-.5f, 0.5f) * quantityMultiplier, transform.position.y + Random.Range(-.5f, 0.5f) * quantityMultiplier, -.2f);
-            GameObject lastOrb = spawnOrb(place, meat, this);
+            GameObject lastOrb = spawnOrb(place, drop, this);
             lastOrb.GetComponent<Rigidbody2D>().AddForce((lastOrb.transform.position - transform.position).normalized * Random.Range(0, 2) * quantityMultiplier);
+            drop -= lastOrb.GetComponent<OrbMeatContainer>().meat;
         }
         gameState.deadenUnit(gameObject);
         PhotonNetwork.Destroy(gameObject);

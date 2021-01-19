@@ -16,8 +16,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
     Vector2 flockCenter;
     public GameObject shepherd;
     public int shepherdMultiplier = 1;
-
-//a negative value should be used to indicate that the variable is inactive.
+    public int idleMargin = 5;
     short eatTime = 2;
     Vector3 currentMostAppealingPatch;
 
@@ -39,38 +38,44 @@ public class SheepBehavior_Local : SheepBehavior_Base
         StartCoroutine(idle(0));
     }
 
-    IEnumerator idle (float delay = 0) {
-        if (delay > 0) {
-            yield return new WaitForSeconds (delay);
+    IEnumerator idle (float idleDuration = 0) {
+        //Debug.Log("idling");
+        if (idleDuration > 0) {
+            int roll = Random.Range(0, 11);
+            if (roll > 3) {
+                float direction = (Mathf.Pow(roll, 4) / 0.3f * roll) + thisSheep.facing;
+                Vector2 runRise = new Vector2(Mathf.Sin(direction), Mathf.Cos(direction));
+                runRise *= (idleDuration / thisSheep.stats.speed) * 0.9f;
+                legs.setDestination(transform.position + (Vector3) runRise);
+            }
+            yield return new WaitForSeconds (idleDuration);
         }
         if (changeBehavior() == false) {
             StartCoroutine(idle(1));
         }
         yield return null;
-        //a 'wander' function should be put here
     }
 
     bool changeBehavior () {
-        if (searchForFood() == true || flock.Count > 1) {
+        if (searchForFood() == true || flock.Count > 1 || shepherd != null) {
             float eatAppeal;
             if (currentMostAppealingPatch.z > 1) {
                 eatAppeal = 0;
             }
             else {
-                eatAppeal = 1.5f + (3 / (Vector3.Distance(transform.position, currentMostAppealingPatch) / 40));
-                if (eatAppeal > 80) {
-                    eatAppeal = 80;
-                }
+                int grassHeightHere = gameState.getPatchValue(currentMostAppealingPatch.x, currentMostAppealingPatch.y);
+                eatAppeal = grassHeightHere * 3 / (Vector3.Distance(transform.position, currentMostAppealingPatch) / 40);
+                eatAppeal = Mathf.Clamp(eatAppeal, 1.5f, 30 * grassHeightHere);
             }
             float conveneAppeal;
-            if (legs.isNavigable(updateFlockCenter()) == false) {
+            if (legs.isNavigable(updateFlockCenter()) == false || Vector2.Distance(flockCenter, transform.position) < 10) {
                 conveneAppeal = 0;
             }
             else {
-                conveneAppeal = shepherdMultiplier * Mathf.Pow(Vector2.Distance(transform.position, flockCenter), 1.2f) / 2;
+                conveneAppeal = shepherdMultiplier * Mathf.Pow(Vector2.Distance(transform.position, flockCenter), 1.3f) / 2;
             }
-            float roll = 5 + Random.Range(0, eatAppeal + conveneAppeal);
-            //Debug.Log("The results are in: eatAppeal is " + eatAppeal + ", targeting patch " + currentMostAppealingPatch + ". ConveneAppeal is " + conveneAppeal + ". The roll is " + roll + ".");
+            float roll = idleMargin + Random.Range(0, eatAppeal + conveneAppeal);
+            Debug.Log("The results are in: eatAppeal is " + eatAppeal + ". ConveneAppeal is " + conveneAppeal + ". The roll is " + roll + ".");
             if (roll <= eatAppeal) {
                 InvokeRepeating("walkToFood", 0, 0.1f);
                 InvokeRepeating("checkFoodTarget", 1, 1);
@@ -87,8 +92,9 @@ public class SheepBehavior_Local : SheepBehavior_Base
 
     bool searchForFood (int range = 15, bool randomGlance = true) {
         //Debug.Log("SearchForFood");
-        if (range <= 0) {
-            return true;
+        if (range < 0) {
+            Debug.Log("PROBLEM: searchForFood called with range <= 0!");
+            return false;
         }
         float direction;
         if (randomGlance == true) {
@@ -99,12 +105,14 @@ public class SheepBehavior_Local : SheepBehavior_Base
             direction = thisSheep.facing;
         }
         List<Vector2> percievedPatches = new List<Vector2>();
-        int shortgrassIndex = -1;
+        int shortGrassIndex = -1;
+        int mediumGrassIndex = -1;
+        int longGrassIndex = -1;
         float clockwise = direction + 0.5f;
         float counterClockwise = direction - 0.5f;
-        glanceForFood(direction, range, ref shortgrassIndex, ref percievedPatches);
-        glanceForFood(counterClockwise, range, ref shortgrassIndex, ref percievedPatches);
-        glanceForFood(clockwise, range, ref shortgrassIndex, ref percievedPatches);
+        glanceForFood(direction, range, ref shortGrassIndex, ref mediumGrassIndex, ref longGrassIndex, ref percievedPatches);
+        glanceForFood(counterClockwise, range, ref shortGrassIndex, ref mediumGrassIndex, ref longGrassIndex, ref percievedPatches);
+        glanceForFood(clockwise, range, ref shortGrassIndex, ref mediumGrassIndex, ref longGrassIndex, ref percievedPatches);
         if (percievedPatches.Count == 0) {
             currentMostAppealingPatch = transform.position + new Vector3(0,0,1000);
             //Debug.Log("Failed to find food.");
@@ -113,36 +121,70 @@ public class SheepBehavior_Local : SheepBehavior_Base
         else {
             if (( (Vector3)percievedPatches[0] - transform.position).magnitude > 15) {
                 Debug.Log("PROBLEM: long-range destination set.");
+            }            
+            if ((int) currentMostAppealingPatch.x != (int) percievedPatches[0].x || (int) currentMostAppealingPatch.y != (int) percievedPatches[0].y) {
+                currentMostAppealingPatch = percievedPatches[0];
             }
-            currentMostAppealingPatch = percievedPatches[0];
             safetyNudge();
             return true;
         }
     }
 
-    void glanceForFood (float direction, int range, ref int shortgrassIndex, ref List<Vector2> percievedPatches) {
+    void glanceForFood (float direction, int range, ref int shortGrassIndex, ref int mediumGrassIndex, ref int tallGrassIndex, ref List<Vector2> percievedPatches) {
         Vector2 runRise = new Vector2(Mathf.Sin(direction), Mathf.Cos(direction));
         for (int i = 0; i < range; ++i) {
-            Vector2 positionOf = new Vector2(transform.position.x, transform.position.y) + runRise * i;
+            Vector2 positionOf = (Vector2) transform.position + runRise * i;
             if (Mathf.Abs(positionOf.x) > gameState.mapOffset || Mathf.Abs(positionOf.y) > gameState.mapOffset) {
                 break;
             }
-            int foodAt = gameState.getPatchValue(Mathf.FloorToInt(positionOf.x), Mathf.FloorToInt(positionOf.y));
-            if (foodAt == 1 && legs.isNavigable(positionOf)) {
-                int j = shortgrassIndex;
+            int grassHeightHere = gameState.getPatchValue(positionOf.x, positionOf.y);
+            if (legs.isNavigable(positionOf)) {
+                int compareIndex;
+                int stopComparisonIndex;
+                switch (grassHeightHere) {
+                    case 0: {
+                        continue;
+                    }
+                    case 1: {
+                        compareIndex = shortGrassIndex;
+                        stopComparisonIndex = mediumGrassIndex + 1;
+                        break;
+                    }
+                    case 2: {
+                        compareIndex = mediumGrassIndex;
+                        stopComparisonIndex = tallGrassIndex + 1;
+                        break;
+                    }
+                    case 3: {
+                        compareIndex = tallGrassIndex;
+                        stopComparisonIndex = 0;
+                        break;
+                    }
+                    default:
+                        Debug.Log("PROBLEM: sheep looked at a square which had no grass value between zero and three.");
+                        continue;
+                }                
 //For better optimization, this should be changed to a binary search
                 if (percievedPatches.Count > 0) {
-                    while (j >= 0 && Vector2.Distance(gameObject.transform.position, positionOf) < Vector2.Distance(gameObject.transform.position, percievedPatches[j])) {
+                    while (compareIndex >= stopComparisonIndex && Vector2.Distance(gameObject.transform.position, positionOf) < Vector2.Distance(gameObject.transform.position, percievedPatches[compareIndex])) {
                         // Debug.Log("Program thinks that " + positionOf.x + "," + positionOf.y + " is closer to " + gameObject.transform.position.x + "," 
                         //             + gameObject.transform.position.y + " than " + percievedPatches[j].x + "," + percievedPatches[j].y + " at index " + j + " is.");
-                        --j;
+                        --compareIndex;
                     }
                     // Debug.Log("Program thinks that " + percievedPatches[j+1].x + "," + percievedPatches[j+1].y + " at index " + (j + 1) + " is closer to " + gameObject.transform.position.x + "," 
                     // + gameObject.transform.position.y + " than " + positionOf.x + "," + positionOf.y + " is.");
                 }
-                ++shortgrassIndex;
+                if (grassHeightHere > 0) {
+                    ++shortGrassIndex;
+                    if (grassHeightHere > 1) {
+                        ++mediumGrassIndex;
+                        if (grassHeightHere > 2) {
+                            ++tallGrassIndex;
+                        }
+                    }                    
+                }
                 //Debug.Log("Inserting " + positionOf.x + "," + positionOf.y + " at index " + j);
-                percievedPatches.Insert(j + 1, positionOf);
+                percievedPatches.Insert(compareIndex + 1, positionOf);
             }
         }        
     }
@@ -151,7 +193,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
         //Debug.Log("Exploiting " + Mathf.FloorToInt(transform.position.x) + Mathf.FloorToInt(transform.position.y));
         if (Goliad.GetComponent<MapManager>().exploitPatch(new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y)))) {
             if (gameObject.GetComponent<Unit>().addMeat(1) == true) {
-                        transform.localScale *= 1.05f;
+                        transform.localScale *= 1.02f;
             }
         }
         CancelInvoke("walkToFood");
@@ -160,7 +202,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
     }    
 
     void checkFoodTarget () {
-        //Debug.Log("checkfoodtarget with range " + ((int) Vector3.Distance(transform.position, currentMostAppealingPatch) + 1));
+        //Debug.Log("checkfoodtarget with range " + ((int) Vector3.Distance(transform.position, currentMostAppealingPatch) + 2));
         if (!searchForFood((int) Vector3.Distance(transform.position, currentMostAppealingPatch) + 2, false)) {
             CancelInvoke("walkToFood");
             CancelInvoke("checkFoodTarget");
@@ -175,9 +217,6 @@ public class SheepBehavior_Local : SheepBehavior_Base
         }
         else {
             legs.speed = 6;
-        }
-        if (((Vector3) flockCenter - transform.position).magnitude > 15) {
-            Debug.Log("PROBLEM: long-range destination set."); 
         }
         legs.setDestination(flockCenter, null, Mathf.Pow(flock.Count, 0.6f));
         StartCoroutine(idle(toGo / legs.speed));
@@ -199,7 +238,6 @@ public class SheepBehavior_Local : SheepBehavior_Base
             Vector2Int thereInt = new Vector2Int(Mathf.FloorToInt(currentMostAppealingPatch.x), Mathf.FloorToInt(currentMostAppealingPatch.y));
             if (hereInt != thereInt) {
                 legs.setDestination(currentMostAppealingPatch);
-                //Debug.Log("set destination");
             }
             else {
                 //Debug.Log("eating clock started");
@@ -245,8 +283,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
         }
         shepherdMultiplier *= 2;
         updateFlockCenter();
-        //Debug.Log("chime heard");
-        Invoke("decayShepherdPower", 7);
+        Invoke("decayShepherdPower", 15);
     }
 
     void decayShepherdPower () {
@@ -272,9 +309,11 @@ public class SheepBehavior_Local : SheepBehavior_Base
         }
         if (shepherd != null) {
             there += (Vector2) shepherd.transform.position * shepherdMultiplier;
+            flockCenter = new Vector2 (there.x / (flock.Count + shepherdMultiplier) + Random.Range(-3, 3), there.y / (flock.Count + shepherdMultiplier) + Random.Range(-3, 3));
         }
-//we have to deduct 1 from the divisors because we're adding multipliers, and if they're both 1 we want the divisor to still be 1.
-        flockCenter = new Vector2 (there.x / (flock.Count + shepherdMultiplier - 1) + Random.Range(-3, 3), there.y / (flock.Count + shepherdMultiplier - 1) + Random.Range(-3, 3));
+        else {
+            flockCenter = new Vector2 (there.x / (flock.Count) + Random.Range(-3, 3), there.y / (flock.Count) + Random.Range(-3, 3));
+        }
         //Debug.Log("Flockcenter updated. Now " + Vector2.Distance(transform.position, flockCenter) + " away at " + flockCenter + ". Flock size: " + flock.Count + ". Farflock size: " + farFlock.Count + ". Shepherd power: " + shepherdMultiplier);
         return flockCenter;
     }
@@ -299,7 +338,6 @@ public class SheepBehavior_Local : SheepBehavior_Base
     }
 
     void deathProtocal () {
-        Debug.Log("dead!");
         if (shepherd != null) {
             shepherd.GetComponent<ShepherdFunction>().flock.Remove(gameObject);
         }

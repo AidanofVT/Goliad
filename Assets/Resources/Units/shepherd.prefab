@@ -854,7 +854,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7285350017840692551
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1240,7 +1240,7 @@ MonoBehaviour:
   isArmed: 0
   speed: 3
   costToBuild: 10
-  meatCapacity: 20
+  meatCapacity: 40
   startingMeat: 0
   toughness: 150
   weapon_power: 0

@@ -77,8 +77,8 @@ public class GameState : MonoBehaviourPun {
         return alliedUnits;
     }
 
-    public int getPatchValue (int x, int y) {
-        return map[x + mapOffset, y + mapOffset];
+    public int getPatchValue (float x, float y) {
+        return map[Mathf.FloorToInt(x) + mapOffset, Mathf.FloorToInt(y) + mapOffset] / 4;
     }
 
     public void clearActive () {

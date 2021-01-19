@@ -620,9 +620,9 @@ MonoBehaviour:
   isArmed: 0
   speed: 2
   costToBuild: 10
-  meatCapacity: 30
+  meatCapacity: 40
   startingMeat: 0
-  toughness: 30
+  toughness: 20
   weapon_power: 0
   weapon_range: 0
   weapon_reloadTime: 0

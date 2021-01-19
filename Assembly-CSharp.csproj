@@ -74,6 +74,7 @@
      <Compile Include="Assets\Scripts\OrbBehavior_Base.cs" />
      <Compile Include="Assets\Scripts\OrbBehavior_Local.cs" />
      <Compile Include="Assets\Scripts\OrbMeatContainer.cs" />
+     <Compile Include="Assets\Scripts\ProductionButtonBridge.cs" />
      <Compile Include="Assets\Scripts\SelectionRectManager.cs" />
      <Compile Include="Assets\Scripts\setup.cs" />
      <Compile Include="Assets\Scripts\ShaderHandler.cs" />
@@ -93,21 +94,12 @@
      <Compile Include="Assets\Scripts\Weapon.cs" />
      <None Include="Assets\Photon\PhotonLibs\netstandard2.0\Photon3Unity3D.xml" />
      <None Include="Assets\Photon\PhotonLibs\changes-library.txt" />
-     <None Include="Assets\TileMapAccelerator\Resources\IsometricTypeLibrary.txt" />
-     <None Include="Assets\TileMapAccelerator\Resources\TileTypeLibrary.txt" />
-     <None Include="Assets\TileMapAccelerator\Resources\TileTypeLibrary2.txt" />
      <None Include="Assets\Photon\PhotonUnityNetworking\link.xml" />
-     <None Include="Assets\TileMapAccelerator\Resources\IsometricTypeLibraryV2.txt" />
      <None Include="Assets\Scripts\mapShader.compute" />
      <None Include="Assets\Photon\PhotonLibs\Photon3Unity3D.xml" />
      <None Include="Assets\Scripts\mapShader_Old.compute" />
-     <None Include="Assets\TileMapAccelerator\Resources\GridShaderUNLIT.shader" />
-     <None Include="Assets\TileMapAccelerator\Resources\FastMapShaderTransparent.shader" />
-     <None Include="Assets\TileMapAccelerator\Resources\FastMapShaderTransparentIsometric.shader" />
      <None Include="Assets\Photon\PhotonUnityNetworking\readme.txt" />
-     <None Include="Assets\TileMapAccelerator\Resources\FastMapShader.shader" />
      <None Include="Assets\Photon\PhotonUnityNetworking\changelog.txt" />
-     <None Include="Assets\TileMapAccelerator\Resources\GameLibrary.txt" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>G:/Documents/Apps and App Files/Unity Engine/Unity Work/Proto-RTS/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
  </Reference>

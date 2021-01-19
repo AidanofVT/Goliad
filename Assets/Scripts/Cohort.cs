@@ -9,6 +9,8 @@ public class Cohort {
     public List<Unit_local> members = new List<Unit_local>();
     public List<Unit_local> armedMembers = new List<Unit_local>();
     public List<Unit_local> mobileMembers = new List<Unit_local>();
+    public List<Unit_local> depotMembers = new List<Unit_local>();
+    public List<Unit_local> shepherdMembers = new List<Unit_local>();
     Task task;
     public List<Task> assignments = new List<Task>();
     Hashtable remainingToProvide = new Hashtable();
@@ -37,6 +39,12 @@ public class Cohort {
         members.Add(recruit);
         if (recruit.stats.isArmed) {
             armedMembers.Add(recruit);
+        }
+        else if (recruit.name.Contains("depot")) {
+            depotMembers.Add(recruit);
+        }
+        else if (recruit.name.Contains("shepherd")) {
+            shepherdMembers.Add(recruit);
         }
         if (recruit.stats.isMobile) {
             mobileMembers.Add(recruit);
@@ -96,6 +104,12 @@ public class Cohort {
             collection += meatHolder.meat;
         }
         return collection;
+    }
+
+    public void chime () {
+        foreach (Unit member in shepherdMembers) {
+            member.GetComponent<ShepherdFunction>().chime();
+        }
     }
 
     public void commenceAttack (GameObject getIt) {
@@ -254,7 +268,6 @@ public class Cohort {
             Vector3 result = spawnSpot + new Vector3(direction.x, direction.y, 0) * unitRadius * 2;
             result.z = -.2f;
             toReturn[i] = result;
-            Debug.Log(spawnLocationCycler);
             if (++spawnLocationCycler >= 6) {
                 spawnLocationCycler = 0;
             }
@@ -276,10 +289,8 @@ public class Cohort {
     }
 
     public void Slaughter () {
-        foreach (Unit_local individual in members) {
-            if (individual.name.Contains("depot")) {
-                individual.GetComponent<factory_functions>().slaughterSheep();
-            }
+        foreach (Unit_local individual in depotMembers) {
+            individual.GetComponent<factory_functions>().slaughterSheep();
         }
     }
 

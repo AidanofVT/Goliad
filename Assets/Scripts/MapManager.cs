@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using Photon.Pun;
@@ -11,37 +12,53 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
     ShaderHandler shaderGateway;
 
     public int growInterval = 30;
-    byte [,] mapState;
-    byte [,] mapBase;
+    byte [,] mapTiles;
+    byte [,] mapBaseVerdancy;
     int offset;
     
     List <Vector2Int> growing = new List<Vector2Int>();
     List <float> timesOfLastChange = new List<float>();
 
-    GameObject CoordinateReadout;
-
-    int counter = 0;
+    string mapPath;
 
     void Start() {
+        DirectoryInfo mapDirectory = Directory.GetParent(Directory.GetParent(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location).ToString()).ToString());        
+        if (Path.GetFileName(mapDirectory.ToString()) == "Build") {
+            mapDirectory = mapDirectory.GetDirectories("Proto-RTS_Data/Resources")[0];
+        }
+        else {
+            mapDirectory = mapDirectory.GetDirectories("Assets/Resources")[0];
+        }
+        mapPath = mapDirectory.ToString() + "/stored map.dat";
         shaderGateway = Camera.main.transform.GetChild(0).GetChild(0).GetComponent<ShaderHandler>();
 //arrays are by default passed as references! no special treatment is required for map to act as a reference variable. I checked: it's working.
-        mapState = gameObject.GetComponent<GameState>().map;
+        mapTiles = gameObject.GetComponent<GameState>().map;
 //this offset is crucial: the tilemap has negative values, but the list does not. note that as this is currently set up, only square maps are possible.
         offset = gameObject.GetComponent<GameState>().map.GetLength(0) / 2;
+        mapBaseVerdancy = new byte [offset * 2, offset * 2];
+        if (File.Exists(mapPath) == false) {
+            buildMap();  
+        }
         loadMap();
         AstarPath.active.threadCount = Pathfinding.ThreadCount.AutomaticHighLoad;
         AstarPath.active.Scan();
+        // string nodesMapPath = mapDirectory.ToString() + "/AStar- empty map nodes";
+        // byte[] nodes;
+        // if (File.Exists(nodesMapPath) == false){
+        //     AstarPath.active.Scan();
+        //     nodes = AstarPath.active.data.SerializeGraphs();
+        //     File.WriteAllBytes(nodesMapPath, nodes);
+        // }
+        // else {
+        //     nodes = File.ReadAllBytes(mapDirectory.ToString() + "/AStar- empty map nodes");
+        // }
+        // AstarPath.active.data.DeserializeGraphs(nodes);
         shaderGateway.On();
     }
 
-    private void Update() {
-        //I must create a second map[] with data about the base state of the map before grow() can be used for maps that aren't just all green.
-        // int sideExtent = mapState.GetLength(0) / 2;
-        // int ex = Random.Range(-1 * sideExtent, sideExtent);
-        // int wy = Random.Range(-1 * sideExtent, sideExtent);
-        // exploitPatch(new Vector2Int(ex, wy));
+    // private void Update() {
         // grow();
-    }
+    // }
 
 //buildMap is necessary, but its implementation is negotiable. this is the method to alter to change the map construction.
     void buildMap () {
@@ -50,16 +67,10 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
         float noiseScale = 90;
         Debug.Log(noiseOrigin);
         List <byte> forExport = new List<byte>();
-        string bugOut = "";  
         for (int i = offset * 2 - 1; i >= 0; i--) {
             for (int j = offset * 2 - 1; j >= i; j--) {
-                float terrainHere = Mathf.Clamp01((Mathf.PerlinNoise(noiseOrigin + (i / noiseScale), noiseOrigin + (j / noiseScale)) - 0.09f));                
+                float terrainHere = Mathf.Clamp01((Mathf.PerlinNoise(noiseOrigin + (i / noiseScale), noiseOrigin + (j / noiseScale)) - 0.3f));                
                 int scaled = Mathf.FloorToInt(terrainHere * 4) * 4 + Random.Range(0, 4);                   
-                if (i == 125) {
-                    bugOut += scaled + ", ";
-                }
-                mapState[i, j] = (byte) scaled;
-                mapState[j, i] = (byte) scaled;
                 forExport.Add((byte) scaled);
                 //This is the original test map:     
                     // if ((i % 4 == 0 || i % 4 - 1 == 0) && (j % 4 == 0 || j % 4 - 1 == 0)) {
@@ -70,36 +81,35 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
                     // }
             }
         }
-        Debug.Log(bugOut);
-        string mapFilepath = Directory.GetCurrentDirectory() + "/Assets/Resources/stored map.dat";
-        File.Delete(mapFilepath);
-        File.WriteAllBytes(mapFilepath, forExport.ToArray());
+        File.WriteAllBytes(mapPath, forExport.ToArray());
     }
 
     void loadMap () {
-        int sideLength = mapState.GetLength(0);
+        int sideLength = mapTiles.GetLength(0);
         GameObject ground = GameObject.Find("Ground");
         ground.GetComponent<BoxCollider2D>().size = new Vector2(sideLength, sideLength);
         ground.transform.GetChild(0).localScale = new Vector3 (sideLength, sideLength, 1);
 //the perimeter needs to start off deactivated to stop the A* system from marking the middle of the map non-navigable.
         ground.transform.GetChild(0).gameObject.SetActive(true);
         AstarPath.active.data.gridGraph.SetDimensions(sideLength * 2, sideLength * 2, 1);
-        byte[] fromImport = File.ReadAllBytes(Directory.GetCurrentDirectory() + "/Assets/Resources/stored map.dat");
+        byte[] fromImport = File.ReadAllBytes(mapPath);
         int c = 0;
         for (int i = offset * 2 - 1; i >= 0; i--) {
             for (int j = offset * 2 - 1; j >= i; j--) {
-                    int terrainHere = (int) fromImport[c];
-                    mapState[i, j] = (byte) terrainHere;
-                    mapState[j, i] = (byte) terrainHere;
+                    byte terrainHere = fromImport[c];
+                    mapTiles[i, j] = terrainHere;
+                    mapTiles[j, i] = terrainHere;
+                    byte grassHeight = (byte) (terrainHere / 4);
+                    mapBaseVerdancy[i, j] = grassHeight;
+                    mapBaseVerdancy[j, i] = grassHeight;
                     ++c;
             }
         }
-        mapBase = (byte[,]) mapState.Clone();
     }
 
     public bool exploitPatch (Vector2Int targetPatch) {
-        Debug.Log("exploitPatch called on patch " + targetPatch.ToString());
-        if (mapState[targetPatch.x + offset, targetPatch.y + offset] > 0) {
+        //Debug.Log("exploitPatch called on patch " + targetPatch.ToString());
+        if (mapTiles[targetPatch.x + offset, targetPatch.y + offset] > 0) {
             photonView.RPC("changeMap", RpcTarget.All, targetPatch.x, targetPatch.y);
             return true;
         }
@@ -110,9 +120,14 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
     
     [PunRPC]
     public void changeMap (int x, int y) {
-        Debug.Log("changeMap called for index " + (x + offset) + "," + (y + offset));
-        if (mapState[x + offset, y + offset] > 0) {
-            mapState[x + offset, y + offset] -= 1;
+        Vector2Int withOffset = new Vector2Int(x + offset, y + offset);
+        //Debug.Log("changeMap called for index " + withOffset.x + "," + withOffset.y);
+        int verdancy = mapTiles[withOffset.x, withOffset.y] / 4;
+        if (verdancy > 0) {
+            verdancy -= 1;
+            int newTile = verdancy * 4;
+            newTile += Random.Range(0, 4);
+            mapTiles[withOffset.x, withOffset.y] = (byte) newTile;            
             growing.Add(new Vector2Int(x, y));
             timesOfLastChange.Add(Time.time);            
         }
@@ -122,9 +137,14 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
     void grow () {
         int i = 0;
         int loopBreaker = 10000;
-        while (growing.Count - i - 1 >= 0 && Time.time - timesOfLastChange[i] >= 3) {
-            mapState[growing[i].x + offset, growing[i].y + offset] += 1;
-            if (mapState[growing[i].x + offset, growing[i].y + offset] >= 1) {
+        while (i < growing.Count && Time.time - timesOfLastChange[i] >= growInterval) {
+            Vector2Int arrayIndex = new Vector2Int(growing[i].x + offset, growing[i].y + offset);
+            int verdancy = mapTiles[arrayIndex.x, arrayIndex.y] / 4;
+            verdancy += 1;
+            int newTile = verdancy * 4;
+            newTile += Random.Range(0, 4);
+            mapTiles[arrayIndex.x, arrayIndex.y] = (byte) newTile;
+            if (verdancy >= mapBaseVerdancy[arrayIndex.x, arrayIndex.y]) {
 //when the time comes to add more growth levels, remember that patches will have to move to the back of the lines wehenever they grow a level but aren't yet fully grown.
 //this assumes that every degree of growth takes the same amount of time.
                 growing.RemoveAt(i);

@@ -115,7 +115,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 3518146009571945018}
-  - {fileID: 640028665392964934}
+  - {fileID: 2733738173587951303}
   - {fileID: 2943896751230503068}
   - {fileID: 8958494630339979165}
   m_Father: {fileID: 0}
@@ -154,10 +154,10 @@ MonoBehaviour:
   isMobile: 1
   isArmed: 0
   speed: 7
-  costToBuild: 18
+  costToBuild: 30
   meatCapacity: 60
   startingMeat: 0
-  toughness: 40
+  toughness: 50
   weapon_power: 0
   weapon_range: 0
   weapon_reloadTime: 0
@@ -1236,7 +1236,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 178d9eefee423f54780c7bb7694e10c3, type: 3}
---- !u!4 &640028665392964934 stripped
+--- !u!4 &2733738173587951303 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3247630572699396463, guid: 178d9eefee423f54780c7bb7694e10c3,
     type: 3}

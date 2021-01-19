@@ -39,11 +39,11 @@ public class Unit : MonoBehaviourPun {
     }
 
     public virtual void Start () {
+        ignition();
         statusBar = transform.GetChild(1).GetComponent<BarManager>();
 //this needs to be here, rather than in Awake, so that if there's starting meat then the BarManager sees the right abount of meat when it wakes up
         statusBar.gameObject.SetActive(true);
         addMeat(stats.startingMeat);
-        ignition();
     }
 
     public virtual void ignition () {
@@ -58,6 +58,9 @@ public class Unit : MonoBehaviourPun {
                 if(weapon.target != null && meat - toAdd < stats.weapon_shotCost && weapon.inRange()) {
                     weapon.StartCoroutine("fire"); 
                 } 
+            }
+            if (gameState.activeCohorts.Contains(cohort)) {
+                gameState.activeCohortsChangedFlag = true;
             }
             return true;
         }
@@ -100,23 +103,26 @@ public class Unit : MonoBehaviourPun {
 
     [PunRPC]
     public void startTurning () {
-        StartCoroutine(updateFacing());
+        StartCoroutine("updateFacing");
     }
 
     [PunRPC]
     public void stopTurning () {
-        StopCoroutine(updateFacing());
+        StopCoroutine("updateFacing");
     }
 
     [PunRPC]
     public IEnumerator updateFacing () {
+        Vector2 previousPosition = transform.position;
+        yield return new WaitForSeconds(0);
         while (true) {
-            Vector2 velocityNow = gameObject.GetComponent<Rigidbody2D>().velocity;
+            Vector2 velocityNow = ((Vector2) transform.position - previousPosition) / Time.deltaTime;
             if (velocityNow != Vector2.zero) {
                 velocityNow.Normalize();
-                facing = Mathf.Atan2(velocityNow.y, velocityNow.x);
-                transform.GetChild(0).rotation = Quaternion.AxisAngle(Vector3.forward, facing - Mathf.PI * 1.5f);
+                facing = Mathf.Atan2(velocityNow.x, velocityNow.y);
+                transform.GetChild(0).rotation = Quaternion.AxisAngle(Vector3.forward, facing * -1 - Mathf.PI);
             }
+            previousPosition = transform.position;
             yield return new WaitForSeconds(0.1f);
         }        
     }
