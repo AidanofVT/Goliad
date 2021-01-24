@@ -64,7 +64,7 @@ public class Unit_local : Unit {
 
     [PunRPC]
     public override void die () {
-        SendMessage("deathProtocal");
+        SendMessage("deathProtocal", null, SendMessageOptions.DontRequireReceiver);
         spindown();
     }
 
@@ -91,7 +91,7 @@ public class Unit_local : Unit {
                 }
                 Transform toTrans = to.transform;
                 Transform fromTrans = from.transform;
-                Vector3 startOut = (toTrans.position - fromTrans.position).normalized * (from.GetComponent<CircleCollider2D>().radius + 0.5f) + fromTrans.position;
+                Vector3 startOut = (Vector3) ((Vector2) toTrans.position - (Vector2) fromTrans.position).normalized * (from.GetComponent<CircleCollider2D>().radius + 0.5f) + fromTrans.position;
                 int leftToDispense = task.quantity - dispensed;
                 GameObject newOrb = spawnOrb(startOut, leftToDispense, from.GetComponent<Unit_local>());
                 dispensed += newOrb.GetComponent<OrbMeatContainer>().meat;
@@ -132,7 +132,7 @@ public class Unit_local : Unit {
         GameObject newOrb = PhotonNetwork.Instantiate("Orb", where, Quaternion.identity);
         newOrb.GetComponent<OrbMeatContainer>().fill(payload);
         if (pullFrom != null) {
-            pullFrom.deductMeat(payload);
+            pullFrom.photonView.RPC("deductMeat", RpcTarget.All, payload);
         }
         return newOrb;
     }

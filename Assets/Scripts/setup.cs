@@ -25,7 +25,7 @@ public class setup : MonoBehaviourPunCallbacks {
         // float w  = Random.Range(0, 1000000);
         // float v  = Random.Range(0, 1000000);
         // for (float i = 0; i < 100; ++i) {
-        //     debugOut += (int) ((Mathf.PerlinNoise(w + i / 100, (v + i / 100)) + 0.1f) * 2) + ", ";
+        //     debugOut += (int) ((Mathf.PerlinNoise(w + i / 100, (v + i / 100)) + 0.05f) * 2) + ", ";
         // }
         // Debug.Log(debugOut);
     }
@@ -63,9 +63,20 @@ public class setup : MonoBehaviourPunCallbacks {
         GameObject home = PhotonNetwork.Instantiate("Units/depot", startPlace, Quaternion.identity);
         yield return new WaitForSeconds(0);
         factory_functions maker = home.GetComponent<factory_functions>();
-        home.GetComponent<Unit_local>().addMeat(300);
-        // GameObject dogOne = maker.makeUnit("dog");
-        // dogOne.transform.position = home.transform.position + new Vector3 (8, 4, 0);
+        home.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, 300);
+        // if (PhotonNetwork.LocalPlayer.ActorNumber == 1) {
+        //     GameObject dogOne = maker.makeUnit("dog");
+        //     dogOne.transform.position = Vector2.zero;
+        //     yield return new WaitForSeconds(0);
+        //     dogOne.GetPhotonView().RPC("addMeat", RpcTarget.All, 9);
+        // }
+        // else {
+        //     GameObject orb1 = PhotonNetwork.Instantiate("orb", new Vector3(2, 0, -0.2f), Quaternion.identity);
+        //     //GameObject orb2 = PhotonNetwork.Instantiate("orb", new Vector3(4, 0, -0.2f), Quaternion.identity);
+        //     orb1.GetComponent<OrbMeatContainer>().fill(6);
+        //     //orb2.GetComponent<OrbMeatContainer>().fill(1);
+        //     yield return new WaitForSeconds(0);
+        // }
         // GameObject dogTwo = maker.makeUnit("dog");
         // dogTwo.transform.position = home.transform.position + new Vector3 (8, -4, 0);
         // GameObject dogThree = maker.makeUnit("dog");
@@ -91,6 +102,18 @@ public class setup : MonoBehaviourPunCallbacks {
 
     public override void OnJoinRandomFailed(short returnCode, string message) {
         Debug.Log("Randomly connecting to a room failed. MESSAGE: " + message);
+    }
+
+    void Update () {
+        if (Input.GetButtonDown("toggle")) {
+            DebugStuff.BuildDebugger thiScript = Camera.main.transform.parent.GetComponent<DebugStuff.BuildDebugger>();
+            if (thiScript.enabled == false) {
+                thiScript.enabled = true;
+            }
+            else {
+                thiScript.enabled = false;
+            }
+        }
     }
 
 }

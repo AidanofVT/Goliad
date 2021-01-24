@@ -69,7 +69,6 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
         //This seed looks good at map-size 500;
         float noiseOrigin = 147586; // Random.Range(0, 1111000);
         float noiseScale = 90;
-        Debug.Log(noiseOrigin);
         List <byte> forExport = new List<byte>();
         for (int i = offset * 2 - 1; i >= 0; i--) {
             for (int j = offset * 2 - 1; j >= i; j--) {
@@ -107,7 +106,7 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
                     mapBaseVerdancy[j, i] = grassHeight;
                     ++c;
             }
-        }        
+        }
     }
 
     public bool exploitPatch (Vector2Int targetPatch) {

@@ -39,8 +39,8 @@ public class Unit : MonoBehaviourPun {
     }
 
     public virtual void Start () {
-        ignition();
         statusBar = transform.GetChild(1).GetComponent<BarManager>();
+        ignition();
 //this needs to be here, rather than in Awake, so that if there's starting meat then the BarManager sees the right abount of meat when it wakes up
         statusBar.gameObject.SetActive(true);
         addMeat(stats.startingMeat);
@@ -59,7 +59,7 @@ public class Unit : MonoBehaviourPun {
                     weapon.StartCoroutine("fire"); 
                 } 
             }
-            if (gameState.activeCohorts.Contains(cohort)) {
+            if (photonView.IsMine == true && gameState.activeCohorts.Contains(cohort)) {
                 gameState.activeCohortsChangedFlag = true;
             }
             return true;

@@ -86,7 +86,7 @@ public class CohortUIManager : MonoBehaviour {
             float xMagnitude = magnitude * maxWidth;
             float yMagnitude = magnitude * maxHeight;
             greyBar.size = new Vector2(Mathf.Clamp(xMagnitude, 20, maxWidth), Mathf.Clamp(yMagnitude * 2, 40, maxHeight));
-            yellowBar.size = new Vector2(greyBar.size.x - 7, Mathf.Clamp(heldSum / capacitySum * (greyBar.size.y - 7), 3, maxHeight - 7));
+            yellowBar.size = new Vector2(greyBar.size.x - 7, Mathf.Clamp(heldSum / capacitySum * (greyBar.size.y - 7), 0, maxHeight - 7));
             foreach (Button button in buttonsAndCosts.Keys) {
                 int price = (int) buttonsAndCosts[button];       
                 if (Input.GetButton("modifier") == true) {
@@ -157,7 +157,7 @@ public class CohortUIManager : MonoBehaviour {
             fadedBar.enabled = true;
         }
         else {
-            yellowBar.size = new Vector2(greyBar.size.x - 7, Mathf.Clamp(heldSum / capacitySum * (greyBar.size.y - 7), 3, maxHeight - 7));            
+            yellowBar.size = new Vector2(greyBar.size.x - 7, Mathf.Clamp(heldSum / capacitySum * (greyBar.size.y - 7), 0, maxHeight - 7));            
             fadedBar.enabled = false;
         }
     }

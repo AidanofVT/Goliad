@@ -64,7 +64,7 @@ public class Weapon : MonoBehaviour {
     }
 
     void OnTriggerEnter2D(Collider2D other) {
-        Debug.Log("trigger entered: " + other.gameObject.name);
+        //Debug.Log("trigger entered: " + other.gameObject.name);
         if (other.gameObject == target && other.isTrigger == false) {
             StartCoroutine("fire");
             if (treatAsMobile) {

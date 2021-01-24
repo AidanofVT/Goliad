@@ -45,8 +45,11 @@ public class SheepBehavior_Local : SheepBehavior_Base
             if (roll > 3) {
                 float direction = (Mathf.Pow(roll, 4) / 0.3f * roll) + thisSheep.facing;
                 Vector2 runRise = new Vector2(Mathf.Sin(direction), Mathf.Cos(direction));
-                runRise *= (idleDuration / thisSheep.stats.speed) * 0.9f;
-                legs.setDestination(transform.position + (Vector3) runRise);
+                runRise *= (idleDuration / thisSheep.stats.speed) * 0.7f;
+                Vector3 wayPoint = transform.position + (Vector3) runRise;
+                if (legs.isNavigable(wayPoint)) {
+                    legs.setDestination(wayPoint);
+                }
             }
             yield return new WaitForSeconds (idleDuration);
         }
@@ -68,13 +71,19 @@ public class SheepBehavior_Local : SheepBehavior_Base
                 eatAppeal = Mathf.Clamp(eatAppeal, 1.5f, 30 * grassHeightHere);
             }
             float conveneAppeal;
-            if (legs.isNavigable(updateFlockCenter()) == false || Vector2.Distance(flockCenter, transform.position) < 10) {
+            if (legs.isNavigable(updateFlockCenter()) == false || Vector2.Distance(flockCenter, transform.position) < 6) {
                 conveneAppeal = 0;
+                if (legs.isNavigable(updateFlockCenter()) == false) {
+                    Debug.Log("Convene appeal is zero because the flock center is obstructed.");
+                }
+                else {
+                    Debug.Log("Convene appeal is zero because it's too close.");
+                }
             }
             else {
                 conveneAppeal = shepherdMultiplier * Mathf.Pow(Vector2.Distance(transform.position, flockCenter), 1.3f) / 2;
             }
-            float roll = idleMargin + Random.Range(0, eatAppeal + conveneAppeal);
+            float roll = Random.Range(0, eatAppeal + conveneAppeal + idleMargin);
             Debug.Log("The results are in: eatAppeal is " + eatAppeal + ". ConveneAppeal is " + conveneAppeal + ". The roll is " + roll + ".");
             if (roll <= eatAppeal) {
                 InvokeRepeating("walkToFood", 0, 0.1f);
@@ -284,6 +293,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
         shepherdMultiplier *= 2;
         updateFlockCenter();
         Invoke("decayShepherdPower", 15);
+        Debug.Log("Chime heard. Shepherd influence is now " + shepherdMultiplier);
     }
 
     void decayShepherdPower () {
@@ -314,7 +324,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
         else {
             flockCenter = new Vector2 (there.x / (flock.Count) + Random.Range(-3, 3), there.y / (flock.Count) + Random.Range(-3, 3));
         }
-        //Debug.Log("Flockcenter updated. Now " + Vector2.Distance(transform.position, flockCenter) + " away at " + flockCenter + ". Flock size: " + flock.Count + ". Farflock size: " + farFlock.Count + ". Shepherd power: " + shepherdMultiplier);
+        Debug.Log("Flockcenter updated. Now " + ((Vector2) transform.position - flockCenter) + " away. Flock size: " + flock.Count + ". Farflock size: " + farFlock.Count + ". Shepherd power: " + shepherdMultiplier);
         return flockCenter;
     }
 

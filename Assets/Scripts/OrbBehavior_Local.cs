@@ -6,25 +6,16 @@ using Photon.Pun;
 public class OrbBehavior_Local : OrbBehavior_Base {
 
     float speed = 0;
+    OrbMeatContainer meatBox;
     Vector3 direction;
-    public Transform target;
-
+    public Transform itsTransform;
+    
     void Start () {
         body = GetComponent<Rigidbody2D>();
         localCollider = GetComponent<CircleCollider2D>();
+        meatBox = GetComponent<OrbMeatContainer>();
         //Destroy(gameObject, 25);
         StartCoroutine("launchStage");
-    }
-
-    IEnumerator launchStage () {
-//This yield needs to be here because the object doesn't yet have velocity. forces don't get added immediately: we have to wait for coroutine-call-time in the next frame.
-        yield return new WaitForSeconds(0);
-        while (body.velocity.magnitude > 0.5f) {
-            yield return new WaitForSeconds(0.1f);
-        }
-        activeSearch();
-        body.velocity = new Vector3(0,0,0);
-        photonView.RPC("seekStage", RpcTarget.All);
     }
 
     void activeSearch () {
@@ -34,7 +25,7 @@ public class OrbBehavior_Local : OrbBehavior_Base {
             Collider2D[] nearby = Physics2D.OverlapCircleAll(transform.position, radius);
             foreach (Collider2D something in nearby) {
                 if (something.gameObject.GetComponent<Unit>() != null && something.gameObject.GetComponent<Unit>().roomForMeat() > 0) {
-                    nearbyCanTake.Add(something.gameObject);
+                        nearbyCanTake.Add(something.gameObject);
                 }
             }
             if (nearbyCanTake.Count > 0) {
@@ -48,24 +39,41 @@ public class OrbBehavior_Local : OrbBehavior_Base {
             }
         }
         if (closest != null) {
-            target = closest.transform;
-            StopCoroutine("stopIt");
-            StartCoroutine("goForIt");
+            StartCoroutine("goForIt", closest);
         }
     }
 
-    IEnumerator goForIt () {
+    public void embark (GameObject toSeek) {
+        StopCoroutine("launchStage");
+        if (body != null) {
+            photonView.RPC("seekStage", RpcTarget.AllViaServer);
+        }
+        StartCoroutine("goForIt", toSeek);
+    }
+
+    IEnumerator goForIt (GameObject it) {
+        itsTransform = it.transform;
+        StopCoroutine("stopIt");
         while (true) {
-            if (target == null || target.gameObject.GetComponent<Unit>().roomForMeat() <= 0) {
-                StopCoroutine("goForIt");
-                target = null;
+            int roomInTarget = it.GetComponent<Unit>().roomForMeat();
+            if (itsTransform == null || roomInTarget <= 0) {
                 StartCoroutine("stopIt");
                 break;
             }
-            direction = (target.position - transform.position);
+            direction = (itsTransform.position - transform.position);
             if (direction.magnitude < 0.5) {
-                target.gameObject.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, GetComponent<OrbMeatContainer>().meat);
-                PhotonNetwork.Destroy(gameObject);
+                if (roomInTarget >= meatBox.meat) {
+                    it.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, meatBox.meat);
+                    PhotonNetwork.Destroy(gameObject);
+                }
+                else {
+                    GameObject childOrb = PhotonNetwork.Instantiate("orb", transform.position, transform.rotation);
+                    childOrb.GetComponent<OrbMeatContainer>().fill(roomInTarget);
+                    this.meatBox.fill(meatBox.meat - roomInTarget);
+                    yield return new WaitForSeconds(0);
+                    childOrb.GetComponent<OrbBehavior_Local>().embark(it);
+                    StartCoroutine("stopIt");
+                }
             }
             if (speed < 12) {
                 speed += 15 * Time.deltaTime;
@@ -74,8 +82,31 @@ public class OrbBehavior_Local : OrbBehavior_Base {
             yield return new WaitForSeconds(0.05f);
         }
     }
-
+    
+    IEnumerator launchStage () {
+//This yield needs to be here because the object doesn't yet have velocity. forces don't get added immediately: we have to wait for coroutine-call-time in the next frame.
+        yield return new WaitForSeconds(0);
+        while (body.velocity.magnitude > 0.5f) {
+            yield return new WaitForSeconds(0.1f);
+        }
+        activeSearch();
+        //body.velocity = new Vector3(0,0,0);
+        photonView.RPC("seekStage", RpcTarget.All);
+    }
+    
+    void OnTriggerEnter2D(Collider2D contact) {
+        GameObject gOb = contact.gameObject;
+        if (itsTransform == null
+        && contact.isTrigger == false
+        && gOb.GetComponent<Unit>() != null
+        && gOb.GetComponent<Unit>().roomForMeat() > 0) {
+            StartCoroutine("goForIt", gOb);
+        }
+    }
+    
     IEnumerator stopIt () {
+        StopCoroutine("goForIt");
+        itsTransform = null;
         int cycler = 0;
         while (true) {
             if (speed > 0.1f) {
@@ -94,23 +125,8 @@ public class OrbBehavior_Local : OrbBehavior_Base {
         }
     }
 
-    public void embark (GameObject toSeek) {
-        StopCoroutine("launchStage");
-        target = toSeek.transform;
-        if (body != null) {
-            photonView.RPC("seekStage", RpcTarget.AllViaServer);
-        }
-        StartCoroutine("goForIt");
-    }
+    void Update () {
 
-    void OnTriggerEnter2D(Collider2D other) {
-        if (target == null
-        && other.isTrigger == false
-        && other.gameObject.GetComponent<Unit>() != null
-        && other.gameObject.GetComponent<Unit>().roomForMeat() > 0) {
-            target = other.transform;
-            StartCoroutine("goForIt");
-        }
     }
 
 }

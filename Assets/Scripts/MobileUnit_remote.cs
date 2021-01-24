@@ -12,6 +12,7 @@ public class MobileUnit_remote : Unit_remote {
 
     public override void ignition () {
         moveConductor = GetComponent<AidansMovementScript>();
+        statusBar.GetComponent<SpriteRenderer>().enabled = false;
     }
 
     public virtual void move (Vector3 target, Transform movingTransform = null) {

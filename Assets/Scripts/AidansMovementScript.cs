@@ -32,7 +32,10 @@ public class AidansMovementScript : MonoBehaviourPun {
     }
 
     public void setDestination (Vector3 destination, Transform movingTransform = null, float acceptableDistance = 0.1f) {
-        terminatePathfinding();
+        CancelInvoke("moveAlong");
+        StopCoroutine("stuckCheck");
+        CancelInvoke("setRoute");
+        photonView.RPC("stopTurning", RpcTarget.All);
         placetoGo = destination;
         transToFollow = movingTransform;
         roundToArrived = acceptableDistance;
