@@ -105,7 +105,7 @@ public class setup : MonoBehaviourPunCallbacks {
     }
 
     void Update () {
-        if (Input.GetButtonDown("toggle")) {
+        if (Input.GetButtonDown("debug overlay toggle")) {
             DebugStuff.BuildDebugger thiScript = Camera.main.transform.parent.GetComponent<DebugStuff.BuildDebugger>();
             if (thiScript.enabled == false) {
                 thiScript.enabled = true;

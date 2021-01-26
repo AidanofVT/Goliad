@@ -51,6 +51,7 @@ public class Unit : MonoBehaviourPun {
 
     [PunRPC]
     public bool addMeat (int toAdd) {
+        Debug.Log("uh... addmeat?");
         if (meat + toAdd <= stats.meatCapacity) {
             meat += toAdd;
             statusBar.updateBar();

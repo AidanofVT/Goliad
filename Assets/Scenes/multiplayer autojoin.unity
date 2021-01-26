@@ -140,7 +140,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 542696302}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &101406405
 GameObject:
@@ -792,6 +792,7 @@ GameObject:
   - component: {fileID: 542696302}
   - component: {fileID: 542696303}
   - component: {fileID: 542696304}
+  - component: {fileID: 542696305}
   m_Layer: 0
   m_Name: Player Perspective
   m_TagString: Untagged
@@ -811,7 +812,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 687614913}
-  - {fileID: 605750579}
   - {fileID: 1796923368}
   - {fileID: 80562015}
   m_Father: {fileID: 0}
@@ -844,58 +844,13 @@ MonoBehaviour:
   attendedTransforms: []
   consideredSprites: []
   paintedSprites: []
---- !u!1 &605750578
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 605750579}
-  - component: {fileID: 605750580}
-  - component: {fileID: 605750581}
-  m_Layer: 0
-  m_Name: MouseHijinks
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &605750579
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 605750578}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -9.424461, y: -2.8607178, z: 4.0742188}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 542696302}
-  m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &605750580
+--- !u!114 &542696305
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 605750578}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f2bae0f80f29b0f4bb0f86f459dd3cab, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  goliad: {fileID: 1416085381}
---- !u!114 &605750581
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 605750578}
+  m_GameObject: {fileID: 542696301}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bcc9b13fd99137349818d14947865b28, type: 3}
@@ -2388,6 +2343,7 @@ GameObject:
   - component: {fileID: 1416085384}
   - component: {fileID: 1416085383}
   - component: {fileID: 1416085386}
+  - component: {fileID: 1416085387}
   m_Layer: 0
   m_Name: Goliad
   m_TagString: Untagged
@@ -2476,6 +2432,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapOffset: 0
   activeCohortsChangedFlag: 0
+--- !u!114 &1416085387
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1416085381}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ef1fccb7fa615345ab71ae58ebbdd01, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cursorForGiving: {fileID: 2800000, guid: bcd796ded36795c458d83abc202bff2a, type: 3}
+  cursorForTaking: {fileID: 2800000, guid: defd8d666b29fbc4795d035adcffd4e0, type: 3}
 --- !u!1 &1464685396
 GameObject:
   m_ObjectHideFlags: 0
@@ -2746,7 +2716,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 542696302}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &1796923369
 SpriteRenderer:

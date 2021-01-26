@@ -18,6 +18,7 @@ public class Cohort {
     int spawnLocationCycler = 0;
     
     public Cohort (List<Unit_local> recruits = null) {
+        Debug.Log("constructor");
         if (recruits != null) {
             foreach (Unit_local unit in recruits) {
                 unit.changeCohort(this);
@@ -28,6 +29,7 @@ public class Cohort {
     }
 
     public void activate () {
+        Debug.Log("activate");
         foreach (Unit_local member in members) {
             member.activate();
         }
@@ -162,6 +164,7 @@ public class Cohort {
     }
 
     public void deactivate () {
+        Debug.Log("deactivate");
         foreach (Unit_local member in members) {
             member.deactivate();
         }
@@ -257,7 +260,7 @@ public class Cohort {
                 toMove.deactivate();
             }
         }
-        foreach (Unit_local mover in members) {
+        foreach (Unit_local mover in mobileMembers) {
             mover.GetComponent<AidansMovementScript>().speed = Mathf.Clamp(Vector2.Distance(mover.transform.position, goTo) / longestETA, 1, mover.GetComponent<UnitBlueprint>().speed);
         }
     }
@@ -291,8 +294,8 @@ public class Cohort {
         mobileMembers.Remove(reject);
         depotMembers.Remove(reject);
         shepherdMembers.Remove(reject);
-        gameState.activeCohortsChangedFlag = true;
         Debug.Log("removed a member from the cohort. there are now " + members.Count + " members");
+        gameState.activeCohortsChangedFlag = true;
     }
 
     public void Slaughter () {
