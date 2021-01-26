@@ -23,20 +23,19 @@ public class MobileUnit_local : Unit_local {
     }
 
 //if network traffic is an issue in the future, and CPU load isn't too bad, maybe we could put these in MobileUnit_remote too and slow down the photon update rate?
-    public override void move (GameObject goTo, float precision = -1) {
+    public override void move (Vector2 goTo, GameObject toFollow, float precision = -1) {
+        Transform leader = null;
+        if (toFollow != null) {
+            leader = toFollow.transform;
+        }
         if (stats.isArmed) {
             weapon.disengage();
         }
-        task = new Task (gameObject, goTo, Task.actions.move);
-        Transform toFollow = null;
-        if (goTo.tag == "unit") {
-            toFollow = goTo.transform;
-        }
         if (precision == -1) {
-            moveConductor.setDestination(goTo.transform.position, toFollow);            
+            moveConductor.setDestination(goTo, leader);            
         }
         else {
-            moveConductor.setDestination(goTo.transform.position, toFollow, precision); 
+            moveConductor.setDestination(goTo, leader, precision); 
         }
     }
 

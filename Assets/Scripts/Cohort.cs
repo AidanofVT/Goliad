@@ -72,24 +72,24 @@ public class Cohort {
         Task newTask;
         if (task.nature == Task.actions.give) {
             if (otherOne.roomForMeat() <= worker.meat) {
-                newTask = new Task(worker.gameObject, otherOne.gameObject, Task.actions.give, otherOne.roomForMeat());
+                newTask = new Task(worker.gameObject, Task.actions.give, Vector2.zero, otherOne.gameObject, otherOne.roomForMeat());
                 remainingToAccept.Remove(otherOne);
                 remainingToProvide[worker] = (int) remainingToProvide[worker] - otherOne.roomForMeat();
             }
             else{
-                newTask = new Task(worker.gameObject, otherOne.gameObject, Task.actions.give, worker.meat);
+                newTask = new Task(worker.gameObject, Task.actions.give, Vector2.zero, otherOne.gameObject, worker.meat);
                 remainingToProvide.Remove(worker);
                 remainingToAccept[otherOne] = (int) remainingToAccept[otherOne] - worker.meat;                   
             }
         }
         else {
             if (worker.roomForMeat() <= otherOne.meat) {
-                newTask = new Task(worker.gameObject, otherOne.gameObject, Task.actions.take, worker.roomForMeat());
+                newTask = new Task(worker.gameObject, Task.actions.take, Vector2.zero, otherOne.gameObject, worker.roomForMeat());
                 remainingToAccept.Remove(worker);
                 remainingToProvide[otherOne] = (int) remainingToProvide[otherOne] - worker.roomForMeat();
             }
             else{
-                newTask = new Task(worker.gameObject, otherOne.gameObject, Task.actions.take, otherOne.meat);
+                newTask = new Task(worker.gameObject, Task.actions.take, Vector2.zero, otherOne.gameObject, otherOne.meat);
                 remainingToProvide.Remove(otherOne);
                 remainingToAccept[worker] = (int) remainingToAccept[worker] - otherOne.meat;                   
             }
@@ -116,7 +116,7 @@ public class Cohort {
         Debug.Log("cohort attacking " + getIt.name);
         foreach (Unit_local unit in armedMembers) {
             Debug.Log("instructing " + unit.name + " to attack");
-            unit.task = new Task(unit.gameObject, getIt, Task.actions.attack);
+            unit.task = new Task(unit.gameObject, Task.actions.attack, Vector2.zero, getIt);
             unit.attack(getIt);
         }
     }
@@ -181,7 +181,7 @@ public class Cohort {
         }
         List<Task> thisIsToSupressWarnings = new List<Task>(assignments);
         foreach (Task movement in thisIsToSupressWarnings) {
-            if (Vector2.Distance(movement.subjectUnit.transform.position, movement.objectUnit.transform.position) < Mathf.Pow(members.Count, 0.5f)) {
+            if (Vector2.Distance(movement.subjectUnit.transform.position, movement.center) < Mathf.Pow(members.Count, 0.5f)) {
                 movement.subjectUnit.GetComponent<AidansMovementScript>().terminatePathfinding(false);
                 assignments.Remove(movement);
             }
@@ -237,19 +237,28 @@ public class Cohort {
         }
     }
 
-    public void moveCohort (GameObject goTo) {
-        task = new Task (null, goTo, Task.actions.move);
+    public void moveCohort (Vector2 goTo, GameObject follow) {
+        task = new Task (null, Task.actions.move, goTo, follow);
         List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(members);
+        Task moveTask;
+        float longestETA = 0;
         foreach (Unit_local toMove in thisIsToSupressWarnings) {
             if (mobileMembers.Contains(toMove)) {
-                Task moveTask = new Task(toMove.gameObject, goTo, Task.actions.move);
+                moveTask = new Task(toMove.gameObject, Task.actions.move, goTo, follow);
                 toMove.work(moveTask);
-                assignments.Add(moveTask);        
+                assignments.Add(moveTask);
+                float ETA = Vector2.Distance(toMove.transform.position, goTo) / toMove.GetComponent<UnitBlueprint>().speed;
+                if (ETA > longestETA) {
+                    longestETA = ETA;
+                }     
             }
             else {
                 toMove.changeCohort();
                 toMove.deactivate();
             }
+        }
+        foreach (Unit_local mover in members) {
+            mover.GetComponent<AidansMovementScript>().speed = Mathf.Clamp(Vector2.Distance(mover.transform.position, goTo) / longestETA, 1, mover.GetComponent<UnitBlueprint>().speed);
         }
     }
 
@@ -278,12 +287,10 @@ public class Cohort {
     public void removeMember (Unit_local reject) {
         members.Remove(reject);
         assignments.Remove(reject.task);
-        if (reject.stats.isArmed) {
-            armedMembers.Remove(reject);
-        }
-        if (reject.stats.isMobile) {
-            mobileMembers.Remove(reject);
-        }
+        armedMembers.Remove(reject);
+        mobileMembers.Remove(reject);
+        depotMembers.Remove(reject);
+        shepherdMembers.Remove(reject);
         gameState.activeCohortsChangedFlag = true;
         Debug.Log("removed a member from the cohort. there are now " + members.Count + " members");
     }
@@ -297,7 +304,6 @@ public class Cohort {
     public void taskCompleted (Task completedTask) {
         assignments.Remove(completedTask);
         Unit_local worker = completedTask.subjectUnit.GetComponent<Unit_local>();
-        Debug.Log("task completed");
         switch (completedTask.nature) {
             case Task.actions.give:
                 if (worker.meat > 0 && remainingToAccept.Count > 0) {
@@ -310,7 +316,9 @@ public class Cohort {
                 }
                 break;
             case Task.actions.move:
-                 haltCohort();
+                if (completedTask.objectUnit == null) {
+                    haltCohort();
+                }
                 break;
             default:
                 break;

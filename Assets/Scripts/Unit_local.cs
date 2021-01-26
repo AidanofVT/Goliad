@@ -45,13 +45,13 @@ public class Unit_local : Unit {
     }
 
     public void changeCohort (Cohort newCohort = null) {
-        if (newCohort == null) {
-            newCohort = soloCohort;
-        }
         if (cohort != soloCohort) {
             cohort.removeMember(this);
         }
-        if (newCohort != soloCohort) {
+        if (newCohort == null) {
+            newCohort = soloCohort;
+        }
+        else {
             newCohort.addMember(this);
         }
         cohort = newCohort;
@@ -130,7 +130,7 @@ public class Unit_local : Unit {
             payload = poolSize;
         }
         GameObject newOrb = PhotonNetwork.Instantiate("Orb", where, Quaternion.identity);
-        newOrb.GetComponent<OrbMeatContainer>().fill(payload);
+        newOrb.GetPhotonView().RPC("fill", RpcTarget.All, payload);
         if (pullFrom != null) {
             pullFrom.photonView.RPC("deductMeat", RpcTarget.All, payload);
         }
@@ -144,7 +144,7 @@ public class Unit_local : Unit {
         yield return null;
     }
 
-    public virtual void move (GameObject goTo, float precision = -1) { }
+    public virtual void move (Vector2 goTo, GameObject toFollow, float precision = -1) { }
 
     void OnTriggerEnter2D(Collider2D contact) {
         if (contact.isTrigger == false && task !=  null) {
@@ -198,13 +198,8 @@ public class Unit_local : Unit {
                 dispenseOutranged();
             }
         }
-        else if (task.nature == Task.actions.move) {
-            if (task.objectUnit.tag == "unit") {
-                move(task.objectUnit);
-            }
-            else {
-                move(task.objectUnit);
-            }
+        if (task.nature == Task.actions.move) {
+            move(task.center, task.objectUnit);
         }
     }
 }

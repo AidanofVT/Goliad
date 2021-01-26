@@ -50,13 +50,12 @@ public class ClickHandler : MonoBehaviour {
                     newCohort.commenceAttack(thingClicked);
                 }
                 else {
-                    newCohort.moveCohort(thingClicked);
+                    newCohort.moveCohort(thingClicked.transform.position, thingClicked);
                 }
                 break;
             case "ground":
-                GameObject waypoint = new GameObject("waypoint");
-                waypoint.transform.position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                newCohort.moveCohort(waypoint);
+                Vector2 waypoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                newCohort.moveCohort(waypoint, null);
                 break;
             case "UI":
                 return;
@@ -140,10 +139,10 @@ public class ClickHandler : MonoBehaviour {
             // }
             // Debug.Log(toprint);
             if (contact.gameObject.name == "Button--Give") {
-                newCohort.commenceTransact(new Task(newCohort.members[0].gameObject, contact.transform.parent.parent.parent.gameObject, Task.actions.give));
+                newCohort.commenceTransact(new Task(newCohort.members[0].gameObject,Task.actions.give, Vector2.zero, contact.transform.parent.parent.parent.gameObject));
             }
             else {
-                newCohort.commenceTransact(new Task(newCohort.members[0].gameObject, contact.transform.parent.parent.parent.gameObject, Task.actions.take));
+                newCohort.commenceTransact(new Task(newCohort.members[0].gameObject,Task.actions.take, Vector2.zero, contact.transform.parent.parent.parent.gameObject));
             }
         }
     }

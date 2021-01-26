@@ -10,12 +10,16 @@ public class Task {
     public enum actions {give, take, move, attack, help};
     public actions nature;
     public int quantity;
+    public Vector2 center;
+    public int radius;
 
-    public Task (GameObject doneBy, GameObject doneTo, actions doWhat, int howMuch = 0) {
+    public Task (GameObject doneBy, actions doWhat, Vector2 where, GameObject doneTo = null, int howMuch = 0, int howWide = 0) {
         subjectUnit = doneBy;
-        objectUnit = doneTo;
         nature = doWhat;
+        center = where;
+        objectUnit = doneTo;
         quantity = howMuch;
+        radius = howWide;
     }
 
 }

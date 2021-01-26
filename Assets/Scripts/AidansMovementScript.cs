@@ -14,15 +14,17 @@ public class AidansMovementScript : MonoBehaviourPun {
     Unit thisUnit;
 //this boolean isn't used by this script, but it is needed for other scripts to register what's going on. toggling path to null and back doesn't work: a new path is spontaneously created for some reason
     public bool isRunning = false;
+    float baseSpeed;
     public float speed;
     public float changePointThreshhold;
-    public float roundToArrived = 0.1f;
+    public float roundToArrived = 0.15f;
     int currentWaypoint = 0;
 
     void Start() {
 //The seeker is the script that branches into all the A* pathfinding stuff
         seeker = GetComponent<Seeker>();
-        speed = GetComponent<UnitBlueprint>().speed;
+        baseSpeed = GetComponent<UnitBlueprint>().speed;
+        speed = baseSpeed;
         body = GetComponent<Rigidbody2D>();
         selfToIgnore = GetComponent<Collider2D>();
         thisUnit = GetComponent<Unit>();
@@ -46,6 +48,7 @@ public class AidansMovementScript : MonoBehaviourPun {
 
     void setRoute () {
         if (transToFollow != null) {
+            Debug.Log("there's a transform");
             seeker.StartPath(transform.position, transToFollow.position, OnPathComplete);
         }
         else {
@@ -64,7 +67,15 @@ public class AidansMovementScript : MonoBehaviourPun {
 
     void moveAlong() {
         if (Vector2.Distance(transform.position, path.endPoint) < roundToArrived) {
-            terminatePathfinding();
+            Debug.Log("bing");
+            if (transToFollow == null || transToFollow.GetComponent<AidansMovementScript>().isRunning == false) {
+                Debug.Log("bop");
+                terminatePathfinding();
+            }
+            else {
+                Debug.Log("bip");
+                CancelInvoke("moveAlong");
+            }
             return;
         }
             try {
@@ -75,11 +86,11 @@ public class AidansMovementScript : MonoBehaviourPun {
         //increment the currentWaypoint
                         currentWaypoint++;
                     }
-                    else {
-                        //end reached
-                        terminatePathfinding();
-                        return;
-                    }
+                    // else {
+                    //     //end reached
+                    //     terminatePathfinding();
+                    //     return;
+                    // }
                 }
             }
             catch {
@@ -135,12 +146,14 @@ public class AidansMovementScript : MonoBehaviourPun {
     }
 
     public void terminatePathfinding (bool passUpward = true) {
+        Debug.Log("terminatePathfinding");
         isRunning = false;
         CancelInvoke("moveAlong");
         StopCoroutine("stuckCheck");
         CancelInvoke("setRoute");
         photonView.RPC("stopTurning", RpcTarget.All);
         roundToArrived = 0.1f;
+        speed = baseSpeed;
         path = null;
         currentWaypoint = 0;
         transToFollow = null;

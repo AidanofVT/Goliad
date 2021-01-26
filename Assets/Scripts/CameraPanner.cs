@@ -37,7 +37,7 @@ public class CameraPanner : MonoBehaviour
             if (zoom) {
                 obeyCameraZoomInputs();
                 //cameraZoom = Mathf.Clamp(cameraZoom * screenRatio, mapExtent * -1, mapExtent) / screenRatio;
-                cameraZoom = Mathf.Clamp(cameraZoom, mapExtent * -1, mapExtent);
+                cameraZoom = Mathf.Clamp(cameraZoom, 4, mapExtent);
                 Camera.main.orthographicSize = cameraZoom;
             }
             if (pan) {

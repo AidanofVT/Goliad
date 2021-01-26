@@ -83,7 +83,7 @@ public class Weapon : MonoBehaviour {
     }
 
     public virtual IEnumerator fire () {
-        Debug.Log("Firing.");
+        // Debug.Log("Firing.");
         while (target != null) {
             if (thisUnit.meat >= shotCost) {
                 doIt();

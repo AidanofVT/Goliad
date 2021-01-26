@@ -68,8 +68,8 @@ public class OrbBehavior_Local : OrbBehavior_Base {
                 }
                 else {
                     GameObject childOrb = PhotonNetwork.Instantiate("orb", transform.position, transform.rotation);
-                    childOrb.GetComponent<OrbMeatContainer>().fill(roomInTarget);
-                    this.meatBox.fill(meatBox.meat - roomInTarget);
+                    childOrb.GetPhotonView().RPC("fill", RpcTarget.All, roomInTarget);
+                    photonView.RPC("fill", RpcTarget.All, (meatBox.meat - roomInTarget));
                     yield return new WaitForSeconds(0);
                     childOrb.GetComponent<OrbBehavior_Local>().embark(it);
                     StartCoroutine("stopIt");
