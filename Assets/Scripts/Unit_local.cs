@@ -66,6 +66,15 @@ public class Unit_local : Unit {
     public override void die () {
         SendMessage("deathProtocal", null, SendMessageOptions.DontRequireReceiver);
         spindown();
+        if (cohort == soloCohort) {
+            gameState.activeCohorts.Remove(soloCohort);
+            gameState.activeCohortsChangedFlag = true;
+        }
+        else {
+            cohort.removeMember(this);
+        }
+        gameState.deadenUnit(gameObject);
+        PhotonNetwork.Destroy(gameObject);
     }
 
 
@@ -98,11 +107,12 @@ public class Unit_local : Unit {
                 StartCoroutine(passOrb(to, newOrb));
             }
             else {
+                StopMoving();
                 break;
             }
             yield return new WaitForSeconds(0.2f);
         }
-//this has to be this way because if the taskcompleted call comes before the null assignment, then task will be set to null while the next dispnse coroutine is working on it.
+//this has to be this way because if the taskcompleted call comes before the null assignment, then task will be set to null while the next dispense coroutine is working on it.
         Task test = task;
         task = null;
         cohort.taskCompleted(test);
@@ -144,10 +154,10 @@ public class Unit_local : Unit {
         yield return null;
     }
 
-    public virtual void move (Vector2 goTo, GameObject toFollow, float precision = -1) { }
+    public virtual void move (Vector2 goTo, GameObject toFollow) { }
 
     void OnTriggerEnter2D(Collider2D contact) {
-        if (contact.isTrigger == false && task !=  null) {
+        if (contact.isTrigger == false && task != null) {
             if (task.nature == Task.actions.give || task.nature == Task.actions.take) {
                 if (contact.gameObject == task.objectUnit) {
                     StartCoroutine(dispense());
@@ -175,8 +185,9 @@ public class Unit_local : Unit {
             lastOrb.GetComponent<Rigidbody2D>().AddForce((lastOrb.transform.position - transform.position).normalized * Random.Range(0, 2) * quantityMultiplier);
             drop -= lastOrb.GetComponent<OrbMeatContainer>().meat;
         }
-        gameState.deadenUnit(gameObject);
-        PhotonNetwork.Destroy(gameObject);
+    }
+
+    public virtual void StopMoving () {        
     }
 
     [PunRPC]

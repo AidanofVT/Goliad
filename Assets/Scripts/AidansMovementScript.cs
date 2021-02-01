@@ -33,7 +33,7 @@ public class AidansMovementScript : MonoBehaviourPun {
         }
     }
 
-    public void setDestination (Vector3 destination, Transform movingTransform = null, float acceptableDistance = 0.1f) {
+    public void setDestination (Vector3 destination, Transform movingTransform = null, float acceptableDistance = 0.15f) {
         CancelInvoke("moveAlong");
         StopCoroutine("stuckCheck");
         CancelInvoke("setRoute");
@@ -48,7 +48,6 @@ public class AidansMovementScript : MonoBehaviourPun {
 
     void setRoute () {
         if (transToFollow != null) {
-            Debug.Log("there's a transform");
             seeker.StartPath(transform.position, transToFollow.position, OnPathComplete);
         }
         else {
@@ -67,13 +66,10 @@ public class AidansMovementScript : MonoBehaviourPun {
 
     void moveAlong() {
         if (Vector2.Distance(transform.position, path.endPoint) < roundToArrived) {
-            Debug.Log("bing");
-            if (transToFollow == null || transToFollow.GetComponent<AidansMovementScript>().isRunning == false) {
-                Debug.Log("bop");
-                terminatePathfinding();
+            if (transToFollow == null || transToFollow.GetComponent<AidansMovementScript>() == null || transToFollow.GetComponent<AidansMovementScript>().isRunning == false) {
+                terminatePathfinding(true, true);
             }
             else {
-                Debug.Log("bip");
                 CancelInvoke("moveAlong");
             }
             return;
@@ -145,8 +141,8 @@ public class AidansMovementScript : MonoBehaviourPun {
         return true;
     }
 
-    public void terminatePathfinding (bool passUpward = true) {
-        Debug.Log("terminatePathfinding");
+    public void terminatePathfinding (bool passUpward = true, bool hardStop = false) {
+        // Debug.Log("terminatePathfinding");
         isRunning = false;
         CancelInvoke("moveAlong");
         StopCoroutine("stuckCheck");
@@ -157,7 +153,9 @@ public class AidansMovementScript : MonoBehaviourPun {
         path = null;
         currentWaypoint = 0;
         transToFollow = null;
-        body.velocity = new Vector2(0, 0);
+        if (hardStop == true) {
+            body.velocity = new Vector2(0, 0);
+        }
         if (passUpward) {
             SendMessage("pathEnded");
         }

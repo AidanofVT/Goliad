@@ -47,7 +47,7 @@ public class setup : MonoBehaviourPunCallbacks {
     public override void OnJoinedRoom() {
         Debug.Log("Joined room " + PhotonNetwork.CurrentRoom.Name + ". Player number " + PhotonNetwork.LocalPlayer.ActorNumber);
         int me = PhotonNetwork.LocalPlayer.ActorNumber ;
-        int distanceFromCenter = (int) (0.1f * (float) mapSize);
+        int distanceFromCenter = (int) (0.2f * (float) mapSize);
         Vector3 startPlace = Vector3.zero;
         if (me == 1) {
             startPlace = new Vector3 (-distanceFromCenter, distanceFromCenter, -.2f);

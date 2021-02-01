@@ -7,14 +7,10 @@ public class MobileUnit_local : Unit_local {
     protected AidansMovementScript moveConductor;
 
     protected override void dispenseOutranged() {
-        if (task.nature == Task.actions.give) {
+        if (task.nature == Task.actions.give || task.nature == Task.actions.take) {
             Transform toSeek = task.objectUnit.transform;
             moveConductor.setDestination(toSeek.position, toSeek, 7);
-        }
-        else {
-            Transform toSeek = task.subjectUnit.transform;
-            task.subjectUnit.GetComponent<AidansMovementScript>().setDestination(toSeek.position, toSeek, 7);
-        }        
+        }      
     }
     
     public override void ignition () {
@@ -23,20 +19,16 @@ public class MobileUnit_local : Unit_local {
     }
 
 //if network traffic is an issue in the future, and CPU load isn't too bad, maybe we could put these in MobileUnit_remote too and slow down the photon update rate?
-    public override void move (Vector2 goTo, GameObject toFollow, float precision = -1) {
+    public override void move (Vector2 goTo, GameObject toFollow) {
         Transform leader = null;
+        float endTollerance = cohort.mobileMembers.Count - 0.85f;
         if (toFollow != null) {
             leader = toFollow.transform;
         }
         if (stats.isArmed) {
             weapon.disengage();
         }
-        if (precision == -1) {
-            moveConductor.setDestination(goTo, leader);            
-        }
-        else {
-            moveConductor.setDestination(goTo, leader, precision); 
-        }
+        moveConductor.setDestination(goTo, leader, endTollerance);            
     }
 
     public virtual void pathEnded () {
@@ -67,8 +59,10 @@ public class MobileUnit_local : Unit_local {
         }
     }
 
-    public virtual void stop () {
-        moveConductor.terminatePathfinding();
+    public override void StopMoving () {
+        if (moveConductor.isRunning) {
+            moveConductor.terminatePathfinding();
+        }
     }
 
 }

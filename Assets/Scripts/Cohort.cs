@@ -18,7 +18,6 @@ public class Cohort {
     int spawnLocationCycler = 0;
     
     public Cohort (List<Unit_local> recruits = null) {
-        Debug.Log("constructor");
         if (recruits != null) {
             foreach (Unit_local unit in recruits) {
                 unit.changeCohort(this);
@@ -29,7 +28,6 @@ public class Cohort {
     }
 
     public void activate () {
-        Debug.Log("activate");
         foreach (Unit_local member in members) {
             member.activate();
         }
@@ -115,6 +113,7 @@ public class Cohort {
     }
 
     public void commenceAttack (GameObject getIt) {
+        Stop();
         Debug.Log("cohort attacking " + getIt.name);
         foreach (Unit_local unit in armedMembers) {
             Debug.Log("instructing " + unit.name + " to attack");
@@ -124,6 +123,7 @@ public class Cohort {
     }
 
     public void commenceTransact (Task transaction) {
+        Stop();
         task = transaction;
         Cohort from;
         Cohort to;
@@ -153,18 +153,17 @@ public class Cohort {
             workers = new Hashtable(remainingToAccept);
         }
         foreach (Unit_local worker in workers.Keys) {
-            assignTransactionWork(worker);
             if (remainingToProvide.Count <= 0 || remainingToAccept.Count <= 0) {
                 remainingToProvide.Clear();
                 remainingToAccept.Clear();
                 task = null;
                 break;
             }
+            assignTransactionWork(worker);
         }
     }
 
     public void deactivate () {
-        Debug.Log("deactivate");
         foreach (Unit_local member in members) {
             member.deactivate();
         }
@@ -172,13 +171,7 @@ public class Cohort {
         gameState.activeCohortsChangedFlag = true;
     }
 
-    public void disband () {
-        foreach (Unit_local member in members) {
-            member.cohort = member.soloCohort;
-        }
-    }
-
-    public void haltCohort () {
+    public void Brake () {
         if (task.nature != Task.actions.move) {
             Debug.Log("PROBLEM: Halt command called on a cohort that's not supposed to be moving!");
         }
@@ -241,6 +234,7 @@ public class Cohort {
     }
 
     public void moveCohort (Vector2 goTo, GameObject follow) {
+        Stop();
         task = new Task (null, Task.actions.move, goTo, follow);
         List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(members);
         Task moveTask;
@@ -262,6 +256,22 @@ public class Cohort {
         }
         foreach (Unit_local mover in mobileMembers) {
             mover.GetComponent<AidansMovementScript>().speed = Mathf.Clamp(Vector2.Distance(mover.transform.position, goTo) / longestETA, 1, mover.GetComponent<UnitBlueprint>().speed);
+        }
+    }
+
+    public void removeMember (Unit_local reject) {
+        members.Remove(reject);
+        assignments.Remove(reject.task);
+        armedMembers.Remove(reject);
+        mobileMembers.Remove(reject);
+        depotMembers.Remove(reject);
+        shepherdMembers.Remove(reject);
+        gameState.activeCohortsChangedFlag = true;
+    }
+
+    public void Slaughter () {
+        foreach (Unit_local individual in depotMembers) {
+            individual.GetComponent<factory_functions>().slaughterSheep();
         }
     }
 
@@ -287,21 +297,20 @@ public class Cohort {
         return toReturn;
     }
 
-    public void removeMember (Unit_local reject) {
-        members.Remove(reject);
-        assignments.Remove(reject.task);
-        armedMembers.Remove(reject);
-        mobileMembers.Remove(reject);
-        depotMembers.Remove(reject);
-        shepherdMembers.Remove(reject);
-        Debug.Log("removed a member from the cohort. there are now " + members.Count + " members");
-        gameState.activeCohortsChangedFlag = true;
-    }
-
-    public void Slaughter () {
-        foreach (Unit_local individual in depotMembers) {
-            individual.GetComponent<factory_functions>().slaughterSheep();
+    public void Stop () {
+        foreach (MobileUnit_local mover in mobileMembers) {
+            mover.StopMoving();
         }
+        foreach (Unit_local violent in armedMembers) {
+            violent.weapon.disengage();
+        }
+        foreach (Unit_local member in members) {
+            member.task = null;
+        }
+        task = null;
+        assignments.Clear();
+        remainingToAccept.Clear();
+        remainingToProvide.Clear();
     }
 
     public void taskCompleted (Task completedTask) {
@@ -320,7 +329,7 @@ public class Cohort {
                 break;
             case Task.actions.move:
                 if (completedTask.objectUnit == null) {
-                    haltCohort();
+                    Brake();
                 }
                 break;
             default:

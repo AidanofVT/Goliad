@@ -107,15 +107,6 @@ public class CohortUIManager : MonoBehaviour {
 
     void Update() {
         if (Input.GetButtonDown("modifier") == true || Input.GetButtonUp("modifier") == true || gameState.activeCohortsChangedFlag == true) {
-            if (Input.GetButtonDown("modifier") == true) {
-                Debug.Log("it's the modifier key down");
-            }
-            if (Input.GetButtonUp("modifier") == true) {
-                Debug.Log("it's the modifier key up");
-            }
-            if (gameState.activeCohortsChangedFlag == true) {
-                Debug.Log("it's the flag");
-            }
             updateInterface();
             ShowCost();            
         }  

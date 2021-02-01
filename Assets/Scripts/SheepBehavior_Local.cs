@@ -74,10 +74,10 @@ public class SheepBehavior_Local : SheepBehavior_Base
             if (legs.isNavigable(updateFlockCenter()) == false || Vector2.Distance(flockCenter, transform.position) < 6) {
                 conveneAppeal = 0;
                 if (legs.isNavigable(updateFlockCenter()) == false) {
-                    Debug.Log("Convene appeal is zero because the flock center is obstructed.");
+                    Debug.Log("flock center obstructed");
                 }
-                else {
-                    Debug.Log("Convene appeal is zero because it's too close.");
+                if (Vector2.Distance(flockCenter, transform.position) < 6) {
+                    Debug.Log("flock center under minimum range");
                 }
             }
             else {
@@ -290,9 +290,11 @@ public class SheepBehavior_Local : SheepBehavior_Base
             shepherdMultiplier = 1;           
             shepherd = chimer;
         }
-        shepherdMultiplier *= 2;
-        updateFlockCenter();
-        Invoke("decayShepherdPower", 15);
+        if (shepherdMultiplier < 1024) {
+            shepherdMultiplier *= 2;
+            updateFlockCenter();
+            Invoke("decayShepherdPower", 15);
+        }
         Debug.Log("Chime heard. Shepherd influence is now " + shepherdMultiplier);
     }
 
@@ -324,7 +326,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
         else {
             flockCenter = new Vector2 (there.x / (flock.Count) + Random.Range(-3, 3), there.y / (flock.Count) + Random.Range(-3, 3));
         }
-        Debug.Log("Flockcenter updated. Now " + ((Vector2) transform.position - flockCenter) + " away. Flock size: " + flock.Count + ". Farflock size: " + farFlock.Count + ". Shepherd power: " + shepherdMultiplier);
+        // Debug.Log("Flockcenter updated. Now " + ((Vector2) transform.position - flockCenter) + " away. Flock size: " + flock.Count + ". Farflock size: " + farFlock.Count + ". Shepherd power: " + shepherdMultiplier);
         return flockCenter;
     }
 
@@ -336,7 +338,6 @@ public class SheepBehavior_Local : SheepBehavior_Base
         currentMostAppealingPatch += (Vector3) direction * 0.3f;
     }
 
-//in the future, this should include a check for whether the sheep is in sight
     void forgetFlockMates () {
         foreach (GameObject flockMate in flock.ToArray()) {
             if (Random.Range(1, 100) <= 10 && flockMate != gameObject) {
