@@ -77,18 +77,24 @@ public class setup : MonoBehaviourPunCallbacks {
         //     //orb2.GetComponent<OrbMeatContainer>().fill(1);
         //     yield return new WaitForSeconds(0);
         // }
-        // GameObject dogTwo = maker.makeUnit("dog");
-        // dogTwo.transform.position = home.transform.position + new Vector3 (8, -4, 0);
-        // GameObject dogThree = maker.makeUnit("dog");
-        // dogThree.transform.position = home.transform.position + new Vector3 (4, 4, 0);
-        // GameObject dogFour = maker.makeUnit("dog");
-        // dogFour.transform.position = home.transform.position + new Vector3 (4, -4, 0);
-        // yield return new WaitForSeconds(0);
-        // List <Unit_local> listOfDogs = new List<Unit_local>{dogOne.GetComponent<Unit_local>(), 
-        //                                                     dogTwo.GetComponent<Unit_local>(), 
-        //                                                     dogThree.GetComponent<Unit_local>(), 
-        //                                                     dogFour.GetComponent<Unit_local>()};
-        // Cohort cohortOfDogs = new Cohort(listOfDogs);
+        GameObject dogTwo = maker.makeUnit("courier");
+        dogTwo.transform.position = home.transform.position + new Vector3 (-4, 0, 0);
+        GameObject dogThree = maker.makeUnit("courier");
+        dogThree.transform.position = home.transform.position + new Vector3 (0, 4, 0);
+        GameObject dogFour = maker.makeUnit("courier");
+        dogFour.transform.position = home.transform.position + new Vector3 (-4, 4, 0);
+        yield return new WaitForSeconds(1);
+        Unit_local unitTwo = dogTwo.GetComponent<Unit_local>();
+        Unit_local unitThree = dogThree.GetComponent<Unit_local>();
+        Unit_local unitFour = dogFour.GetComponent<Unit_local>();
+        unitTwo.addMeat(30);
+        unitThree.addMeat(30);
+        unitFour.addMeat(40);
+        List <Unit_local> listOfDogs = new List<Unit_local>{unitTwo, unitThree};
+        Cohort cohortOfDogs = new Cohort(listOfDogs);
+        cohortOfDogs.commenceTransact(new Task(null, Task.actions.give, Vector2.zero, dogFour));
+        yield return new WaitForSeconds (0.7f);
+        unitTwo.changeCohort();
         // Debug.Log("made it this far");
         // yield return new WaitForSeconds(0);
         // cohortOfDogs.makeUnit("dog");

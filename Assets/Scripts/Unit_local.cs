@@ -6,6 +6,7 @@ using Photon.Pun;
 public class Unit_local : Unit {
     protected ViewManager viewManager;
     public Task task;
+    int dispensed = 0;
 
     void Awake () {
 //can't this be moved to Unit.Start()?
@@ -47,6 +48,10 @@ public class Unit_local : Unit {
     public void changeCohort (Cohort newCohort = null) {
         if (cohort != soloCohort) {
             cohort.removeMember(this);
+            if (task != null && (task.nature == Task.actions.give || task.nature == Task.actions.take)) {
+                cohort.TaskAbandoned(task, dispensed);
+                Stop();
+            }
         }
         if (newCohort == null) {
             newCohort = soloCohort;
@@ -77,7 +82,6 @@ public class Unit_local : Unit {
         PhotonNetwork.Destroy(gameObject);
     }
 
-
     protected virtual IEnumerator dispense () {
         GameObject to;
         GameObject from;
@@ -89,7 +93,6 @@ public class Unit_local : Unit {
             to = task.subjectUnit;
             from = task.objectUnit;
         }
-        int dispensed = 0;
         while (true) {
             if (from.GetComponent<Unit>().meat > 0 && dispensed < task.quantity && to.GetComponent<Unit>().roomForMeat() > 0) {
                 if (Vector2.Distance(transform.position, task.objectUnit.transform.position) > 10) {
@@ -113,9 +116,9 @@ public class Unit_local : Unit {
             yield return new WaitForSeconds(0.2f);
         }
 //this has to be this way because if the taskcompleted call comes before the null assignment, then task will be set to null while the next dispense coroutine is working on it.
-        Task test = task;
+        Task taskRecord = task;
         task = null;
-        cohort.taskCompleted(test);
+        cohort.taskCompleted(taskRecord);
         yield return null;
     }
 
@@ -187,6 +190,23 @@ public class Unit_local : Unit {
         }
     }
 
+    public void Stop () {
+        StopCoroutine("dispense");
+        StopAllCoroutines();
+        CircleCollider2D[] circles = gameObject.GetComponents<CircleCollider2D>();
+        if (circles.Length > 1) {
+            Destroy(circles[1]);
+        }
+        if (stats.isMobile) {
+            StopMoving();
+        }
+        if (stats.isArmed) {
+            weapon.disengage();
+        }
+        dispensed = 0;
+        task = null;
+    }
+
     public virtual void StopMoving () {        
     }
 
@@ -200,16 +220,19 @@ public class Unit_local : Unit {
     }
 
     public virtual void work (Task newTask) {
+        Stop();
         task = newTask;
         if (task.nature == Task.actions.give || task.nature == Task.actions.take) {
+            dispensed = 0;
             if (Vector2.Distance(transform.position, task.objectUnit.transform.position) < 10) {
-                StartCoroutine(dispense());
+                StartCoroutine("dispense");
             }
             else {
                 dispenseOutranged();
             }
         }
-        if (task.nature == Task.actions.move) {
+        else if (task.nature == Task.actions.move) {
+            Debug.Log("moving");
             move(task.center, task.objectUnit);
         }
     }

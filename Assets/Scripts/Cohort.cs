@@ -11,7 +11,7 @@ public class Cohort {
     public List<Unit_local> mobileMembers = new List<Unit_local>();
     public List<Unit_local> depotMembers = new List<Unit_local>();
     public List<Unit_local> shepherdMembers = new List<Unit_local>();
-    Task task;
+    Task masterTask;
     public List<Task> assignments = new List<Task>();
     Hashtable remainingToProvide = new Hashtable();
     Hashtable remainingToAccept = new Hashtable();
@@ -51,11 +51,11 @@ public class Cohort {
         }
     }
 
-    public void assignTransactionWork (Unit_local worker) {
+    public bool assignTransactionWork (Unit_local baseParty, bool assignByTarget = false) {
         float bestDistance = 999999;
-        Unit_local otherOne = null;
         Hashtable counterParties = null;
-        if (task.nature == Task.actions.give) {
+        Unit_local otherOne = null;
+        if (masterTask.nature == Task.actions.give ^ assignByTarget == true) {
             counterParties = remainingToAccept;
         }
         else {
@@ -63,39 +63,46 @@ public class Cohort {
         }
         foreach (Unit_local reciever in counterParties.Keys) {
             Unit_local maybeThis = reciever;
-            float distanceTo = Vector2.Distance(maybeThis.transform.position, worker.transform.position);
+            float distanceTo = Vector2.Distance(maybeThis.transform.position, baseParty.transform.position);
             if (distanceTo < bestDistance) {
                 otherOne = maybeThis;
                 bestDistance = distanceTo;
             }
         }
         Task newTask;
-        if (task.nature == Task.actions.give) {
-            if (otherOne.roomForMeat() <= worker.meat) {
-                newTask = new Task(worker.gameObject, Task.actions.give, Vector2.zero, otherOne.gameObject, otherOne.roomForMeat());
-                remainingToAccept.Remove(otherOne);
-                remainingToProvide[worker] = (int) remainingToProvide[worker] - otherOne.roomForMeat();
+        Unit_local actor = baseParty;
+        Unit_local target = otherOne;
+        if (assignByTarget == true) {
+            actor = otherOne;
+            target = baseParty;
+        }
+        if (masterTask.nature == Task.actions.give) {
+            if ((int) remainingToAccept[target] <= actor.meat) {
+                newTask = new Task(actor.gameObject, Task.actions.give, Vector2.zero, target.gameObject, (int) remainingToAccept[target]);
+                remainingToProvide[actor] = (int) remainingToProvide[actor] - (int) remainingToAccept[target];
+                remainingToAccept.Remove(target);
             }
             else{
-                newTask = new Task(worker.gameObject, Task.actions.give, Vector2.zero, otherOne.gameObject, worker.meat);
-                remainingToProvide.Remove(worker);
-                remainingToAccept[otherOne] = (int) remainingToAccept[otherOne] - worker.meat;                   
+                newTask = new Task(actor.gameObject, Task.actions.give, Vector2.zero, target.gameObject, (int) remainingToProvide[actor]);
+                remainingToAccept[target] = (int) remainingToAccept[target] - (int) remainingToProvide[actor];                   
+                remainingToProvide.Remove(actor);
             }
         }
         else {
-            if (worker.roomForMeat() <= otherOne.meat) {
-                newTask = new Task(worker.gameObject, Task.actions.take, Vector2.zero, otherOne.gameObject, worker.roomForMeat());
-                remainingToAccept.Remove(worker);
-                remainingToProvide[otherOne] = (int) remainingToProvide[otherOne] - worker.roomForMeat();
+            if ((int) remainingToAccept[actor] <= target.meat) {
+                newTask = new Task(actor.gameObject, Task.actions.take, Vector2.zero, target.gameObject, (int) remainingToAccept[actor]);
+                remainingToProvide[target] = (int) remainingToProvide[target] - (int) remainingToAccept[actor];
+                remainingToAccept.Remove(actor);
             }
             else{
-                newTask = new Task(worker.gameObject, Task.actions.take, Vector2.zero, otherOne.gameObject, otherOne.meat);
-                remainingToProvide.Remove(otherOne);
-                remainingToAccept[worker] = (int) remainingToAccept[worker] - otherOne.meat;                   
+                newTask = new Task(actor.gameObject, Task.actions.take, Vector2.zero, target.gameObject, (int) remainingToProvide[target]);
+                remainingToAccept[actor] = (int) remainingToAccept[actor] - (int) remainingToProvide[target];                   
+                remainingToProvide.Remove(target);
             }
         }
-        worker.work(newTask);
+        actor.work(newTask);
         assignments.Add(newTask);
+        return true;
     }
 
     public int collectiveMeat () {
@@ -124,15 +131,15 @@ public class Cohort {
 
     public void commenceTransact (Task transaction) {
         Stop();
-        task = transaction;
+        masterTask = transaction;
         Cohort from;
         Cohort to;
-        if (task.nature == Task.actions.give) {
+        if (masterTask.nature == Task.actions.give) {
             from = this;
-            to = task.objectUnit.GetComponent<Unit>().cohort;
+            to = masterTask.objectUnit.GetComponent<Unit>().cohort;
         }
         else {
-            from = task.objectUnit.GetComponent<Unit>().cohort;
+            from = masterTask.objectUnit.GetComponent<Unit>().cohort;
             to = this;
         }
         foreach (Unit_local giver in from.members) {
@@ -140,13 +147,14 @@ public class Cohort {
                 remainingToProvide.Add(giver, giver.meat);
             }
         }
+        Debug.Log("there are " + remainingToProvide.Count + " providers");
         foreach (Unit_local recipient in to.members) {
             if (recipient.roomForMeat() > 0) {
                 remainingToAccept.Add(recipient, recipient.roomForMeat());
             }
         }
         Hashtable workers;
-        if (task.nature == Task.actions.give) {
+        if (masterTask.nature == Task.actions.give) {
             workers = new Hashtable(remainingToProvide);
         }
         else {
@@ -154,9 +162,6 @@ public class Cohort {
         }
         foreach (Unit_local worker in workers.Keys) {
             if (remainingToProvide.Count <= 0 || remainingToAccept.Count <= 0) {
-                remainingToProvide.Clear();
-                remainingToAccept.Clear();
-                task = null;
                 break;
             }
             assignTransactionWork(worker);
@@ -172,7 +177,7 @@ public class Cohort {
     }
 
     public void Brake () {
-        if (task.nature != Task.actions.move) {
+        if (masterTask.nature != Task.actions.move) {
             Debug.Log("PROBLEM: Halt command called on a cohort that's not supposed to be moving!");
         }
         List<Task> thisIsToSupressWarnings = new List<Task>(assignments);
@@ -183,7 +188,7 @@ public class Cohort {
             }
         }
         if (assignments.Count <= 0) {
-            task = null;
+            masterTask = null;
         }
     }
 
@@ -235,7 +240,7 @@ public class Cohort {
 
     public void moveCohort (Vector2 goTo, GameObject follow) {
         Stop();
-        task = new Task (null, Task.actions.move, goTo, follow);
+        masterTask = new Task (null, Task.actions.move, goTo, follow);
         List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(members);
         Task moveTask;
         float longestETA = 0;
@@ -298,16 +303,10 @@ public class Cohort {
     }
 
     public void Stop () {
-        foreach (MobileUnit_local mover in mobileMembers) {
-            mover.StopMoving();
-        }
-        foreach (Unit_local violent in armedMembers) {
-            violent.weapon.disengage();
-        }
         foreach (Unit_local member in members) {
-            member.task = null;
+            member.Stop();
         }
-        task = null;
+        masterTask = null;
         assignments.Clear();
         remainingToAccept.Clear();
         remainingToProvide.Clear();
@@ -319,11 +318,17 @@ public class Cohort {
         switch (completedTask.nature) {
             case Task.actions.give:
                 if (worker.meat > 0 && remainingToAccept.Count > 0) {
+                    if (remainingToProvide.Contains(worker) == false) {
+                        remainingToProvide.Add(worker, worker.meat);
+                    }
                     assignTransactionWork(worker);
                 }
                 break;
             case Task.actions.take:
                 if (worker.roomForMeat() > 0 && remainingToProvide.Count > 0) {
+                    if (remainingToAccept.Contains(worker) == false) {
+                        remainingToAccept.Add(worker, worker.roomForMeat());
+                    }
                     assignTransactionWork(worker);
                 }
                 break;
@@ -334,6 +339,36 @@ public class Cohort {
                 break;
             default:
                 break;
+        }
+    }
+
+    public void TaskAbandoned (Task interruptedTask, int quantityDone) {
+        Unit_local party;
+        Unit_local counterParty;
+        party = interruptedTask.subjectUnit.GetComponent<Unit_local>();
+        counterParty = interruptedTask.objectUnit.GetComponent<Unit_local>();
+        if (interruptedTask.nature == Task.actions.give) {
+            remainingToProvide.Remove(party);
+            if (remainingToAccept.Contains(counterParty)) {
+                remainingToAccept[counterParty] = (int) remainingToAccept[counterParty] - quantityDone;
+            }
+            else {
+                // THIS IS JUST AN ESTIMATE. There's no good way to know how much meat is en-route to the target.
+                remainingToAccept.Add(counterParty, counterParty.stats.meatCapacity - quantityDone);
+            }
+        }
+        else if (interruptedTask.nature == Task.actions.take) {
+            remainingToAccept.Remove(party);
+            if (remainingToProvide.Contains(counterParty)) {
+                remainingToProvide[counterParty] = (int) remainingToProvide[counterParty] - quantityDone;
+            }
+            else {
+                // THIS IS JUST AN ESTIMATE. There's no good way to know how much meat is en-route to the target.
+                remainingToProvide.Add(counterParty, counterParty.meat);
+            }
+        }
+        if (remainingToAccept.Count > 0 && remainingToProvide.Count > 0) {
+            assignTransactionWork(counterParty, true);
         }
     }
     
