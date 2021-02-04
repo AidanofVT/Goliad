@@ -7,6 +7,7 @@ public class OrbBehavior_Base : MonoBehaviourPun {
 
     protected Rigidbody2D body;
     protected CircleCollider2D localCollider;
+    public bool available = false;
 
     void Awake () {
         if (photonView.IsMine && this.GetType() == typeof(OrbBehavior_Base)) {
@@ -16,7 +17,7 @@ public class OrbBehavior_Base : MonoBehaviourPun {
         body = GetComponent<Rigidbody2D>();
         localCollider = GetComponent<CircleCollider2D>();
     }
-
+    
     [PunRPC]
     protected void seekStage () {
         StopCoroutine("launchStage");
@@ -25,6 +26,16 @@ public class OrbBehavior_Base : MonoBehaviourPun {
         }
         localCollider.isTrigger = true;
         localCollider.radius = 10;
+    }
+
+    [PunRPC]
+    public void setAvailable () {
+        available = true;
+    }
+
+    [PunRPC]
+    public void setUnavailable () {
+        available = false;
     }
 
 }

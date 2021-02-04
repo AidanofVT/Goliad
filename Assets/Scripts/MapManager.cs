@@ -8,7 +8,7 @@ using Photon.Pun;
 
 //when a d2 array is sent as a 1d array, it gets sent like: all y-values for x = 0, then all y-values for x = 1, etc.
 
-public class MapManager : MonoBehaviourPun, IPunObservable {
+public class MapManager : MonoBehaviourPun {
 
     ShaderHandler shaderGateway;
 
@@ -160,10 +160,6 @@ public class MapManager : MonoBehaviourPun, IPunObservable {
                 break;
             }
         }
-    }
-
-    void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info) {
-
     }
 
 }

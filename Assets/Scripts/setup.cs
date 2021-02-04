@@ -62,39 +62,42 @@ public class setup : MonoBehaviourPunCallbacks {
     IEnumerator step2 (Vector3 startPlace) {
         GameObject home = PhotonNetwork.Instantiate("Units/depot", startPlace, Quaternion.identity);
         yield return new WaitForSeconds(0);
+        AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
         factory_functions maker = home.GetComponent<factory_functions>();
         home.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, 300);
-        // if (PhotonNetwork.LocalPlayer.ActorNumber == 1) {
-        //     GameObject dogOne = maker.makeUnit("dog");
-        //     dogOne.transform.position = Vector2.zero;
-        //     yield return new WaitForSeconds(0);
-        //     dogOne.GetPhotonView().RPC("addMeat", RpcTarget.All, 9);
-        // }
-        // else {
-        //     GameObject orb1 = PhotonNetwork.Instantiate("orb", new Vector3(2, 0, -0.2f), Quaternion.identity);
-        //     //GameObject orb2 = PhotonNetwork.Instantiate("orb", new Vector3(4, 0, -0.2f), Quaternion.identity);
-        //     orb1.GetComponent<OrbMeatContainer>().fill(6);
-        //     //orb2.GetComponent<OrbMeatContainer>().fill(1);
-        //     yield return new WaitForSeconds(0);
-        // }
-        GameObject dogTwo = maker.makeUnit("courier");
-        dogTwo.transform.position = home.transform.position + new Vector3 (-4, 0, 0);
-        GameObject dogThree = maker.makeUnit("courier");
-        dogThree.transform.position = home.transform.position + new Vector3 (0, 4, 0);
-        GameObject dogFour = maker.makeUnit("courier");
-        dogFour.transform.position = home.transform.position + new Vector3 (-4, 4, 0);
-        yield return new WaitForSeconds(1);
-        Unit_local unitTwo = dogTwo.GetComponent<Unit_local>();
-        Unit_local unitThree = dogThree.GetComponent<Unit_local>();
-        Unit_local unitFour = dogFour.GetComponent<Unit_local>();
-        unitTwo.addMeat(30);
-        unitThree.addMeat(30);
-        unitFour.addMeat(40);
-        List <Unit_local> listOfDogs = new List<Unit_local>{unitTwo, unitThree};
-        Cohort cohortOfDogs = new Cohort(listOfDogs);
-        cohortOfDogs.commenceTransact(new Task(null, Task.actions.give, Vector2.zero, dogFour));
-        yield return new WaitForSeconds (0.7f);
-        unitTwo.changeCohort();
+        if (PhotonNetwork.LocalPlayer.ActorNumber == 1) {
+            GameObject dogOne = maker.makeUnit("dog");
+            dogOne.transform.position = Vector2.zero;
+            yield return new WaitForSeconds(9);
+            dogOne.GetPhotonView().RPC("addMeat", RpcTarget.All, 10);
+            yield return new WaitForSeconds(9);
+            dogOne.GetPhotonView().RPC("deductMeat", RpcTarget.All, 10);
+        }
+        else {
+            yield return new WaitForSeconds(9);
+            GameObject orb1 = PhotonNetwork.Instantiate("orb", new Vector3(3, 0, -0.2f), Quaternion.identity);
+            //GameObject orb2 = PhotonNetwork.Instantiate("orb", new Vector3(4, 0, -0.2f), Quaternion.identity);
+            orb1.GetComponent<OrbMeatContainer>().fill(6);
+            //orb2.GetComponent<OrbMeatContainer>().fill(1);
+        }
+        // GameObject dogTwo = maker.makeUnit("courier");
+        // dogTwo.transform.position = home.transform.position + new Vector3 (-4, 0, 0);
+        // GameObject dogThree = maker.makeUnit("courier");
+        // dogThree.transform.position = home.transform.position + new Vector3 (0, 4, 0);
+        // GameObject dogFour = maker.makeUnit("courier");
+        // dogFour.transform.position = home.transform.position + new Vector3 (-4, 4, 0);
+        // yield return new WaitForSeconds(1);
+        // Unit_local unitTwo = dogTwo.GetComponent<Unit_local>();
+        // Unit_local unitThree = dogThree.GetComponent<Unit_local>();
+        // Unit_local unitFour = dogFour.GetComponent<Unit_local>();
+        // unitTwo.addMeat(30);
+        // unitThree.addMeat(30);
+        // unitFour.addMeat(60);
+        // List <Unit_local> listOfDogs = new List<Unit_local>{unitTwo, unitThree};
+        // Cohort cohortOfDogs = new Cohort(listOfDogs);
+        // cohortOfDogs.commenceTransact(new Task(null, Task.actions.take, Vector2.zero, dogFour));
+        // yield return new WaitForSeconds (0.5f);
+        // unitTwo.changeCohort();
         // Debug.Log("made it this far");
         // yield return new WaitForSeconds(0);
         // cohortOfDogs.makeUnit("dog");

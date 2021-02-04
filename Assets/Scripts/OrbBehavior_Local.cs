@@ -39,7 +39,10 @@ public class OrbBehavior_Local : OrbBehavior_Base {
             }
         }
         if (closest != null) {
-            StartCoroutine("goForIt", closest);
+            StartCoroutine("GoForIt", closest);
+        }
+        else {
+            photonView.RPC("setAvailable", RpcTarget.AllViaServer);
         }
     }
 
@@ -48,14 +51,15 @@ public class OrbBehavior_Local : OrbBehavior_Base {
         if (body != null) {
             photonView.RPC("seekStage", RpcTarget.AllViaServer);
         }
-        StartCoroutine("goForIt", toSeek);
+        StartCoroutine("GoForIt", toSeek);
     }
 
-    IEnumerator goForIt (GameObject it) {
+    public IEnumerator GoForIt (GameObject it) {   
         itsTransform = it.transform;
         StopCoroutine("stopIt");
+        photonView.RPC("setUnavailable", RpcTarget.AllViaServer);
         while (true) {
-            int roomInTarget = it.GetComponent<Unit>().roomForMeat();
+            int roomInTarget = itsTransform.GetComponent<Unit>().roomForMeat();
             if (itsTransform == null || roomInTarget <= 0) {
                 StartCoroutine("stopIt");
                 break;
@@ -63,15 +67,16 @@ public class OrbBehavior_Local : OrbBehavior_Base {
             direction = (itsTransform.position - transform.position);
             if (direction.magnitude < 0.5) {
                 if (roomInTarget >= meatBox.meat) {
-                    it.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, meatBox.meat);
+                    itsTransform.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, meatBox.meat);
                     PhotonNetwork.Destroy(gameObject);
+                    break;
                 }
                 else {
                     GameObject childOrb = PhotonNetwork.Instantiate("orb", transform.position, transform.rotation);
                     childOrb.GetPhotonView().RPC("fill", RpcTarget.All, roomInTarget);
                     photonView.RPC("fill", RpcTarget.All, (meatBox.meat - roomInTarget));
                     yield return new WaitForSeconds(0);
-                    childOrb.GetComponent<OrbBehavior_Local>().embark(it);
+                    childOrb.GetComponent<OrbBehavior_Local>().embark(itsTransform.gameObject);
                     StartCoroutine("stopIt");
                 }
             }
@@ -93,19 +98,20 @@ public class OrbBehavior_Local : OrbBehavior_Base {
         //body.velocity = new Vector3(0,0,0);
         photonView.RPC("seekStage", RpcTarget.All);
     }
-    
+
     void OnTriggerEnter2D(Collider2D contact) {
         GameObject gOb = contact.gameObject;
         if (itsTransform == null
         && contact.isTrigger == false
         && gOb.GetComponent<Unit>() != null
         && gOb.GetComponent<Unit>().roomForMeat() > 0) {
-            StartCoroutine("goForIt", gOb);
+            StartCoroutine("GoForIt", gOb);
         }
     }
     
     IEnumerator stopIt () {
-        StopCoroutine("goForIt");
+        StopCoroutine("GoForIt");
+        photonView.RPC("setAvailable", RpcTarget.AllViaServer);
         itsTransform = null;
         int cycler = 0;
         while (true) {
@@ -123,10 +129,6 @@ public class OrbBehavior_Local : OrbBehavior_Base {
             ++cycler;
             yield return new WaitForSeconds(0.05f);
         }
-    }
-
-    void Update () {
-
     }
 
 }
