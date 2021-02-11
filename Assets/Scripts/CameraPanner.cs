@@ -39,6 +39,7 @@ public class CameraPanner : MonoBehaviour
                 //cameraZoom = Mathf.Clamp(cameraZoom * screenRatio, mapExtent * -1, mapExtent) / screenRatio;
                 cameraZoom = Mathf.Clamp(cameraZoom, 4, mapExtent);
                 Camera.main.orthographicSize = cameraZoom;
+                vManage.resizeIcons();
             }
             if (pan) {
                 obeyCameraPanInputs();
@@ -48,7 +49,6 @@ public class CameraPanner : MonoBehaviour
                 Mathf.Clamp(cameraPos.y, mapExtent * -1, mapExtent),
                 cameraBaseZ);
             Camera.main.transform.position = cameraPos;
-            vManage.resizeUIs();
             distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, zoomExponent) / 10;
         }
     }

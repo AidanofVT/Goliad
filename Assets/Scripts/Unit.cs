@@ -5,6 +5,7 @@ using Photon.Pun;
 
 public class Unit : MonoBehaviourPun {
     protected GameState gameState;
+    protected ViewManager viewManager;
     protected BarManager statusBar;
     public UnitBlueprint stats;
     public Weapon weapon;
@@ -18,17 +19,19 @@ public class Unit : MonoBehaviourPun {
         string spriteAddress = gameObject.name;
         spriteAddress = spriteAddress.Remove(spriteAddress.IndexOf("("));
         spriteAddress = "Sprites/" + spriteAddress;
+        string color = "";
         if (photonView.Owner.ActorNumber == 1) {
-            transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(spriteAddress + "_white");
+            color = "_white";
         }
         else if (photonView.Owner.ActorNumber == 2) {
-            transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(spriteAddress + "_orange");
+            color = "_orange";
         }
+        transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(spriteAddress + color);
+        transform.GetChild(4).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(spriteAddress + "_icon" + color);
         GetComponent<UnitBlueprint>().factionNumber = photonView.OwnerActorNr;
         if (this.GetType() == typeof(Unit)) {
             if (photonView.IsMine) {
                 gameObject.AddComponent<Unit_local>();
-
             }
             else {
                 gameObject.AddComponent<Unit_remote>();
@@ -39,11 +42,14 @@ public class Unit : MonoBehaviourPun {
     }
 
     public virtual void Start () {
+        gameState = GameObject.Find("Goliad").GetComponent<GameState>();
+        viewManager = GameObject.Find("Player Perspective").GetComponent<ViewManager>();
         statusBar = transform.GetChild(1).GetComponent<BarManager>();
         ignition();
 //this needs to be here, rather than in Awake, so that if there's starting meat then the BarManager sees the right abount of meat when it wakes up
         statusBar.gameObject.SetActive(true);
         addMeat(stats.startingMeat);
+        viewManager.resizeIcons(gameObject);
     }
 
     public virtual void ignition () {

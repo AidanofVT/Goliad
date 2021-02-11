@@ -4,7 +4,6 @@ using UnityEngine;
 using Photon.Pun;
 
 public class Unit_local : Unit {
-    protected ViewManager viewManager;
     public Task task;
     int dispensed = 0;
 
@@ -24,9 +23,7 @@ public class Unit_local : Unit {
         listOfOne.Add(this);
         soloCohort = new Cohort(listOfOne);
         cohort = soloCohort;
-        gameState = GameObject.Find("Goliad").GetComponent<GameState>();
         gameState.enlivenUnit(gameObject);
-        viewManager = GameObject.Find("Player Perspective").GetComponent<ViewManager>();
     }
 
     public override void ignition () {
@@ -232,7 +229,6 @@ public class Unit_local : Unit {
             }
         }
         else if (task.nature == Task.actions.move) {
-            Debug.Log("moving");
             move(task.center, task.objectUnit);
         }
     }

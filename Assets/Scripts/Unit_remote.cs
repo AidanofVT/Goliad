@@ -6,7 +6,7 @@ public class Unit_remote : Unit {
 
     void Awake () {
         stats = GetComponent<UnitBlueprint>();
-        if (this.GetType() == typeof(Unit)) {
+        if (this.GetType() == typeof(Unit_remote)) {
             if (stats.isMobile) {
                 gameObject.AddComponent<MobileUnit_remote>();
                 DestroyImmediate(this);

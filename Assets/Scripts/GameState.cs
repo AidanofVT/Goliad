@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 
 public class GameState : MonoBehaviourPun {
     List<GameObject> activeUnits = new List<GameObject>();
-//aliveUnits is intended for alive ALLIED units.
     List<GameObject> alliedUnits = new List<GameObject>();
+    public List<Transform> allIconTransforms = new List<Transform>();
 //activeCohorts only exists to facilitate the dissolving of cohorts prior to a new cohort being formed
 //there should never be more than one cohort responding to a single order
     public List<Cohort> activeCohorts = new List<Cohort>();
@@ -13,16 +14,19 @@ public class GameState : MonoBehaviourPun {
     //NOTE: If you want to go bigger by using a smaller sort of number, you'll have to do something in the shader, because it needs things passed to it as 32-bit words. 
     public byte [,] map;
     public int mapOffset;
+    int playerNumber;
     public bool activeCohortsChangedFlag = false;
-    ViewManager vManage;
 
     void Awake () {
 //this is in Awake rather than Start so that the array gets made before other scripts try to access it.
         int mapSize = GetComponent<setup>().mapSize;
         map = new byte [mapSize,mapSize];
-        mapOffset = map.GetLength(0) / 2;
-        vManage = GameObject.Find("Player Perspective").GetComponent<ViewManager>();
+        mapOffset = map.GetLength(0) / 2;        
     }
+
+     void Start () {
+        playerNumber = PhotonNetwork.LocalPlayer.ActorNumber;
+     }
 
     public Cohort combineActiveCohorts () {
         if (activeCohorts.Count == 1) {
@@ -46,27 +50,31 @@ public class GameState : MonoBehaviourPun {
         //Debug.Log("Attempting to add object to activeUnits.");
         if (activeUnits.Contains(toAdd) == false) {
             activeUnits.Add(toAdd);
-            vManage.attendTo(toAdd);
-        }
+        }        
     }
 
     public void deactivateUnit (GameObject toRem) {
         //Debug.Log("Attempting to remove object from activeUnits.");
         if (activeUnits.Contains(toRem)) {
             activeUnits.Remove(toRem);
-            vManage.attendToNoMore(toRem);
         }
     }
 
     public void enlivenUnit (GameObject toAdd) {
         //Debug.Log("Attempting to add object to aliveUnits.");
-        alliedUnits.Add(toAdd);
+        if (toAdd.GetPhotonView().OwnerActorNr == playerNumber) {
+            alliedUnits.Add(toAdd);
+        }
+        allIconTransforms.Add(toAdd.transform.GetChild(4));    
     }
 
     public void deadenUnit (GameObject toRem) {
         //Debug.Log("Attempting to remove object from aliveUnits.");
-        alliedUnits.Remove(toRem);
-        activeUnits.Remove(toRem);
+        if (toRem.GetPhotonView().OwnerActorNr == playerNumber) {
+            alliedUnits.Remove(toRem);
+            activeUnits.Remove(toRem);
+        }
+        allIconTransforms.Remove(toRem.transform.GetChild(4));    
     }
 
     public List<GameObject> getActiveUnits () {

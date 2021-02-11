@@ -6,10 +6,6 @@ using Photon.Pun;
 public class MobileUnit_remote : Unit_remote {
     AidansMovementScript moveConductor;
 
-    void Awake () {
-        stats = GetComponent<UnitBlueprint>();
-    }
-
     public override void ignition () {
         moveConductor = GetComponent<AidansMovementScript>();
         statusBar.GetComponent<SpriteRenderer>().enabled = false;

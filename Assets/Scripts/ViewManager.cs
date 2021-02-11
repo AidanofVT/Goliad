@@ -5,45 +5,18 @@ using Photon.Pun;
 
 public class ViewManager : MonoBehaviour {
 
-    float cameraBaseline;
-    public List<Transform> attendedTransforms = new List<Transform>();
     public List<Cohort> consideredCohorts = new List<Cohort>();
     public List<Cohort> paintedCohorts = new List<Cohort>();
     public List<GameObject> consideredSprites = new List<GameObject>();
     public List<GameObject> paintedSprites = new List<GameObject>();
-    public Hashtable unitIconPairs = new Hashtable();
+
+    List <Transform> transforms = new List<Transform>();
+    Camera mainCamera;
+    bool power = false;
 
     void Start () {
-        cameraBaseline = Camera.main.orthographicSize;
-    }
-
-    public void addUnitIcon (PhotonView thisViewer) {
-        GameObject associatedGob = thisViewer.gameObject;
-        string fileName = associatedGob.name + "_miniIcon";
-        if (thisViewer.OwnerActorNr == 1) {
-            fileName += "_white";
-        }
-        else if (thisViewer.OwnerActorNr == 2) {
-            fileName += "_orange";
-        }
-        GameObject newIcon = (GameObject) Resources.Load("Sprites/" + fileName);
-        newIcon.SetActive(false);
-        newIcon.transform.SetParent(transform.GetChild(3));
-        unitIconPairs.Add(associatedGob, newIcon);
-    }
-
-    public void attendTo (GameObject focus) {
-        Transform targetUI = focus.transform.GetChild(2).GetChild(1);
-        attendedTransforms.Add(targetUI);
-        resizeUIs(targetUI);
-        Transform activeUI = focus.transform.GetChild(3).GetChild(1);
-        attendedTransforms.Add(activeUI);
-        resizeUIs(activeUI);
-    }
-
-    public void attendToNoMore (GameObject focus) {
-        attendedTransforms.Remove(focus.transform.GetChild(2).GetChild(1).gameObject.GetComponent<RectTransform>());
-        attendedTransforms.Remove(focus.transform.GetChild(3).GetChild(1).gameObject.GetComponent<RectTransform>());
+        transforms = GameObject.Find("Goliad").GetComponent<GameState>().allIconTransforms;
+        mainCamera = Camera.main;
     }
 
     public void addToPalette (Unit_local toAdd) {
@@ -51,15 +24,23 @@ public class ViewManager : MonoBehaviour {
         foreach (Unit_local jess in toAdd.cohort.members) {
             consideredSprites.Add(jess.transform.GetChild(2).GetChild(0).gameObject);
         }
+        if (Input.GetButton("modifier") == false) {
+            paintCohort(toAdd.cohort);
+        }
+        else {
+            GameObject sprite = toAdd.transform.GetChild(2).GetChild(0).gameObject;
+            sprite.SetActive(true);
+            paintedSprites.Add(sprite);
+        }
+    }
+
+    public void removeFromPalette (Unit_local toRem) {
+        consideredCohorts.Remove(toRem.cohort);
+        foreach (Unit_local jose in toRem.cohort.members) {
+            consideredSprites.Remove(jose.transform.GetChild(2).GetChild(0).gameObject);
+        }
         if (Input.GetKey(KeyCode.Mouse1) == false) {
-            if (Input.GetButton("modifier") == false) {
-                paintCohort(toAdd.cohort);
-            }
-            else {
-                GameObject sprite = toAdd.transform.GetChild(2).GetChild(0).gameObject;
-                sprite.SetActive(true);
-                paintedSprites.Add(sprite);
-            }
+            unpaintCohort(toRem.cohort);
         }
     }
 
@@ -82,16 +63,6 @@ public class ViewManager : MonoBehaviour {
         paintedCohorts.Add(toPaint);
     }
 
-    public void removeFromPalette (Unit_local toRem) {
-        consideredCohorts.Remove(toRem.cohort);
-        foreach (Unit_local jose in toRem.cohort.members) {
-            consideredSprites.Remove(jose.transform.GetChild(2).GetChild(0).gameObject);
-        }
-        if (Input.GetKey(KeyCode.Mouse1) == false) {
-            unpaintCohort(toRem.cohort);
-        }
-    }
-
     public void unpaintCohort (Cohort toUnpaint) {
         foreach (Unit_local fellow in toUnpaint.members) {
             GameObject sprite = fellow.transform.GetChild(2).GetChild(0).gameObject;
@@ -102,15 +73,6 @@ public class ViewManager : MonoBehaviour {
     }
 
     void Update () {
-        if (Input.GetKeyUp(KeyCode.Mouse1)) {
-            List<Cohort> thisIsToSupressWarnings = new List<Cohort>(paintedCohorts); 
-            foreach (Cohort pntedChrt in thisIsToSupressWarnings) {
-                unpaintCohort(pntedChrt);
-            }
-            foreach (Cohort toPaint in consideredCohorts) {
-                paintCohort(toPaint);
-            }
-        }
         if (Input.GetButtonDown("modifier")) {
             List<Cohort> thisIsToSupressWarnings = new List<Cohort>(paintedCohorts); 
             foreach (Cohort pntedChrt in thisIsToSupressWarnings) {
@@ -136,21 +98,30 @@ public class ViewManager : MonoBehaviour {
         }
     }
 
-    public void resizeUIs (Transform singleSubject = null) {
-        List <Transform> toResize;
-        if (singleSubject != null) {
-            toResize = new List<Transform>();
-            toResize.Add(singleSubject);
+    public void resizeIcons (GameObject singleSubject = null) {
+        if (mainCamera.orthographicSize < 40) {
+            if (power == true) {
+                foreach (Transform key in transforms) {
+                    key.gameObject.SetActive(false);
+                }
+                power = false;
+            }
         }
         else {
-            toResize = attendedTransforms;
-        }
-        float scale = Camera.main.orthographicSize / cameraBaseline;
-        Vector3 twoDScale = new Vector3 (scale, scale, 1);
-        foreach (RectTransform folder in toResize) {
-            for (int i = 0; i < folder.childCount; ++i) {
-                folder.GetChild(i).transform.localScale = twoDScale;
-                //folder.GetChild(i).transform.localPosition *= scale;
+            Vector3 neutralScaleVector = new Vector3 (1, 1, 1); 
+            if (singleSubject != null) {
+                singleSubject.transform.localScale = neutralScaleVector * mainCamera.orthographicSize / 30;
+            }
+            else {
+                if (power == false) {
+                    foreach (Transform key in transforms) {
+                        key.gameObject.SetActive(true);
+                    }
+                    power = true;
+                }
+                foreach (Transform key in transforms) {                
+                    key.localScale = neutralScaleVector * mainCamera.orthographicSize / 30;
+                }
             }
         }
     }

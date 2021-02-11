@@ -12,22 +12,16 @@ public class setup : MonoBehaviourPunCallbacks {
         gameState = gameObject.GetComponent<GameState>();
 //10 = ground, 5 = UI, 8 = obstacles, 11 = units
         Physics2D.IgnoreLayerCollision(10, 11);
-        Physics2D.IgnoreLayerCollision(10, 5);
         Physics2D.IgnoreLayerCollision(10, 8);
-        Physics2D.IgnoreLayerCollision(5, 8);
+        Physics2D.IgnoreLayerCollision(10, 5);
         Physics2D.IgnoreLayerCollision(5, 11);
+        Physics2D.IgnoreLayerCollision(5, 8);
+        Physics2D.IgnoreLayerCollision(5, 5);
         Physics2D.queriesHitTriggers = false;
     }
 
     void Start () {
         PhotonNetwork.ConnectUsingSettings();
-        // string debugOut = "";
-        // float w  = Random.Range(0, 1000000);
-        // float v  = Random.Range(0, 1000000);
-        // for (float i = 0; i < 100; ++i) {
-        //     debugOut += (int) ((Mathf.PerlinNoise(w + i / 100, (v + i / 100)) + 0.05f) * 2) + ", ";
-        // }
-        // Debug.Log(debugOut);
     }
 
     public override void OnConnectedToMaster() {
@@ -62,47 +56,36 @@ public class setup : MonoBehaviourPunCallbacks {
     IEnumerator step2 (Vector3 startPlace) {
         GameObject home = PhotonNetwork.Instantiate("Units/depot", startPlace, Quaternion.identity);
         yield return new WaitForSeconds(0);
+        home.GetComponent<Unit>().addMeat(300);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
-        factory_functions maker = home.GetComponent<factory_functions>();
-        home.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, 300);
-        if (PhotonNetwork.LocalPlayer.ActorNumber == 1) {
-            GameObject dogOne = maker.makeUnit("dog");
-            dogOne.transform.position = Vector2.zero;
-            yield return new WaitForSeconds(9);
-            dogOne.GetPhotonView().RPC("addMeat", RpcTarget.All, 10);
-            yield return new WaitForSeconds(9);
-            dogOne.GetPhotonView().RPC("deductMeat", RpcTarget.All, 10);
-        }
-        else {
-            yield return new WaitForSeconds(9);
-            GameObject orb1 = PhotonNetwork.Instantiate("orb", new Vector3(3, 0, -0.2f), Quaternion.identity);
-            //GameObject orb2 = PhotonNetwork.Instantiate("orb", new Vector3(4, 0, -0.2f), Quaternion.identity);
-            orb1.GetComponent<OrbMeatContainer>().fill(6);
-            //orb2.GetComponent<OrbMeatContainer>().fill(1);
-        }
-        // GameObject dogTwo = maker.makeUnit("courier");
-        // dogTwo.transform.position = home.transform.position + new Vector3 (-4, 0, 0);
-        // GameObject dogThree = maker.makeUnit("courier");
-        // dogThree.transform.position = home.transform.position + new Vector3 (0, 4, 0);
-        // GameObject dogFour = maker.makeUnit("courier");
-        // dogFour.transform.position = home.transform.position + new Vector3 (-4, 4, 0);
-        // yield return new WaitForSeconds(1);
-        // Unit_local unitTwo = dogTwo.GetComponent<Unit_local>();
-        // Unit_local unitThree = dogThree.GetComponent<Unit_local>();
-        // Unit_local unitFour = dogFour.GetComponent<Unit_local>();
-        // unitTwo.addMeat(30);
-        // unitThree.addMeat(30);
-        // unitFour.addMeat(60);
-        // List <Unit_local> listOfDogs = new List<Unit_local>{unitTwo, unitThree};
-        // Cohort cohortOfDogs = new Cohort(listOfDogs);
-        // cohortOfDogs.commenceTransact(new Task(null, Task.actions.take, Vector2.zero, dogFour));
-        // yield return new WaitForSeconds (0.5f);
-        // unitTwo.changeCohort();
-        // Debug.Log("made it this far");
+        // GameObject topInner = PhotonNetwork.Instantiate("Units/dog", new Vector3(0, 0, -0.2f), Quaternion.identity);
+        // GameObject topPort = PhotonNetwork.Instantiate("Units/dog", new Vector3(3, 0, -0.2f), Quaternion.identity);
+        // GameObject topStarboard = PhotonNetwork.Instantiate("Units/dog", new Vector3(6, 0, -0.2f), Quaternion.identity);
+        // GameObject bottomInner = PhotonNetwork.Instantiate("Units/dog", new Vector3(9, 0, -0.2f), Quaternion.identity);
+        // GameObject bottomPort = PhotonNetwork.Instantiate("Units/dog", new Vector3(12, 0, -0.2f), Quaternion.identity);
+        // GameObject bottomStarboard = PhotonNetwork.Instantiate("Units/dog", new Vector3(15, 0, -0.2f), Quaternion.identity);
+        // GameObject leftInner = PhotonNetwork.Instantiate("Units/dog", new Vector3(18, 0, -0.2f), Quaternion.identity);
+        // GameObject leftPort = PhotonNetwork.Instantiate("Units/dog", new Vector3(21, 0, -0.2f), Quaternion.identity);
+        // GameObject leftStarboard = PhotonNetwork.Instantiate("Units/dog", new Vector3(24, 0, -0.2f), Quaternion.identity);
+        // GameObject rightInner = PhotonNetwork.Instantiate("Units/dog", new Vector3(27, 0, -0.2f), Quaternion.identity);
+        // GameObject rightPort = PhotonNetwork.Instantiate("Units/dog", new Vector3(30, 0, -0.2f), Quaternion.identity);
+        // GameObject rightStarboard = PhotonNetwork.Instantiate("Units/dog", new Vector3(33, 0, -0.2f), Quaternion.identity);
         // yield return new WaitForSeconds(0);
-        // cohortOfDogs.makeUnit("dog");
-        // yield return null;
-        //home.GetComponent<Unit>().die();
+        // Unit_local topInnerScript = topInner.GetComponent<Unit_local>();
+        // Unit_local topPortScript = topPort.GetComponent<Unit_local>();
+        // Unit_local topStarboardScript = topStarboard.GetComponent<Unit_local>();
+        // Unit_local bottomInnerScript = bottomInner.GetComponent<Unit_local>();
+        // Unit_local bottomPortScript = bottomPort.GetComponent<Unit_local>();
+        // Unit_local bottomStarboardScript = bottomStarboard.GetComponent<Unit_local>();
+        // Unit_local leftInnerScript = leftInner.GetComponent<Unit_local>();
+        // Unit_local leftPortScript = leftPort.GetComponent<Unit_local>();
+        // Unit_local leftStarBoardScript = leftStarboard.GetComponent<Unit_local>();
+        // Unit_local rightInnerScript = rightInner.GetComponent<Unit_local>();
+        // Unit_local rightPortScript = rightPort.GetComponent<Unit_local>();
+        // Unit_local rightStarboardScript = rightStarboard.GetComponent<Unit_local>();
+        // Cohort newCohort = new Cohort(new List<Unit_local> {topInnerScript, topPortScript, topStarboardScript, bottomInnerScript, bottomPortScript, bottomStarboardScript,
+        //                                 leftInnerScript, leftPortScript, leftStarBoardScript, rightInnerScript, rightPortScript, rightStarboardScript});
+        // newCohort.MoveCohortBeta(new Vector2(18, 2), null);
     }
 
     private void OnPlayerConnected() {

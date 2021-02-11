@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -182,7 +183,8 @@ public class Cohort {
         }
         List<Task> thisIsToSupressWarnings = new List<Task>(assignments);
         foreach (Task movement in thisIsToSupressWarnings) {
-            if (Vector2.Distance(movement.subjectUnit.transform.position, movement.center) < Mathf.Pow(members.Count, 0.5f)) {
+            float toGo = Vector2.Distance(movement.subjectUnit.transform.position, movement.center);
+            if (toGo < Mathf.Pow(members.Count, 0.5f)) {
                 movement.subjectUnit.GetComponent<AidansMovementScript>().terminatePathfinding(false);
                 assignments.Remove(movement);
             }
@@ -261,6 +263,60 @@ public class Cohort {
         }
         foreach (Unit_local mover in mobileMembers) {
             mover.GetComponent<AidansMovementScript>().speed = Mathf.Clamp(Vector2.Distance(mover.transform.position, goTo) / longestETA, 1, mover.GetComponent<UnitBlueprint>().speed);
+        }
+    }
+
+    public void MoveCohortBeta (Vector2 goTo, GameObject toFollow) {
+        Stop();
+        masterTask = new Task (null, Task.actions.move, goTo, toFollow);
+        List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(members);
+        foreach (Unit_local toMove in thisIsToSupressWarnings) {
+            if (mobileMembers.Contains(toMove) == false) {
+                toMove.changeCohort();
+                toMove.deactivate();
+            }
+        }
+        UnitPositionSorter vsGoTo = new UnitPositionSorter(goTo);
+        vsGoTo.DirectionMode();
+        List <Unit_local> unitsByDirection = new List<Unit_local>(members);
+        unitsByDirection.Sort(vsGoTo);
+        vsGoTo.DistanceMode();
+        List <Unit_local> unitsByDistance = new List<Unit_local>(members);
+        unitsByDistance.Sort(vsGoTo);
+        while (unitsByDirection.Count > 0 && unitsByDistance.Count > 0) {
+            Unit_local sliceLeader = unitsByDistance[0];
+            int leaderDirectionIndex = unitsByDirection.IndexOf(sliceLeader);
+            float leaderDistanceFromDestination = vsGoTo.DistanceOf(sliceLeader);
+            float leaderRadius = sliceLeader.GetComponent<CircleCollider2D>().radius;
+            int totalUnaccounted = unitsByDirection.Count;
+            List<Unit_local> slice = new List<Unit_local> {sliceLeader};
+            for (int sign = -1; sign <= 1 && slice.Count < unitsByDirection.Count; sign = sign + 2) {
+                // this is a loop-breaker variable
+                for (int indexOffset = sign; indexOffset < 1000; indexOffset += sign) {
+                    Unit_local inQuestion = unitsByDirection[(leaderDirectionIndex + indexOffset + totalUnaccounted) % totalUnaccounted];
+                    float directionOfLeader = vsGoTo.DirectionOf(sliceLeader);
+                    float directionInQuestion = vsGoTo.DirectionOf(inQuestion);
+                    float circumferencialDistance = Mathf.Abs(directionOfLeader - directionInQuestion);
+                    circumferencialDistance = Mathf.Min(circumferencialDistance, 2 * Mathf.PI - circumferencialDistance);
+                    circumferencialDistance *= leaderDistanceFromDestination;
+                    if (circumferencialDistance < leaderRadius && inQuestion != sliceLeader) {
+                        slice.Add(inQuestion);
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+            slice.Sort(vsGoTo);
+            sliceLeader.work(new Task(sliceLeader.gameObject, Task.actions.move, goTo, toFollow));
+            for (int followerIndex = 1; followerIndex < slice.Count; ++followerIndex) {
+                slice[followerIndex].work(new Task(slice[followerIndex].gameObject, Task.actions.move, goTo, slice[followerIndex - 1].gameObject));
+            }
+            foreach (Unit_local sliceMember in slice) {
+                assignments.Add(sliceMember.task);
+                unitsByDirection.Remove(sliceMember);
+                unitsByDistance.Remove(sliceMember);
+            }    
         }
     }
 

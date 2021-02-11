@@ -49,9 +49,11 @@ public class AidansMovementScript : MonoBehaviourPun {
     void setRoute () {
         if (transToFollow != null) {
             seeker.StartPath(transform.position, transToFollow.position, OnPathComplete);
+            // Debug.Log("moving to follow " + transToFollow.position);
         }
         else {
             seeker.StartPath(transform.position, placetoGo, OnPathComplete);
+            // Debug.Log("moving to " + placetoGo);
         }
         currentWaypoint = 0;
     }
