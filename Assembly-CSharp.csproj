@@ -67,6 +67,7 @@
      <Compile Include="Assets\Scripts\GameState.cs" />
      <Compile Include="Assets\Scripts\hoplite_Weapon.cs" />
      <Compile Include="Assets\Scripts\IconManager.cs" />
+     <Compile Include="Assets\Scripts\IconMouseContactBridge.cs" />
      <Compile Include="Assets\Scripts\InputHandler.cs" />
      <Compile Include="Assets\Scripts\MapManager.cs" />
      <Compile Include="Assets\Scripts\MobileUnit_local.cs" />

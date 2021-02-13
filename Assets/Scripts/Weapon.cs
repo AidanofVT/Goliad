@@ -20,7 +20,7 @@ public class Weapon : MonoBehaviour {
     void Start() {
         if (GetType() == Type.GetType("Weapon")) {
             string weaponName = transform.parent.gameObject.name;
-            weaponName = weaponName.Remove(weaponName.IndexOf("("));
+            weaponName = weaponName.Remove(weaponName.IndexOf("_"));
             weaponName += "_Weapon";
             gameObject.AddComponent(Type.GetType(weaponName));
             DestroyImmediate(this);

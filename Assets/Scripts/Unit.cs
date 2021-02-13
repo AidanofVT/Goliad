@@ -7,6 +7,11 @@ public class Unit : MonoBehaviourPun {
     protected GameState gameState;
     protected ViewManager viewManager;
     protected BarManager statusBar;
+    protected SpriteRenderer icon;
+    protected Sprite defaultIcon;
+    protected Sprite highlightedIcon;
+    protected GameObject contextCircle;
+    protected GameObject blueCircle;
     public UnitBlueprint stats;
     public Weapon weapon;
     public Cohort soloCohort;
@@ -16,18 +21,16 @@ public class Unit : MonoBehaviourPun {
     public int strikes = 3;
 
     void Awake () {
-        string spriteAddress = gameObject.name;
-        spriteAddress = spriteAddress.Remove(spriteAddress.IndexOf("("));
-        spriteAddress = "Sprites/" + spriteAddress;
-        string color = "";
+        string spriteName = gameObject.name;
+        spriteName = spriteName.Remove(spriteName.IndexOf("("));
         if (photonView.Owner.ActorNumber == 1) {
-            color = "_white";
+            spriteName += "_white";
         }
         else if (photonView.Owner.ActorNumber == 2) {
-            color = "_orange";
+            spriteName += "_orange";
         }
-        transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(spriteAddress + color);
-        transform.GetChild(4).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(spriteAddress + "_icon" + color);
+        gameObject.name = spriteName;
+        transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/" + spriteName);
         GetComponent<UnitBlueprint>().factionNumber = photonView.OwnerActorNr;
         if (this.GetType() == typeof(Unit)) {
             if (photonView.IsMine) {
@@ -41,15 +44,26 @@ public class Unit : MonoBehaviourPun {
         }
     }
 
+// remember that Awake() is overridden in children, so any value assignments for the script, rather than the gameobject and it's children, must go here.
     public virtual void Start () {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
-        viewManager = GameObject.Find("Player Perspective").GetComponent<ViewManager>();
+        gameState.enlivenUnit(gameObject);
         statusBar = transform.GetChild(1).GetComponent<BarManager>();
-        ignition();
 //this needs to be here, rather than in Awake, so that if there's starting meat then the BarManager sees the right abount of meat when it wakes up
         statusBar.gameObject.SetActive(true);
         addMeat(stats.startingMeat);
-        viewManager.resizeIcons(gameObject);
+        string spriteAddress = "Sprites/" + gameObject.name;
+        defaultIcon = Resources.Load<Sprite>(spriteAddress + "_icon");
+        highlightedIcon = Resources.Load<Sprite>(spriteAddress + "_icon" + " (highlighted)");
+        icon = transform.GetChild(4).gameObject.GetComponent<SpriteRenderer>();
+        icon.sprite = defaultIcon;
+        Debug.Log(spriteAddress + "_icon " + (defaultIcon != null));
+        gameState.allIconTransforms.Add(icon.transform);
+        viewManager = GameObject.Find("Player Perspective").GetComponent<ViewManager>();
+        viewManager.resizeIcons(icon.gameObject);
+        contextCircle = transform.GetChild(2).GetChild(0).gameObject;
+        blueCircle = transform.GetChild(3).gameObject;
+        ignition();
     }
 
     public virtual void ignition () {
@@ -113,7 +127,12 @@ public class Unit : MonoBehaviourPun {
     }
 
     [PunRPC]
-    public virtual void die () {        
+    public virtual void die () {             
+    }
+
+    public virtual void highlight() {
+        contextCircle.SetActive(true);
+        icon.sprite = highlightedIcon;
     }
 
     public int roomForMeat () {
@@ -128,6 +147,13 @@ public class Unit : MonoBehaviourPun {
     [PunRPC]
     public void stopTurning () {
         StopCoroutine("updateFacing");
+    }
+
+    public virtual void unHighlight () {
+        contextCircle.SetActive(false);
+        if (blueCircle.activeInHierarchy == false) {
+            icon.sprite = defaultIcon;
+        }      
     }
 
     [PunRPC]

@@ -17,9 +17,11 @@ public class SheepBehavior_Base : MonoBehaviourPun {
     public virtual void changeFaction (int factionNumber) {
         if (factionNumber == 1) {
             transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/sheep_white");
+            transform.GetChild(4).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/sheep_white_icon");
         }
         else if (factionNumber == 2) {
             transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/sheep_orange");
+            transform.GetChild(4).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/sheep_orange_icon");
         }        
     }
 

@@ -20,4 +20,8 @@ public class Unit_remote : Unit {
         AstarPath.active.UpdateGraphs(new Bounds(transform.position, new Vector3 (radius, radius, 1)));
     }
 
+    public override void die() {
+        gameState.deadenUnit(gameObject);
+    }
+
 }

@@ -7,8 +7,6 @@ public class ViewManager : MonoBehaviour {
 
     public List<Cohort> consideredCohorts = new List<Cohort>();
     public List<Cohort> paintedCohorts = new List<Cohort>();
-    public List<GameObject> consideredSprites = new List<GameObject>();
-    public List<GameObject> paintedSprites = new List<GameObject>();
 
     List <Transform> transforms = new List<Transform>();
     Camera mainCamera;
@@ -21,53 +19,34 @@ public class ViewManager : MonoBehaviour {
 
     public void addToPalette (Unit_local toAdd) {
         consideredCohorts.Add(toAdd.cohort);
-        foreach (Unit_local jess in toAdd.cohort.members) {
-            consideredSprites.Add(jess.transform.GetChild(2).GetChild(0).gameObject);
-        }
         if (Input.GetButton("modifier") == false) {
             paintCohort(toAdd.cohort);
         }
         else {
-            GameObject sprite = toAdd.transform.GetChild(2).GetChild(0).gameObject;
-            sprite.SetActive(true);
-            paintedSprites.Add(sprite);
+            toAdd.highlight();
         }
     }
 
     public void removeFromPalette (Unit_local toRem) {
         consideredCohorts.Remove(toRem.cohort);
-        foreach (Unit_local jose in toRem.cohort.members) {
-            consideredSprites.Remove(jose.transform.GetChild(2).GetChild(0).gameObject);
-        }
-        if (Input.GetKey(KeyCode.Mouse1) == false) {
-            unpaintCohort(toRem.cohort);
-        }
+        unpaintCohort(toRem.cohort);
     }
 
     public void clearPalette () {
-        foreach (GameObject stu in paintedSprites) {
-            stu.SetActive(false);
-        }
         consideredCohorts.Clear();
-        consideredSprites.Clear();
         paintedCohorts.Clear();
-        paintedSprites.Clear();
     }
 
     public void paintCohort (Cohort toPaint) {
         foreach (Unit_local fellow in toPaint.members) {
-            GameObject sprite = fellow.transform.GetChild(2).GetChild(0).gameObject;
-            sprite.SetActive(true);
-            paintedSprites.Add(sprite);
+            fellow.highlight();
         }
         paintedCohorts.Add(toPaint);
     }
 
     public void unpaintCohort (Cohort toUnpaint) {
         foreach (Unit_local fellow in toUnpaint.members) {
-            GameObject sprite = fellow.transform.GetChild(2).GetChild(0).gameObject;
-            sprite.SetActive(false);
-            paintedSprites.Remove(sprite);
+            fellow.unHighlight();
         }
         paintedCohorts.Remove(toUnpaint);
     }
@@ -83,22 +62,16 @@ public class ViewManager : MonoBehaviour {
             if (toPaint.GetComponent<Unit_local>() != null) {
                 GameObject sprite = toPaint.transform.GetChild(2).GetChild(0).gameObject;
                 sprite.SetActive(true);
-                paintedSprites.Add(sprite);
             }
         }
         if (Input.GetButtonUp("modifier")) {
-            List<GameObject> thisIsToSupressWarnings = new List<GameObject>(paintedSprites); 
-            foreach (GameObject sprite in thisIsToSupressWarnings) {
-                sprite.SetActive(false);
-                paintedSprites.Remove(sprite);
-            }
             foreach (Cohort toPaint in consideredCohorts) {
                 paintCohort(toPaint);
             }
         }
     }
 
-    public void resizeIcons (GameObject singleSubject = null) {
+    public void resizeIcons (GameObject singleIcon = null) {
         if (mainCamera.orthographicSize < 40) {
             if (power == true) {
                 foreach (Transform key in transforms) {
@@ -109,8 +82,9 @@ public class ViewManager : MonoBehaviour {
         }
         else {
             Vector3 neutralScaleVector = new Vector3 (1, 1, 1); 
-            if (singleSubject != null) {
-                singleSubject.transform.localScale = neutralScaleVector * mainCamera.orthographicSize / 30;
+            if (singleIcon != null) {
+                singleIcon.transform.localScale = neutralScaleVector * mainCamera.orthographicSize / 30;
+                singleIcon.SetActive(true);
             }
             else {
                 if (power == false) {
@@ -119,7 +93,7 @@ public class ViewManager : MonoBehaviour {
                     }
                     power = true;
                 }
-                foreach (Transform key in transforms) {                
+                foreach (Transform key in transforms) {    
                     key.localScale = neutralScaleVector * mainCamera.orthographicSize / 30;
                 }
             }

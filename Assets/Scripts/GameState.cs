@@ -14,7 +14,7 @@ public class GameState : MonoBehaviourPun {
     //NOTE: If you want to go bigger by using a smaller sort of number, you'll have to do something in the shader, because it needs things passed to it as 32-bit words. 
     public byte [,] map;
     public int mapOffset;
-    int playerNumber;
+    public int playerNumber;
     public bool activeCohortsChangedFlag = false;
 
     void Awake () {
@@ -23,10 +23,6 @@ public class GameState : MonoBehaviourPun {
         map = new byte [mapSize,mapSize];
         mapOffset = map.GetLength(0) / 2;        
     }
-
-     void Start () {
-        playerNumber = PhotonNetwork.LocalPlayer.ActorNumber;
-     }
 
     public Cohort combineActiveCohorts () {
         if (activeCohorts.Count == 1) {
@@ -65,7 +61,6 @@ public class GameState : MonoBehaviourPun {
         if (toAdd.GetPhotonView().OwnerActorNr == playerNumber) {
             alliedUnits.Add(toAdd);
         }
-        allIconTransforms.Add(toAdd.transform.GetChild(4));    
     }
 
     public void deadenUnit (GameObject toRem) {

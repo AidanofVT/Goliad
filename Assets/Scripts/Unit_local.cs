@@ -23,7 +23,7 @@ public class Unit_local : Unit {
         listOfOne.Add(this);
         soloCohort = new Cohort(listOfOne);
         cohort = soloCohort;
-        gameState.enlivenUnit(gameObject);
+        icon.gameObject.AddComponent<IconMouseContactBridge>();
     }
 
     public override void ignition () {
@@ -35,7 +35,8 @@ public class Unit_local : Unit {
 
     public virtual void activate () {
         gameState.activateUnit(gameObject);
-        transform.GetChild(3).gameObject.SetActive(true);
+        blueCircle.SetActive(true);
+        icon.sprite = highlightedIcon;
     }
 
     public void attack (GameObject target) {
@@ -60,7 +61,9 @@ public class Unit_local : Unit {
     }
  
     public virtual void deactivate () {
-        transform.GetChild(3).gameObject.SetActive(false);
+        blueCircle.SetActive(false);
+// if there were ever a case where the unit were deactivated but needed to remain highlighted, like for targeting, this could be a problem 
+        icon.sprite = defaultIcon;
         gameState.deactivateUnit(gameObject);
     }
 
@@ -167,12 +170,12 @@ public class Unit_local : Unit {
         } 
     }
 
-    void OnMouseExit() {
-        viewManager.removeFromPalette(this);
+    public void OnMouseEnter() {
+        viewManager.addToPalette(this);
     }
 
-    void OnMouseEnter() {
-        viewManager.addToPalette(this);
+    public void OnMouseExit() {
+        viewManager.removeFromPalette(this);
     }
 
     void spindown () {
