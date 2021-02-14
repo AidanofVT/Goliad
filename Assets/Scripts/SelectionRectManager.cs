@@ -4,18 +4,20 @@ using UnityEngine;
 
 public class SelectionRectManager : MonoBehaviour {
     GameState gameState;
-    public GameObject goliad;
+    ViewManager vManage;
+    SpriteRenderer thisRenderer;
+    BoxCollider2D thisCollider;
+    List <Unit_local> candidates = new List<Unit_local>();
     float downTime = 1000000;
     Vector2 mousePosLastFrame;
     Vector2 mouseDownLocation;
-    public Transform quadrangle;
-    Transform selectorSquare;
     public bool rectOn = false;
 
     void Awake() {
-        gameState = goliad.GetComponent<GameState>();
-        quadrangle.gameObject.SetActive(false);
-        selectorSquare = quadrangle;
+        gameState = GameObject.Find("Goliad").GetComponent<GameState>();
+        vManage = transform.parent.GetComponent<ViewManager>();
+        thisRenderer = GetComponent<SpriteRenderer>();
+        thisCollider = GetComponent<BoxCollider2D>();
     }
 
     void Update() {
@@ -24,24 +26,48 @@ public class SelectionRectManager : MonoBehaviour {
             mouseDownLocation = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition);
         }
         if (Input.GetKeyUp(KeyCode.Mouse0)) {
-            if (selectorSquare.gameObject.activeInHierarchy == true) {
+            if (rectOn == true) {
                 activateRegion();
+                candidates.Clear();
             }
             downTime = 1000000;
-            selectorSquare.gameObject.SetActive(false); 
+// This is invoked so that the InputHandler sees the rectangle "on" on the frame when the mouse button is released.
+            Invoke("off", 0);
         }
         else if (Time.time - downTime >= 0.22) {
-            if (selectorSquare.gameObject.activeInHierarchy == false) {
-                selectorSquare.gameObject.SetActive(true);
-                rectOn = true;
-                selectorSquare.position = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            if (rectOn == false) {
+                on();
+                // transform.position = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition);
             }
-            Vector2 rectSize = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition) - mouseDownLocation;
-            selectorSquare.gameObject.GetComponent<SpriteRenderer>().size = rectSize;
-            //Debug.Log("Input.mousePosition, adjusted: " + (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition) + "\n Input.mousePosition" + Input.mousePosition + "\n mouseDownLocation: " + mouseDownLocation + "\n rectSize: "
-            // + rectSize + "\n selectorSquare.localScale: " + selectorSquare.localScale);
-            selectorSquare.position = new Vector3 (mouseDownLocation.x + (rectSize.x/ 2), mouseDownLocation.y + (rectSize.y/ 2), -1.0f);
+            Vector2 farCornerLocation = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 rectSize = farCornerLocation - mouseDownLocation;
+            rectSize = new Vector2(Mathf.Abs(rectSize.x), Mathf.Abs(rectSize.y));
+            thisRenderer.size = rectSize;
+            thisCollider.size = rectSize;
+            transform.position = (farCornerLocation - mouseDownLocation) / 2 + mouseDownLocation;
+            transform.position  += new Vector3(0, 0, 8);
             mousePosLastFrame = Input.mousePosition;
+            if (Input.GetButtonDown("modifier")) {
+                List<Cohort> alreadyOff = new List<Cohort>();
+                foreach (Unit_local goSolo in candidates) {
+                    Cohort candidatesCohort = goSolo.cohort;
+                    if (alreadyOff.Contains(candidatesCohort) == false) {
+                        goSolo.cohort.HighlightOff();
+                        alreadyOff.Add(candidatesCohort);
+                    }
+                    goSolo.Highlight();
+                }
+            }
+            if (Input.GetButtonUp("modifier")) {
+                List<Cohort> alreadyOn = new List<Cohort>();
+                foreach (Unit_local goSolo in candidates) {
+                    Cohort candidatesCohort = goSolo.cohort;
+                    if (alreadyOn.Contains(candidatesCohort) == false) {
+                        goSolo.cohort.Highlight();
+                        alreadyOn.Add(goSolo.cohort);
+                    }
+                }
+            }
         }
         else {
             rectOn = false;
@@ -49,48 +75,79 @@ public class SelectionRectManager : MonoBehaviour {
     }
 
     void activateRegion () {
-        List<GameObject> toActivate = new List<GameObject>();
-        float topExtreme = selectorSquare.position.y + selectorSquare.gameObject.GetComponent<SpriteRenderer>().bounds.size.y/ 2;
-        float bottomExtreme = selectorSquare.position.y - selectorSquare.gameObject.GetComponent<SpriteRenderer>().bounds.size.y / 2;
-        float leftExtreme = selectorSquare.position.x - selectorSquare.gameObject.GetComponent<SpriteRenderer>().bounds.size.x / 2;
-        float rightExtreme = selectorSquare.position.x + selectorSquare.gameObject.GetComponent<SpriteRenderer>().bounds.size.x / 2;
-        foreach (GameObject maybeInBounds in gameState.getAliveUnits()) {
-            Vector3 thePosition = maybeInBounds.transform.position;
-            //Debug.Log("Examining the object at " + thePosition + ". " +
-            // "\n topExtreme = " + topExtreme +
-            // "\n bottomExtreme = " + bottomExtreme +
-            // "\n leftExtreme = " + leftExtreme +
-            // "\n rightExtreme = " + rightExtreme);
-            if (thePosition.y <= topExtreme &&
-                thePosition.y >= bottomExtreme &&
-                thePosition.x >= leftExtreme &&
-                thePosition.x <= rightExtreme &&
-                maybeInBounds.GetComponent<Unit_local>() != null) {
-                //Debug.Log("Object at " + thePosition + "accepted for activation.");
-                toActivate.Add(maybeInBounds);
-            }
-        }
-        if (toActivate.Count > 0) {
-            gameState.clearActive();
-        }
         Cohort aCohort;
+        gameState.clearActive();
         if (Input.GetButton("modifier") == false) {
-            foreach (GameObject aboutToBeActivated in toActivate) {
-                aCohort = aboutToBeActivated.GetComponent<Unit>().cohort;
+            foreach (Unit_local aboutToBeActivated in candidates) {
+                aCohort = aboutToBeActivated.cohort;
                 if (gameState.activeCohorts.Contains(aCohort) == false) {
                     aCohort.activate();
                 }
             }
         }
         else {
-            gameState.activeCohorts.Clear();
-            foreach (GameObject aboutToBeActivated in toActivate) {
-                Unit_local unit = aboutToBeActivated.GetComponent<Unit_local>();
-                gameState.activeCohorts.Add(unit.soloCohort);
-                unit.activate();
+            foreach (Unit_local aboutToBeActivated in candidates) {
+                aboutToBeActivated.soloCohort.activate();
             }
         }     
         return;
+    }
+
+    void off () {
+        thisCollider.enabled = false;
+        thisRenderer.enabled = false;
+        rectOn = false;
+    }
+
+    void on () {
+        thisCollider.enabled = true;
+        thisRenderer.enabled = true;
+        rectOn = true;
+    }
+
+
+    void OnTriggerEnter2D(Collider2D other) {
+        Unit_local touchedUnit = other.GetComponent<Unit_local>();
+        if (touchedUnit != null) {
+            if (Input.GetButton("modifier") == false) {
+                Cohort maybeOn = touchedUnit.cohort;
+                bool lightsOn = true;
+                foreach (Unit_local inQuestion in candidates) {
+                    if (inQuestion.cohort.Equals(maybeOn)) {
+                        lightsOn = false;
+                    }
+                }
+                if (lightsOn == true) {
+                    maybeOn.Highlight();
+                }
+            }
+            else {
+                touchedUnit.Highlight();
+            }
+            candidates.Add(touchedUnit);
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D other) {
+        Unit_local departedUnit = other.GetComponent<Unit_local>();
+        if (departedUnit != null) {
+            candidates.Remove(departedUnit);
+            if (Input.GetButton("modifier") == false) {
+                Cohort maybeExtingiush = departedUnit.cohort;         
+                bool lightsOut = true;
+                foreach (Unit_local inQuestion in candidates) {
+                    if (inQuestion.cohort.Equals(maybeExtingiush)) {
+                        lightsOut = false;
+                    }
+                }
+                if (lightsOut == true) {
+                    maybeExtingiush.HighlightOff();
+                }
+            }
+            else {
+                departedUnit.Unhighlight();
+            }
+        }
     }
 
 }

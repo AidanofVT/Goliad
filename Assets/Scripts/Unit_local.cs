@@ -34,6 +34,7 @@ public class Unit_local : Unit {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     public virtual void activate () {
+// This should only be called by the unit's cohort.
         gameState.activateUnit(gameObject);
         blueCircle.SetActive(true);
         icon.sprite = highlightedIcon;
@@ -51,7 +52,7 @@ public class Unit_local : Unit {
                 Stop();
             }
         }
-        if (newCohort == null) {
+        if (newCohort == null || newCohort.Equals(soloCohort)) {
             newCohort = soloCohort;
         }
         else {
@@ -61,6 +62,7 @@ public class Unit_local : Unit {
     }
  
     public virtual void deactivate () {
+// This should only be called by the unit's cohort.
         blueCircle.SetActive(false);
 // if there were ever a case where the unit were deactivated but needed to remain highlighted, like for targeting, this could be a problem 
         icon.sprite = defaultIcon;

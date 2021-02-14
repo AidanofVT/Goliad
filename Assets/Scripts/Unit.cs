@@ -57,7 +57,6 @@ public class Unit : MonoBehaviourPun {
         highlightedIcon = Resources.Load<Sprite>(spriteAddress + "_icon" + " (highlighted)");
         icon = transform.GetChild(4).gameObject.GetComponent<SpriteRenderer>();
         icon.sprite = defaultIcon;
-        Debug.Log(spriteAddress + "_icon " + (defaultIcon != null));
         gameState.allIconTransforms.Add(icon.transform);
         viewManager = GameObject.Find("Player Perspective").GetComponent<ViewManager>();
         viewManager.resizeIcons(icon.gameObject);
@@ -130,7 +129,7 @@ public class Unit : MonoBehaviourPun {
     public virtual void die () {             
     }
 
-    public virtual void highlight() {
+    public virtual void Highlight() {
         contextCircle.SetActive(true);
         icon.sprite = highlightedIcon;
     }
@@ -149,7 +148,7 @@ public class Unit : MonoBehaviourPun {
         StopCoroutine("updateFacing");
     }
 
-    public virtual void unHighlight () {
+    public virtual void Unhighlight () {
         contextCircle.SetActive(false);
         if (blueCircle.activeInHierarchy == false) {
             icon.sprite = defaultIcon;

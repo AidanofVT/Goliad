@@ -106,6 +106,23 @@ public class Cohort {
         return true;
     }
 
+    public void Brake () {
+        if (masterTask.nature != Task.actions.move) {
+            Debug.Log("PROBLEM: Halt command called on a cohort that's not supposed to be moving!");
+        }
+        List<Task> thisIsToSupressWarnings = new List<Task>(assignments);
+        foreach (Task movement in thisIsToSupressWarnings) {
+            float toGo = Vector2.Distance(movement.subjectUnit.transform.position, movement.center);
+            if (toGo < Mathf.Pow(members.Count, 0.5f)) {
+                movement.subjectUnit.GetComponent<AidansMovementScript>().terminatePathfinding(false);
+                assignments.Remove(movement);
+            }
+        }
+        if (assignments.Count <= 0) {
+            masterTask = null;
+        }
+    }
+
     public int collectiveMeat () {
         int collection = 0;
         foreach (Unit meatHolder in members) {
@@ -177,20 +194,15 @@ public class Cohort {
         gameState.activeCohortsChangedFlag = true;
     }
 
-    public void Brake () {
-        if (masterTask.nature != Task.actions.move) {
-            Debug.Log("PROBLEM: Halt command called on a cohort that's not supposed to be moving!");
+    public void Highlight () {
+        foreach (Unit_local member in members) {
+            member.Highlight();
         }
-        List<Task> thisIsToSupressWarnings = new List<Task>(assignments);
-        foreach (Task movement in thisIsToSupressWarnings) {
-            float toGo = Vector2.Distance(movement.subjectUnit.transform.position, movement.center);
-            if (toGo < Mathf.Pow(members.Count, 0.5f)) {
-                movement.subjectUnit.GetComponent<AidansMovementScript>().terminatePathfinding(false);
-                assignments.Remove(movement);
-            }
-        }
-        if (assignments.Count <= 0) {
-            masterTask = null;
+    }
+
+    public void HighlightOff () {
+        foreach (Unit_local member in members) {
+            member.Unhighlight();
         }
     }
 

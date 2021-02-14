@@ -26,13 +26,16 @@ public class GameState : MonoBehaviourPun {
 
     public Cohort combineActiveCohorts () {
         if (activeCohorts.Count == 1) {
+            if (activeCohorts[0].members[0].soloCohort.Equals(activeCohorts[0])) {
+                activeCohorts[0].members[0].changeCohort();
+            }
             return activeCohorts[0];
         }
         else {
             Cohort newCohort = new Cohort();
             foreach (Cohort selectedCohort in activeCohorts) {
-                List<Unit_local> thisIsAlsoToSupressWarnings = new List<Unit_local>(selectedCohort.members);
-                foreach (Unit_local individual in thisIsAlsoToSupressWarnings) {
+                List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(selectedCohort.members);
+                foreach (Unit_local individual in thisIsToSupressWarnings) {
                     individual.changeCohort(newCohort);
                 }
             }
@@ -89,6 +92,7 @@ public class GameState : MonoBehaviourPun {
         foreach (Cohort cohort in thisIsToSupressWarnings) {
             cohort.deactivate();
         }
+        activeCohorts.Clear();
         //Debug.Log("Clearactive called. activeUnits size = " + activeUnits.Count);
     }
 
