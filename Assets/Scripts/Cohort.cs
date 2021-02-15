@@ -32,8 +32,6 @@ public class Cohort {
         foreach (Unit_local member in members) {
             member.activate();
         }
-        gameState.activeCohorts.Add(this);
-        gameState.activeCohortsChangedFlag = true;
     }
 
     public void addMember (Unit_local recruit) {
@@ -190,7 +188,6 @@ public class Cohort {
         foreach (Unit_local member in members) {
             member.deactivate();
         }
-        gameState.activeCohorts.Remove(this);
         gameState.activeCohortsChangedFlag = true;
     }
 
@@ -207,6 +204,7 @@ public class Cohort {
     }
 
     public void makeUnit (string unitType, int batchSize = 1) {
+        Debug.Log("makeUnit starts with it at " + spawnLocationCycler);
         unitType = "Units/" + unitType;
         int expense = ((GameObject)Resources.Load(unitType)).GetComponent<UnitBlueprint>().costToBuild;
         int purse = collectiveMeat();
@@ -240,16 +238,12 @@ public class Cohort {
         while (batchSize > 0 && loopBreaker < 1000) {
 //In the future, there needs to be a mechanism to detect whether the space around the factory is obstructed, and probably to move those obstructing units. I'd suggest making makeUnit return a boolean
 //which will be false as long as the space is obstructed, and then have the ordering method handle the subsiquent calls and the moving of units.
-            try {
-                PhotonNetwork.Instantiate(unitType, spots[spots.Length - batchSize], Quaternion.identity);
-            }
-            catch {
-                Debug.Log("Caught it: " + batchSize);
-            }
-            ++spawnLocationCycler;
+            PhotonNetwork.Instantiate(unitType, spots[spots.Length - batchSize], Quaternion.identity);
+            spawnLocationCycler = (spawnLocationCycler + 1) % 6;
             --batchSize;
             ++loopBreaker;
         }
+        Debug.Log("...and ends with it at " + spawnLocationCycler);
     }
 
     public void moveCohort (Vector2 goTo, GameObject follow) {
@@ -349,6 +343,7 @@ public class Cohort {
     }
 
     Vector3 [] spawnLocations (string type) {
+        Debug.Log("spawnLocations starts with it at " + spawnLocationCycler);
 //In the future, this should account for things like obstructing terrain, and also the size of the unit being created.
         Vector3 [] toReturn = new Vector3[6];
         Vector3 spawnSpot = Vector3.zero;
@@ -363,10 +358,9 @@ public class Cohort {
             Vector3 result = spawnSpot + new Vector3(direction.x, direction.y, 0) * unitRadius * 2;
             result.z = -.2f;
             toReturn[i] = result;
-            if (++spawnLocationCycler >= 6) {
-                spawnLocationCycler = 0;
-            }
+            spawnLocationCycler = (spawnLocationCycler + 1) % 6;
         }
+        Debug.Log("... and ends with it at " + spawnLocationCycler);
         return toReturn;
     }
 

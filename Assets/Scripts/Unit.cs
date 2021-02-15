@@ -48,10 +48,7 @@ public class Unit : MonoBehaviourPun {
     public virtual void Start () {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
         gameState.enlivenUnit(gameObject);
-        statusBar = transform.GetChild(1).GetComponent<BarManager>();
-//this needs to be here, rather than in Awake, so that if there's starting meat then the BarManager sees the right abount of meat when it wakes up
-        statusBar.gameObject.SetActive(true);
-        addMeat(stats.startingMeat);
+
         string spriteAddress = "Sprites/" + gameObject.name;
         defaultIcon = Resources.Load<Sprite>(spriteAddress + "_icon");
         highlightedIcon = Resources.Load<Sprite>(spriteAddress + "_icon" + " (highlighted)");
@@ -63,6 +60,10 @@ public class Unit : MonoBehaviourPun {
         contextCircle = transform.GetChild(2).GetChild(0).gameObject;
         blueCircle = transform.GetChild(3).gameObject;
         ignition();
+        statusBar = transform.GetChild(1).GetComponent<BarManager>();
+//this needs to be here, rather than in Awake, so that if there's starting meat then the BarManager sees the right abount of meat when it wakes up
+        statusBar.gameObject.SetActive(true);
+        addMeat(stats.startingMeat);
     }
 
     public virtual void ignition () {
@@ -78,7 +79,7 @@ public class Unit : MonoBehaviourPun {
                     weapon.StartCoroutine("fire"); 
                 } 
             }
-            if (photonView.IsMine == true && gameState.activeCohorts.Contains(cohort)) {
+            if (photonView.IsMine == true && blueCircle.activeInHierarchy == true) {
                 gameState.activeCohortsChangedFlag = true;
             }
             return true;

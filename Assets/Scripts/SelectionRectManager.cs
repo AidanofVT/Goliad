@@ -79,10 +79,7 @@ public class SelectionRectManager : MonoBehaviour {
         gameState.clearActive();
         if (Input.GetButton("modifier") == false) {
             foreach (Unit_local aboutToBeActivated in candidates) {
-                aCohort = aboutToBeActivated.cohort;
-                if (gameState.activeCohorts.Contains(aCohort) == false) {
-                    aCohort.activate();
-                }
+                aboutToBeActivated.cohort.activate();
             }
         }
         else {

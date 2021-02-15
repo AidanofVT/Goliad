@@ -35,9 +35,12 @@ public class Unit_local : Unit {
 
     public virtual void activate () {
 // This should only be called by the unit's cohort.
-        gameState.activateUnit(gameObject);
-        blueCircle.SetActive(true);
-        icon.sprite = highlightedIcon;
+        if (blueCircle.activeInHierarchy == false) {
+            gameState.activateUnit(this);
+            blueCircle.SetActive(true);
+            icon.sprite = highlightedIcon;
+            gameState.activeCohortsChangedFlag = true;
+        }
     }
 
     public void attack (GameObject target) {
@@ -49,8 +52,8 @@ public class Unit_local : Unit {
             cohort.removeMember(this);
             if (task != null && (task.nature == Task.actions.give || task.nature == Task.actions.take)) {
                 cohort.TaskAbandoned(task, dispensed);
-                Stop();
             }
+            Stop();
         }
         if (newCohort == null || newCohort.Equals(soloCohort)) {
             newCohort = soloCohort;
@@ -66,7 +69,7 @@ public class Unit_local : Unit {
         blueCircle.SetActive(false);
 // if there were ever a case where the unit were deactivated but needed to remain highlighted, like for targeting, this could be a problem 
         icon.sprite = defaultIcon;
-        gameState.deactivateUnit(gameObject);
+        gameState.deactivateUnit(this);
     }
 
     [PunRPC]
@@ -74,7 +77,6 @@ public class Unit_local : Unit {
         SendMessage("deathProtocal", null, SendMessageOptions.DontRequireReceiver);
         spindown();
         if (cohort == soloCohort) {
-            gameState.activeCohorts.Remove(soloCohort);
             gameState.activeCohortsChangedFlag = true;
         }
         else {

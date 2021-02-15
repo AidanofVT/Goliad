@@ -4,12 +4,11 @@ using UnityEngine;
 using Photon.Pun;
 
 public class GameState : MonoBehaviourPun {
-    List<GameObject> activeUnits = new List<GameObject>();
     List<GameObject> alliedUnits = new List<GameObject>();
+    public List<Unit_local> activeUnits = new List<Unit_local>();
     public List<Transform> allIconTransforms = new List<Transform>();
 //activeCohorts only exists to facilitate the dissolving of cohorts prior to a new cohort being formed
 //there should never be more than one cohort responding to a single order
-    public List<Cohort> activeCohorts = new List<Cohort>();
 
     //NOTE: If you want to go bigger by using a smaller sort of number, you'll have to do something in the shader, because it needs things passed to it as 32-bit words. 
     public byte [,] map;
@@ -25,34 +24,36 @@ public class GameState : MonoBehaviourPun {
     }
 
     public Cohort combineActiveCohorts () {
-        if (activeCohorts.Count == 1) {
-            if (activeCohorts[0].members[0].soloCohort.Equals(activeCohorts[0])) {
-                activeCohorts[0].members[0].changeCohort();
+        bool onlyOneCohort = true;
+        Cohort firstCohort = activeUnits[0].cohort;
+        int accounted = 0;
+        foreach (Unit_local individual in activeUnits) {
+            ++accounted;
+            if (individual.cohort.Equals(firstCohort) == false) {
+                onlyOneCohort = false;
+                break;
             }
-            return activeCohorts[0];
+        }
+        if (onlyOneCohort == false || accounted != firstCohort.members.Count) {
+            Cohort newCohort = new Cohort();
+            foreach (Unit_local individual in activeUnits) {            
+                individual.changeCohort(newCohort);
+            }
+            return newCohort;
         }
         else {
-            Cohort newCohort = new Cohort();
-            foreach (Cohort selectedCohort in activeCohorts) {
-                List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(selectedCohort.members);
-                foreach (Unit_local individual in thisIsToSupressWarnings) {
-                    individual.changeCohort(newCohort);
-                }
-            }
-            activeCohorts.Clear();
-            activeCohorts.Add(newCohort);
-            return activeCohorts[0];
+            return firstCohort;
         }
     }
 
-    public void activateUnit (GameObject toAdd) {
+    public void activateUnit (Unit_local toAdd) {
         //Debug.Log("Attempting to add object to activeUnits.");
         if (activeUnits.Contains(toAdd) == false) {
             activeUnits.Add(toAdd);
         }        
     }
 
-    public void deactivateUnit (GameObject toRem) {
+    public void deactivateUnit (Unit_local toRem) {
         //Debug.Log("Attempting to remove object from activeUnits.");
         if (activeUnits.Contains(toRem)) {
             activeUnits.Remove(toRem);
@@ -70,12 +71,12 @@ public class GameState : MonoBehaviourPun {
         //Debug.Log("Attempting to remove object from aliveUnits.");
         if (toRem.GetPhotonView().OwnerActorNr == playerNumber) {
             alliedUnits.Remove(toRem);
-            activeUnits.Remove(toRem);
+            activeUnits.Remove(toRem.GetComponent<Unit_local>());
         }
         allIconTransforms.Remove(toRem.transform.GetChild(4));    
     }
 
-    public List<GameObject> getActiveUnits () {
+    public List<Unit_local> getActiveUnits () {
         return activeUnits;
     }
 
@@ -88,11 +89,10 @@ public class GameState : MonoBehaviourPun {
     }
 
     public void clearActive () {
-        List <Cohort> thisIsToSupressWarnings = new List<Cohort> (activeCohorts);
-        foreach (Cohort cohort in thisIsToSupressWarnings) {
-            cohort.deactivate();
+        List <Unit_local> thisIsToSupressWarnings = new List<Unit_local> (activeUnits);
+        foreach (Unit_local aUnit in thisIsToSupressWarnings) {
+            aUnit.deactivate();
         }
-        activeCohorts.Clear();
         //Debug.Log("Clearactive called. activeUnits size = " + activeUnits.Count);
     }
 

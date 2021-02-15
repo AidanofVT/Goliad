@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class CohortUIManager : MonoBehaviour {
     GameState gameState;
-    public List<Cohort> cohorts = new List<Cohort>();
+    public List<Unit_local> units = new List<Unit_local>();
     GameObject bar;
     GameObject buttonsGroup;
     Hashtable buttonsAndCosts = new Hashtable();
@@ -22,7 +22,7 @@ public class CohortUIManager : MonoBehaviour {
 
     void Start() {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
-        cohorts = gameState.activeCohorts;
+        units = gameState.activeUnits;
         bar = transform.GetChild(0).gameObject;
         yellowBar = transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>();
         greyBar = transform.GetChild(0).GetChild(1).GetComponent<SpriteRenderer>();
@@ -44,10 +44,9 @@ public class CohortUIManager : MonoBehaviour {
     }
 
     public void ChimeAllChimers () {
-        foreach (Cohort aCohort in cohorts) {
-            if (aCohort.shepherdMembers.Count > 0) {
-                aCohort.chime();
-            }
+//We can do better than this. Do it by cohort and use the shepherd unit list.
+        foreach (Unit aUnit in units) {
+            aUnit.SendMessage("chime");
         }
     }
 
@@ -59,7 +58,7 @@ public class CohortUIManager : MonoBehaviour {
     void updateInterface () {
         bool cohortsContainDepot = false;
         bool cohortsContainShepherd = false;
-        if (cohorts.Count <= 0) {
+        if (units.Count <= 0) {
             bar.SetActive(false);
             buttonsGroup.SetActive(false);
         }
@@ -70,17 +69,15 @@ public class CohortUIManager : MonoBehaviour {
             }
             heldSum = 0;
             capacitySum = 0;
-            foreach (Cohort activeOne in cohorts) {
-                if (activeOne.depotMembers.Count > 0) {
+            foreach (Unit_local unit in units) {
+                if (unit.name.Contains("depot")) {
                     cohortsContainDepot = true;
                 }
-                if (activeOne.shepherdMembers.Count > 0) {
+                if (unit.name.Contains("shepherd")) {
                     cohortsContainShepherd = true;
                 }
-                foreach (Unit individual in activeOne.members) {
-                    heldSum += individual.meat;
-                    capacitySum += individual.stats.meatCapacity;                    
-                }
+                heldSum += unit.meat;
+                capacitySum += unit.stats.meatCapacity;                    
             }
             float magnitude = (Mathf.Pow((capacitySum + 2700) / 210, 2.9f) - Mathf.Pow((capacitySum + 2700) / 530, 3.9f) - 1000) / 3075;
             float xMagnitude = magnitude * maxWidth;
@@ -137,10 +134,8 @@ public class CohortUIManager : MonoBehaviour {
     }
 
     public void OrderThing(string whatThing) {
-        if (cohorts.Count > 1) {
-            gameState.combineActiveCohorts();
-        }
-        cohorts[0].makeUnit(whatThing);
+        Cohort newCohort = gameState.combineActiveCohorts();
+        newCohort.makeUnit(whatThing);
         updateInterface();
         ShowCost();
     }
@@ -163,10 +158,8 @@ public class CohortUIManager : MonoBehaviour {
     }
     
     public void Slaughter () {
-        foreach (Cohort aCohort in cohorts) {
-            if (aCohort.depotMembers.Count > 0) {
-                aCohort.Slaughter();
-            }
+        foreach (Unit_local unit in units) {
+            unit.SendMessage("slaughter");
         }
     }
 }
