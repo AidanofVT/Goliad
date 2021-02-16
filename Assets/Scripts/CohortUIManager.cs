@@ -23,30 +23,37 @@ public class CohortUIManager : MonoBehaviour {
     void Start() {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
         units = gameState.activeUnits;
-        bar = transform.GetChild(0).gameObject;
-        yellowBar = transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>();
-        greyBar = transform.GetChild(0).GetChild(1).GetComponent<SpriteRenderer>();
-        fadedBar = transform.GetChild(0).GetChild(2).GetComponent<SpriteRenderer>();
+        bar = transform.GetChild(0).GetChild(0).gameObject;
+        greyBar = transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<SpriteRenderer>();
+        yellowBar = transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<SpriteRenderer>();
+        fadedBar = transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<SpriteRenderer>();
         Color barColor = fadedBar.color;
         barColor.a = 0.5f;
         fadedBar.color = barColor;
-        buttonsGroup = transform.GetChild(1).gameObject;        
+        buttonsGroup = transform.GetChild(0).GetChild(1).gameObject;        
         for (int i = 0; i < 6; ++i) {
-            Button button = transform.GetChild(1).GetChild(i).GetComponent<Button>();
+            Button button = transform.GetChild(0).GetChild(1).GetChild(i).GetComponent<Button>();
             string associatedUnit = button.name.Remove(button.name.IndexOf(" "));
             int productionCost = ((GameObject)Resources.Load("Units/" + associatedUnit)).GetComponent<UnitBlueprint>().costToBuild;
             buttonsAndCosts.Add(button, productionCost);
         }
-        slaughterButton = transform.GetChild(2).gameObject;
-        chimeButton = transform.GetChild(3).gameObject;
-        maxHeight = (int) transform.GetChild(0).GetChild(1).GetComponent<SpriteRenderer>().size.y;
-        maxWidth = (int) transform.GetChild(0).GetChild(1).GetComponent<SpriteRenderer>().size.x;
+        slaughterButton = transform.GetChild(1).GetChild(0).gameObject;
+        chimeButton = transform.GetChild(1).GetChild(1).gameObject;
+        maxHeight = (int) transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().size.y;
+        maxWidth = (int) transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().size.x;
     }
 
     public void ChimeAllChimers () {
-//We can do better than this. Do it by cohort and use the shepherd unit list.
-        foreach (Unit aUnit in units) {
-            aUnit.SendMessage("chime");
+        List<Cohort> alreadyCalled = new List<Cohort>();
+        foreach (Unit_local unit in units) {
+            Cohort thisOnesCohort = unit.cohort;
+            thisOnesCohort.chime();
+            if (alreadyCalled.Contains(thisOnesCohort)) {
+                break;
+            }
+            else {
+                alreadyCalled.Add(thisOnesCohort);
+            }
         }
     }
 
@@ -99,11 +106,11 @@ public class CohortUIManager : MonoBehaviour {
         }
         slaughterButton.SetActive(cohortsContainDepot);
         chimeButton.SetActive(cohortsContainShepherd);
-        gameState.activeCohortsChangedFlag = false;
+        gameState.activeUnitsChangedFlag = false;
     }
 
     void Update() {
-        if (Input.GetButtonDown("modifier") == true || Input.GetButtonUp("modifier") == true || gameState.activeCohortsChangedFlag == true) {
+        if (Input.GetButtonDown("modifier") == true || Input.GetButtonUp("modifier") == true || gameState.activeUnitsChangedFlag == true) {
             updateInterface();
             ShowCost();            
         }  
@@ -158,8 +165,16 @@ public class CohortUIManager : MonoBehaviour {
     }
     
     public void Slaughter () {
+        List<Cohort> alreadyCalled = new List<Cohort>();
         foreach (Unit_local unit in units) {
-            unit.SendMessage("slaughter");
+            Cohort thisOnesCohort = unit.cohort;
+            thisOnesCohort.Slaughter();
+            if (alreadyCalled.Contains(thisOnesCohort)) {
+                break;
+            }
+            else {
+                alreadyCalled.Add(thisOnesCohort);
+            }
         }
     }
 }

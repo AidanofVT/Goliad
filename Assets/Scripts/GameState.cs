@@ -14,7 +14,7 @@ public class GameState : MonoBehaviourPun {
     public byte [,] map;
     public int mapOffset;
     public int playerNumber;
-    public bool activeCohortsChangedFlag = false;
+    public bool activeUnitsChangedFlag = false;
 
     void Awake () {
 //this is in Awake rather than Start so that the array gets made before other scripts try to access it.
@@ -50,13 +50,15 @@ public class GameState : MonoBehaviourPun {
         //Debug.Log("Attempting to add object to activeUnits.");
         if (activeUnits.Contains(toAdd) == false) {
             activeUnits.Add(toAdd);
-        }        
+            activeUnitsChangedFlag = true;
+        }
     }
 
     public void deactivateUnit (Unit_local toRem) {
         //Debug.Log("Attempting to remove object from activeUnits.");
         if (activeUnits.Contains(toRem)) {
             activeUnits.Remove(toRem);
+            activeUnitsChangedFlag = true;
         }
     }
 
@@ -71,7 +73,7 @@ public class GameState : MonoBehaviourPun {
         //Debug.Log("Attempting to remove object from aliveUnits.");
         if (toRem.GetPhotonView().OwnerActorNr == playerNumber) {
             alliedUnits.Remove(toRem);
-            activeUnits.Remove(toRem.GetComponent<Unit_local>());
+            deactivateUnit(toRem.GetComponent<Unit_local>());
         }
         allIconTransforms.Remove(toRem.transform.GetChild(4));    
     }

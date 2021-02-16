@@ -48,7 +48,6 @@ public class Unit : MonoBehaviourPun {
     public virtual void Start () {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
         gameState.enlivenUnit(gameObject);
-
         string spriteAddress = "Sprites/" + gameObject.name;
         defaultIcon = Resources.Load<Sprite>(spriteAddress + "_icon");
         highlightedIcon = Resources.Load<Sprite>(spriteAddress + "_icon" + " (highlighted)");
@@ -59,11 +58,11 @@ public class Unit : MonoBehaviourPun {
         viewManager.resizeIcons(icon.gameObject);
         contextCircle = transform.GetChild(2).GetChild(0).gameObject;
         blueCircle = transform.GetChild(3).gameObject;
-        ignition();
         statusBar = transform.GetChild(1).GetComponent<BarManager>();
-//this needs to be here, rather than in Awake, so that if there's starting meat then the BarManager sees the right abount of meat when it wakes up
         statusBar.gameObject.SetActive(true);
+//this needs to be here, rather than in Awake, so that if there's starting meat then the BarManager sees the right abount of meat when it wakes up
         addMeat(stats.startingMeat);
+        ignition();
     }
 
     public virtual void ignition () {
@@ -80,7 +79,7 @@ public class Unit : MonoBehaviourPun {
                 } 
             }
             if (photonView.IsMine == true && blueCircle.activeInHierarchy == true) {
-                gameState.activeCohortsChangedFlag = true;
+                gameState.activeUnitsChangedFlag = true;
             }
             return true;
         }
@@ -93,7 +92,8 @@ public class Unit : MonoBehaviourPun {
     public bool deductMeat (int toDeduct) {
         if (meat - toDeduct >= 0) {
             meat -= toDeduct;
-            statusBar.updateBar();
+            gameState.activeUnitsChangedFlag = true;
+// I have no idea what this is intended for:
             if (meat + toDeduct >= stats.meatCapacity) {
                 Debug.Log("1");
                 Physics2D.queriesHitTriggers = true;

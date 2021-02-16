@@ -73,18 +73,18 @@ public class SheepBehavior_Local : SheepBehavior_Base
             float conveneAppeal;
             if (legs.isNavigable(updateFlockCenter()) == false || Vector2.Distance(flockCenter, transform.position) < 6) {
                 conveneAppeal = 0;
-                if (legs.isNavigable(updateFlockCenter()) == false) {
-                    Debug.Log("flock center obstructed");
-                }
-                if (Vector2.Distance(flockCenter, transform.position) < 6) {
-                    Debug.Log("flock center under minimum range");
-                }
+                // if (legs.isNavigable(updateFlockCenter()) == false) {
+                //     Debug.Log("flock center obstructed");
+                // }
+                // if (Vector2.Distance(flockCenter, transform.position) < 6) {
+                //     Debug.Log("flock center under minimum range");
+                // }
             }
             else {
                 conveneAppeal = shepherdMultiplier * Mathf.Pow(Vector2.Distance(transform.position, flockCenter), 1.3f) / 2;
             }
             float roll = Random.Range(0, eatAppeal + conveneAppeal + idleMargin);
-            Debug.Log("The results are in: eatAppeal is " + eatAppeal + ". ConveneAppeal is " + conveneAppeal + ". The roll is " + roll + ".");
+            // Debug.Log("The results are in: eatAppeal is " + eatAppeal + ". ConveneAppeal is " + conveneAppeal + ". The roll is " + roll + ".");
             if (roll <= eatAppeal) {
                 InvokeRepeating("walkToFood", 0, 0.1f);
                 InvokeRepeating("checkFoodTarget", 1, 1);
@@ -295,7 +295,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
             updateFlockCenter();
             Invoke("decayShepherdPower", 15);
         }
-        Debug.Log("Chime heard. Shepherd influence is now " + shepherdMultiplier);
+        // Debug.Log("Chime heard. Shepherd influence is now " + shepherdMultiplier);
     }
 
     void decayShepherdPower () {

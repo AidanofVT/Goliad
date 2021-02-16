@@ -54,3 +54,63 @@ TagManager:
   - name: upper UI
     uniqueID: 2671098565
     locked: 0
+  - name: ground
+    uniqueID: 906846967
+    locked: 0
+  - name: blue circles
+    uniqueID: 2404867607
+    locked: 0
+  - name: dotted circles
+    uniqueID: 869046477
+    locked: 0
+  - name: sheep sprites
+    uniqueID: 471918669
+    locked: 0
+  - name: courier sprites
+    uniqueID: 3586224381
+    locked: 0
+  - name: dog sprites
+    uniqueID: 1520675979
+    locked: 0
+  - name: shepherd sprites
+    uniqueID: 1907043043
+    locked: 0
+  - name: hoplite sprites
+    uniqueID: 979218591
+    locked: 0
+  - name: depot sprites
+    uniqueID: 2466757351
+    locked: 0
+  - name: unit strike boxes
+    uniqueID: 3368446373
+    locked: 0
+  - name: unit meat bars
+    uniqueID: 996351935
+    locked: 0
+  - name: sheep icons
+    uniqueID: 1504611995
+    locked: 0
+  - name: courier icons
+    uniqueID: 496430201
+    locked: 0
+  - name: dog icons
+    uniqueID: 2836178059
+    locked: 0
+  - name: shepherd icons
+    uniqueID: 962036799
+    locked: 0
+  - name: hoplite icons
+    uniqueID: 2069614453
+    locked: 0
+  - name: depot icons
+    uniqueID: 3595372081
+    locked: 0
+  - name: UI meat capacity
+    uniqueID: 2241627315
+    locked: 0
+  - name: UI current meat
+    uniqueID: 2224886237
+    locked: 0
+  - name: UI buttons
+    uniqueID: 3079515135
+    locked: 0

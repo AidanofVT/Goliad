@@ -39,7 +39,6 @@ public class Unit_local : Unit {
             gameState.activateUnit(this);
             blueCircle.SetActive(true);
             icon.sprite = highlightedIcon;
-            gameState.activeCohortsChangedFlag = true;
         }
     }
 
@@ -77,7 +76,6 @@ public class Unit_local : Unit {
         SendMessage("deathProtocal", null, SendMessageOptions.DontRequireReceiver);
         spindown();
         if (cohort == soloCohort) {
-            gameState.activeCohortsChangedFlag = true;
         }
         else {
             cohort.removeMember(this);
@@ -131,29 +129,7 @@ public class Unit_local : Unit {
         newCollider.isTrigger = true;
         newCollider.radius = 10;
     }
-
-    GameObject spawnOrb (Vector3 where, int poolSize, Unit_local pullFrom) {
-        int payload;
-        if (poolSize >= 70) {
-            payload = Random.Range(5, 8);
-        }
-        else if (poolSize >= 20) {
-            payload = Random.Range(3, 6);
-        }
-        else if (poolSize >= 5) {
-            payload = Random.Range(2, 5);
-        }
-        else {
-            payload = poolSize;
-        }
-        GameObject newOrb = PhotonNetwork.Instantiate("Orb", where, Quaternion.identity);
-        newOrb.GetPhotonView().RPC("fill", RpcTarget.All, payload);
-        if (pullFrom != null) {
-            pullFrom.photonView.RPC("deductMeat", RpcTarget.All, payload);
-        }
-        return newOrb;
-    }
-    
+  
     public IEnumerator passOrb (GameObject to, GameObject newOrb) {
         yield return new WaitForSeconds(0);
         OrbBehavior_Local inQuestion = newOrb.GetComponent<OrbBehavior_Local>();
@@ -182,6 +158,30 @@ public class Unit_local : Unit {
         viewManager.removeFromPalette(this);
     }
 
+    GameObject spawnOrb (Vector3 where, int poolSize, Unit_local pullFrom) {
+        Debug.Log("spawnorb");
+        int payload;
+        if (poolSize >= 70) {
+            payload = Random.Range(5, 8);
+        }
+        else if (poolSize >= 20) {
+            payload = Random.Range(3, 6);
+        }
+        else if (poolSize >= 5) {
+            payload = Random.Range(2, 5);
+        }
+        else {
+            payload = poolSize;
+        }
+        Debug.Log(payload);
+        GameObject newOrb = PhotonNetwork.Instantiate("Orb", where, Quaternion.identity);
+        newOrb.GetPhotonView().RPC("fill", RpcTarget.All, payload);
+        if (pullFrom != null) {
+            pullFrom.photonView.RPC("deductMeat", RpcTarget.All, payload);
+        }
+        return newOrb;
+    }
+  
     void spindown () {
         GameObject orb = (GameObject)Resources.Load("Orb");
         int drop = meat + (int) (stats.costToBuild * Random.Range(0.2f, 0.6f));

@@ -24,7 +24,6 @@ public class Cohort {
                 unit.changeCohort(this);
             }        
         }
-        gameState.activeCohortsChangedFlag = true;
         //Debug.Log("cohort created with " + members.Count + " members");
     }
 
@@ -188,7 +187,6 @@ public class Cohort {
         foreach (Unit_local member in members) {
             member.deactivate();
         }
-        gameState.activeCohortsChangedFlag = true;
     }
 
     public void Highlight () {
@@ -204,7 +202,6 @@ public class Cohort {
     }
 
     public void makeUnit (string unitType, int batchSize = 1) {
-        Debug.Log("makeUnit starts with it at " + spawnLocationCycler);
         unitType = "Units/" + unitType;
         int expense = ((GameObject)Resources.Load(unitType)).GetComponent<UnitBlueprint>().costToBuild;
         int purse = collectiveMeat();
@@ -243,7 +240,6 @@ public class Cohort {
             --batchSize;
             ++loopBreaker;
         }
-        Debug.Log("...and ends with it at " + spawnLocationCycler);
     }
 
     public void moveCohort (Vector2 goTo, GameObject follow) {
@@ -333,7 +329,6 @@ public class Cohort {
         mobileMembers.Remove(reject);
         depotMembers.Remove(reject);
         shepherdMembers.Remove(reject);
-        gameState.activeCohortsChangedFlag = true;
     }
 
     public void Slaughter () {
@@ -343,7 +338,6 @@ public class Cohort {
     }
 
     Vector3 [] spawnLocations (string type) {
-        Debug.Log("spawnLocations starts with it at " + spawnLocationCycler);
 //In the future, this should account for things like obstructing terrain, and also the size of the unit being created.
         Vector3 [] toReturn = new Vector3[6];
         Vector3 spawnSpot = Vector3.zero;
@@ -360,7 +354,6 @@ public class Cohort {
             toReturn[i] = result;
             spawnLocationCycler = (spawnLocationCycler + 1) % 6;
         }
-        Debug.Log("... and ends with it at " + spawnLocationCycler);
         return toReturn;
     }
 
