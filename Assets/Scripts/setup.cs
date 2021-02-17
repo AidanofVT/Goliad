@@ -50,7 +50,7 @@ public class setup : MonoBehaviourPunCallbacks {
         else if (me == 2) {
             startPlace = new Vector3 (distanceFromCenter, -distanceFromCenter, -.2f);
         }
-        Camera.main.transform.position = startPlace + new Vector3(0, 0, -9.8f);
+        // Camera.main.transform.position = startPlace + new Vector3(0, 0, -9.8f);
         StartCoroutine(step2(startPlace));
     }
 

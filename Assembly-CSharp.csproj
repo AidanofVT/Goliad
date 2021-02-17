@@ -77,6 +77,7 @@
      <Compile Include="Assets\Scripts\OrbBehavior_Local.cs" />
      <Compile Include="Assets\Scripts\OrbMeatContainer.cs" />
      <Compile Include="Assets\Scripts\ProductionButtonBridge.cs" />
+     <Compile Include="Assets\Scripts\SelectionCircleManager.cs" />
      <Compile Include="Assets\Scripts\SelectionRectManager.cs" />
      <Compile Include="Assets\Scripts\setup.cs" />
      <Compile Include="Assets\Scripts\ShaderHandler.cs" />
