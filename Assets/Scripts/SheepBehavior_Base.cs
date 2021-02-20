@@ -26,6 +26,11 @@ public class SheepBehavior_Base : MonoBehaviourPun {
     }
 
     [PunRPC]
+    public void Grow (float finalMagnitude) {
+        transform.localScale = new Vector3(finalMagnitude, finalMagnitude, 1);
+    }
+
+    [PunRPC]
     public virtual void hearChime (int chimerPhotonID) {
 
     }

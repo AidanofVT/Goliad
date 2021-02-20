@@ -92,17 +92,16 @@ public class Unit : MonoBehaviourPun {
     public bool deductMeat (int toDeduct) {
         if (meat - toDeduct >= 0) {
             meat -= toDeduct;
+            statusBar.updateBar();
             gameState.activeUnitsChangedFlag = true;
 // I have no idea what this is intended for:
             if (meat + toDeduct >= stats.meatCapacity) {
-                Debug.Log("1");
                 Physics2D.queriesHitTriggers = true;
                 Collider2D [] contacts = Physics2D.OverlapPointAll(transform.position);
                 Physics2D.queriesHitTriggers = false;
                 foreach (Collider2D maybeOrb in contacts) {
                     OrbBehavior_Base yeahOrb = maybeOrb.GetComponent<OrbBehavior_Local>();
                     if (yeahOrb != null && yeahOrb.available == true) {
-                        Debug.Log("2");
                         yeahOrb.StartCoroutine("GoForIt", gameObject);
                     }
                 }

@@ -13,6 +13,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
 
     List<GameObject> flock = new List<GameObject>();
     List<GameObject> farFlock = new List<GameObject>();
+    List<Transform> dogs = new List<Transform>();
     Vector2 flockCenter;
     public GameObject shepherd;
     public int shepherdMultiplier = 1;
@@ -86,12 +87,13 @@ public class SheepBehavior_Local : SheepBehavior_Base
             float roll = Random.Range(0, eatAppeal + conveneAppeal + idleMargin);
             // Debug.Log("The results are in: eatAppeal is " + eatAppeal + ". ConveneAppeal is " + conveneAppeal + ". The roll is " + roll + ".");
             if (roll <= eatAppeal) {
-                InvokeRepeating("walkToFood", 0, 0.1f);
-                InvokeRepeating("checkFoodTarget", 1, 1);
+                StartCoroutine(WalkToFood());
+                // InvokeRepeating("walkToFood", 0, 0.1f);
+                // InvokeRepeating("checkFoodTarget", 1, 1);
                 return true;
             }
             else if (roll <= eatAppeal + conveneAppeal) {
-                goForSafety();
+                StartCoroutine(GoForSafety());
                 return true;
             }
         }
@@ -202,59 +204,46 @@ public class SheepBehavior_Local : SheepBehavior_Base
         //Debug.Log("Exploiting " + Mathf.FloorToInt(transform.position.x) + Mathf.FloorToInt(transform.position.y));
         if (Goliad.GetComponent<MapManager>().exploitPatch(new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y)))) {
             if (gameObject.GetComponent<Unit>().addMeat(1) == true) {
-                        transform.localScale *= 1.02f;
+                photonView.RPC("Grow", RpcTarget.All, transform.localScale.x * 1.02f);
             }
         }
-        CancelInvoke("walkToFood");
-        CancelInvoke("checkFoodTarget");
+        // CancelInvoke("walkToFood");
+        // CancelInvoke("checkFoodTarget");
         StartCoroutine(idle(0));
     }    
 
-    void checkFoodTarget () {
-        //Debug.Log("checkfoodtarget with range " + ((int) Vector3.Distance(transform.position, currentMostAppealingPatch) + 2));
-        if (!searchForFood((int) Vector3.Distance(transform.position, currentMostAppealingPatch) + 2, false)) {
-            CancelInvoke("walkToFood");
-            CancelInvoke("checkFoodTarget");
-            StartCoroutine(idle(0));
-        }
+    IEnumerator GoForSafety () {
+        float toGo = Vector3.Distance(transform.position, (Vector3) flockCenter);
+        legs.speed = Mathf.Clamp(2 + toGo * 0.1f, 2, 6);
+        float ETA = toGo / legs.speed;
+        legs.setDestination(flockCenter, null);
+        yield return new WaitForSeconds(ETA);
+        legs.speed = thisSheep.stats.speed;
+        StartCoroutine(idle());
+        yield return null;
     }
 
-    void goForSafety () {
-        int toGo = (int) Vector3.Distance(transform.position, (Vector3) flockCenter);
-        if (toGo < 40) {
-            legs.speed += 0.1f * toGo;
-        }
-        else {
-            legs.speed = 6;
-        }
-        legs.setDestination(flockCenter, null, Mathf.Pow(flock.Count, 0.6f));
-        StartCoroutine(idle(toGo / legs.speed));
-        Invoke("resetSpeed", toGo / legs.speed);
-    }
-
-    void walkToFood () {
-        if (legs.isRunning) {
-            //Debug.Log("legs running");
-            if (gameState.getPatchValue(Mathf.FloorToInt(currentMostAppealingPatch.x), Mathf.FloorToInt(currentMostAppealingPatch.y)) < 1) {
-                CancelInvoke("walkToFood");
-                CancelInvoke("checkFoodTarget");
-                StartCoroutine(idle(0));
+    IEnumerator WalkToFood () {
+        legs.setDestination(currentMostAppealingPatch);
+        Vector2Int hereInt;      
+        Vector2Int thereInt;
+        int performantCycler = 0;
+        while (true) {
+            performantCycler = (performantCycler + 1) % 20;
+            if (gameState.getPatchValue(Mathf.FloorToInt(currentMostAppealingPatch.x), Mathf.FloorToInt(currentMostAppealingPatch.y)) < 1
+                || (performantCycler == 0 && legs.isNavigable(currentMostAppealingPatch) == false)) {
+                    StartCoroutine(idle(0));
+                    break;
             }
-        }
-        else {
-            //Debug.Log("legs not running");
-            Vector2Int hereInt = new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y));
-            Vector2Int thereInt = new Vector2Int(Mathf.FloorToInt(currentMostAppealingPatch.x), Mathf.FloorToInt(currentMostAppealingPatch.y));
-            if (hereInt != thereInt) {
-                legs.setDestination(currentMostAppealingPatch);
-            }
-            else {
-                //Debug.Log("eating clock started");
-                CancelInvoke("walkToFood");
-                CancelInvoke("checkFoodTarget");
+            hereInt = new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y));
+            thereInt = new Vector2Int(Mathf.FloorToInt(currentMostAppealingPatch.x), Mathf.FloorToInt(currentMostAppealingPatch.y));
+            if (hereInt == thereInt) {
                 Invoke("consume", eatTime);
+                break;
             }
+            yield return new WaitForSeconds(0.1f);
         }
+        yield return null;
     }
 
     void OnTriggerEnter2D(Collider2D thing) {
@@ -265,11 +254,22 @@ public class SheepBehavior_Local : SheepBehavior_Base
                 farFlock.Remove(thing.gameObject);
             }
         }
+        else if (thing.name.Contains("dog") && thing.isTrigger == false && thing.isTrigger == false) {
+            dogs.Add(thing.transform);
+            updateFlockCenter();
+            if (thing.gameObject.GetPhotonView().IsMine == false) {
+                changeBehavior();
+            }
+        }
     }
 
     void OnTriggerExit2D(Collider2D thing) {
-        if (thing.gameObject.GetComponent<SheepBehavior_Base>() != null && thing.isTrigger == false && flock.Contains(thing.gameObject) == true) {
+        if (thing.isTrigger == false && flock.Contains(thing.gameObject) == true) {
             farFlock.Add(thing.gameObject);
+        }
+        else if (thing.isTrigger == false && dogs.Contains(thing.transform)) {
+            dogs.Remove(thing.transform);
+            Debug.Log("removed");
         }
     }
 
@@ -303,10 +303,6 @@ public class SheepBehavior_Local : SheepBehavior_Base
         //Debug.Log("Shepherd power decayed, now = " + shepherdPower);
     }
 
-    void resetSpeed () {
-        legs.speed = thisSheep.stats.speed;
-    }
-
     Vector2 updateFlockCenter () {
         Vector2 there = new Vector2(0,0);
         for (int i = 0; i < flock.Count; ++i) {
@@ -324,8 +320,22 @@ public class SheepBehavior_Local : SheepBehavior_Base
             flockCenter = new Vector2 (there.x / (flock.Count + shepherdMultiplier) + Random.Range(-3, 3), there.y / (flock.Count + shepherdMultiplier) + Random.Range(-3, 3));
         }
         else {
-            flockCenter = new Vector2 (there.x / (flock.Count) + Random.Range(-3, 3), there.y / (flock.Count) + Random.Range(-3, 3));
+            float randomOffset = Random.Range(-3, 3) * transform.localScale.x;
+            flockCenter = new Vector2 (there.x / (flock.Count) + randomOffset, there.y / (flock.Count) + Random.Range(-3, 3));
         }
+        Vector2 totalOffSet = Vector2.zero;
+        foreach (Transform pusher in dogs) {
+            Vector2 offset = transform.position - pusher.position;
+            offset = offset.normalized * Mathf.Pow(15 - Mathf.Clamp(offset.magnitude, 5, 15), 2) / 4;
+            if (pusher.gameObject.GetPhotonView().IsMine == false) {
+                offset *= 3;
+            }
+            Debug.Log("meep");
+            totalOffSet += offset;
+        }
+        Debug.Log(totalOffSet);
+        totalOffSet *= Mathf.Clamp(90 / totalOffSet.magnitude, 0, 1);
+        flockCenter += totalOffSet;
         // Debug.Log("Flockcenter updated. Now " + ((Vector2) transform.position - flockCenter) + " away. Flock size: " + flock.Count + ". Farflock size: " + farFlock.Count + ". Shepherd power: " + shepherdMultiplier);
         return flockCenter;
     }

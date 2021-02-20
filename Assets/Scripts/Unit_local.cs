@@ -159,7 +159,6 @@ public class Unit_local : Unit {
     }
 
     GameObject spawnOrb (Vector3 where, int poolSize, Unit_local pullFrom) {
-        Debug.Log("spawnorb");
         int payload;
         if (poolSize >= 70) {
             payload = Random.Range(5, 8);
@@ -173,7 +172,6 @@ public class Unit_local : Unit {
         else {
             payload = poolSize;
         }
-        Debug.Log(payload);
         GameObject newOrb = PhotonNetwork.Instantiate("Orb", where, Quaternion.identity);
         newOrb.GetPhotonView().RPC("fill", RpcTarget.All, payload);
         if (pullFrom != null) {

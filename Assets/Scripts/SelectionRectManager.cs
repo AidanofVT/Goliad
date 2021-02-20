@@ -104,45 +104,49 @@ public class SelectionRectManager : MonoBehaviour {
 
 
     void OnTriggerEnter2D(Collider2D other) {
-        Unit_local touchedUnit = other.GetComponent<Unit_local>();
-        if (touchedUnit != null) {
-            if (Input.GetButton("modifier") == false) {
-                Cohort maybeOn = touchedUnit.cohort;
-                bool lightsOn = true;
-                foreach (Unit_local inQuestion in candidates) {
-                    if (inQuestion.cohort.Equals(maybeOn)) {
-                        lightsOn = false;
+        if (other.isTrigger == false) {
+            Unit_local touchedUnit = other.GetComponent<Unit_local>();
+            if (touchedUnit != null && other.name.Contains("sheep") == false) {
+                if (Input.GetButton("modifier") == false) {
+                    Cohort maybeOn = touchedUnit.cohort;
+                    bool lightsOn = true;
+                    foreach (Unit_local inQuestion in candidates) {
+                        if (inQuestion.cohort.Equals(maybeOn)) {
+                            lightsOn = false;
+                        }
+                    }
+                    if (lightsOn == true) {
+                        maybeOn.Highlight();
                     }
                 }
-                if (lightsOn == true) {
-                    maybeOn.Highlight();
+                else {
+                    touchedUnit.Highlight();
                 }
+                candidates.Add(touchedUnit);
             }
-            else {
-                touchedUnit.Highlight();
-            }
-            candidates.Add(touchedUnit);
         }
     }
 
     void OnTriggerExit2D(Collider2D other) {
-        Unit_local departedUnit = other.GetComponent<Unit_local>();
-        if (departedUnit != null) {
-            candidates.Remove(departedUnit);
-            if (Input.GetButton("modifier") == false) {
-                Cohort maybeExtingiush = departedUnit.cohort;         
-                bool lightsOut = true;
-                foreach (Unit_local inQuestion in candidates) {
-                    if (inQuestion.cohort.Equals(maybeExtingiush)) {
-                        lightsOut = false;
+        if (other.isTrigger == false) {
+            Unit_local departedUnit = other.GetComponent<Unit_local>();
+            if (departedUnit != null && other.name.Contains("sheep") == false) {
+                candidates.Remove(departedUnit);
+                if (Input.GetButton("modifier") == false) {
+                    Cohort maybeExtingiush = departedUnit.cohort;         
+                    bool lightsOut = true;
+                    foreach (Unit_local inQuestion in candidates) {
+                        if (inQuestion.cohort.Equals(maybeExtingiush)) {
+                            lightsOut = false;
+                        }
+                    }
+                    if (lightsOut == true) {
+                        maybeExtingiush.HighlightOff();
                     }
                 }
-                if (lightsOut == true) {
-                    maybeExtingiush.HighlightOff();
+                else {
+                    departedUnit.Unhighlight();
                 }
-            }
-            else {
-                departedUnit.Unhighlight();
             }
         }
     }

@@ -157,15 +157,14 @@ public class Cohort {
             from = masterTask.objectUnit.GetComponent<Unit>().cohort;
             to = this;
         }
-        foreach (Unit_local giver in from.members) {
-            if (giver.meat > 0) {
-                remainingToProvide.Add(giver, giver.meat);
-            }
-        }
-        Debug.Log("there are " + remainingToProvide.Count + " providers");
         foreach (Unit_local recipient in to.members) {
             if (recipient.roomForMeat() > 0) {
                 remainingToAccept.Add(recipient, recipient.roomForMeat());
+            }
+        }
+        foreach (Unit_local giver in from.members) {
+            if (giver.meat > 0 && remainingToAccept.ContainsKey(giver) == false) {
+                remainingToProvide.Add(giver, giver.meat);
             }
         }
         Hashtable workers;
@@ -213,7 +212,7 @@ public class Cohort {
         int covered = 0;
         int loopBreaker = 100;
         int loopItterator = 0;
-        while (covered <= expense) {
+        while (covered < expense) {
             int ask = Mathf.Clamp(expense - covered, 0, share);
             if (members[loopItterator].deductMeat(ask) == true) {                
                 covered += share;
@@ -333,7 +332,7 @@ public class Cohort {
 
     public void Slaughter () {
         foreach (Unit_local individual in depotMembers) {
-            individual.GetComponent<factory_functions>().slaughterSheep();
+            individual.GetComponent<DepotFunction>().slaughterSheep();
         }
     }
 

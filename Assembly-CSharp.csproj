@@ -62,8 +62,8 @@
      <Compile Include="Assets\Scripts\CameraPanner.cs" />
      <Compile Include="Assets\Scripts\Cohort.cs" />
      <Compile Include="Assets\Scripts\CohortUIManager.cs" />
+     <Compile Include="Assets\Scripts\DepotFunction.cs" />
      <Compile Include="Assets\Scripts\Dog_Weapon.cs" />
-     <Compile Include="Assets\Scripts\factory_functions.cs" />
      <Compile Include="Assets\Scripts\GameState.cs" />
      <Compile Include="Assets\Scripts\hoplite_Weapon.cs" />
      <Compile Include="Assets\Scripts\IconManager.cs" />
@@ -77,6 +77,7 @@
      <Compile Include="Assets\Scripts\OrbBehavior_Local.cs" />
      <Compile Include="Assets\Scripts\OrbMeatContainer.cs" />
      <Compile Include="Assets\Scripts\ProductionButtonBridge.cs" />
+     <Compile Include="Assets\Scripts\SelectionCircleManager.cs" />
      <Compile Include="Assets\Scripts\SelectionRectManager.cs" />
      <Compile Include="Assets\Scripts\setup.cs" />
      <Compile Include="Assets\Scripts\ShaderHandler.cs" />
