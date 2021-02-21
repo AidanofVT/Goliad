@@ -72,7 +72,8 @@ public class SheepBehavior_Local : SheepBehavior_Base
                 eatAppeal = Mathf.Clamp(eatAppeal, 1.5f, 30 * grassHeightHere);
             }
             float conveneAppeal;
-            if (legs.isNavigable(updateFlockCenter()) == false || Vector2.Distance(flockCenter, transform.position) < 6) {
+            updateFlockCenter();
+            if (Vector2.Distance(flockCenter, transform.position) < 4) {
                 conveneAppeal = 0;
                 // if (legs.isNavigable(updateFlockCenter()) == false) {
                 //     Debug.Log("flock center obstructed");
@@ -82,14 +83,12 @@ public class SheepBehavior_Local : SheepBehavior_Base
                 // }
             }
             else {
-                conveneAppeal = shepherdMultiplier * Mathf.Pow(Vector2.Distance(transform.position, flockCenter), 1.3f) / 2;
+                conveneAppeal = shepherdMultiplier * Mathf.Pow(Vector2.Distance(transform.position, flockCenter), 1.7f) / 15;
             }
             float roll = Random.Range(0, eatAppeal + conveneAppeal + idleMargin);
             // Debug.Log("The results are in: eatAppeal is " + eatAppeal + ". ConveneAppeal is " + conveneAppeal + ". The roll is " + roll + ".");
             if (roll <= eatAppeal) {
                 StartCoroutine(WalkToFood());
-                // InvokeRepeating("walkToFood", 0, 0.1f);
-                // InvokeRepeating("checkFoodTarget", 1, 1);
                 return true;
             }
             else if (roll <= eatAppeal + conveneAppeal) {
@@ -290,17 +289,20 @@ public class SheepBehavior_Local : SheepBehavior_Base
             shepherdMultiplier = 1;           
             shepherd = chimer;
         }
-        if (shepherdMultiplier < 1024) {
-            shepherdMultiplier *= 2;
-            updateFlockCenter();
-            Invoke("decayShepherdPower", 15);
-        }
+        shepherdMultiplier = Mathf.Clamp(shepherdMultiplier *= 2, 1, 1024);
+        updateFlockCenter();
+        StopCoroutine("DecayShepherdPower");
+        StartCoroutine("DecayShepherdPower");
         // Debug.Log("Chime heard. Shepherd influence is now " + shepherdMultiplier);
     }
 
-    void decayShepherdPower () {
-        shepherdMultiplier /= 2;
-        //Debug.Log("Shepherd power decayed, now = " + shepherdPower);
+    IEnumerator DecayShepherdPower () {
+        while (shepherdMultiplier > 1) {
+            yield return new WaitForSeconds(5);
+            shepherdMultiplier /= 2;
+            // Debug.Log("Shepherd power decayed, now = " + shepherdMultiplier);
+        }
+        yield return null;
     }
 
     Vector2 updateFlockCenter () {
@@ -330,10 +332,8 @@ public class SheepBehavior_Local : SheepBehavior_Base
             if (pusher.gameObject.GetPhotonView().IsMine == false) {
                 offset *= 3;
             }
-            Debug.Log("meep");
             totalOffSet += offset;
         }
-        Debug.Log(totalOffSet);
         totalOffSet *= Mathf.Clamp(90 / totalOffSet.magnitude, 0, 1);
         flockCenter += totalOffSet;
         // Debug.Log("Flockcenter updated. Now " + ((Vector2) transform.position - flockCenter) + " away. Flock size: " + flock.Count + ". Farflock size: " + farFlock.Count + ". Shepherd power: " + shepherdMultiplier);

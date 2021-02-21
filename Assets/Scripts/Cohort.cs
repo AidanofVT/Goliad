@@ -241,7 +241,7 @@ public class Cohort {
         }
     }
 
-    public void moveCohort (Vector2 goTo, GameObject follow) {
+    public void moveCohort_Depreciated (Vector2 goTo, GameObject follow) {
         Stop();
         masterTask = new Task (null, Task.actions.move, goTo, follow);
         List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(members);
@@ -267,7 +267,7 @@ public class Cohort {
         }
     }
 
-    public void MoveCohortBeta (Vector2 goTo, GameObject toFollow) {
+    public void MoveCohort (Vector2 goTo, GameObject toFollow) {
         Stop();
         masterTask = new Task (null, Task.actions.move, goTo, toFollow);
         List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(members);

@@ -21,16 +21,13 @@ public class AidansMovementScript : MonoBehaviourPun {
     int currentWaypoint = 0;
 
     void Start() {
-//The seeker is the script that branches into all the A* pathfinding stuff
         seeker = GetComponent<Seeker>();
         baseSpeed = GetComponent<UnitBlueprint>().speed;
         speed = baseSpeed;
         body = GetComponent<Rigidbody2D>();
         selfToIgnore = GetComponent<Collider2D>();
         thisUnit = GetComponent<Unit>();
-        if (changePointThreshhold != 0) {
-            changePointThreshhold = GetComponent<CircleCollider2D>().radius;
-        }
+        changePointThreshhold = GetComponent<CircleCollider2D>().radius;
     }
 
     public void setDestination (Vector3 destination, Transform movingTransform = null, float acceptableDistance = 0.15f) {
@@ -84,11 +81,6 @@ public class AidansMovementScript : MonoBehaviourPun {
         //increment the currentWaypoint
                         currentWaypoint++;
                     }
-                    // else {
-                    //     //end reached
-                    //     terminatePathfinding();
-                    //     return;
-                    // }
                 }
             }
             catch {

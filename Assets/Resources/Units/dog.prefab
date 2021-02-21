@@ -292,7 +292,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2186315992651876298}
-  - {fileID: 2582071161501608121}
+  - {fileID: 1064180775448429498}
   - {fileID: 1319056809437317896}
   - {fileID: 5196304700398860185}
   - {fileID: 7139134664587815689}
@@ -1475,7 +1475,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 178d9eefee423f54780c7bb7694e10c3, type: 3}
---- !u!4 &2582071161501608121 stripped
+--- !u!4 &1064180775448429498 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3247630572699396463, guid: 178d9eefee423f54780c7bb7694e10c3,
     type: 3}
