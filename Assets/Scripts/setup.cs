@@ -50,7 +50,7 @@ public class setup : MonoBehaviourPunCallbacks {
         else if (me == 2) {
             startPlace = new Vector3 (distanceFromCenter, -distanceFromCenter, -.2f);
         }
-        Camera.main.transform.position = startPlace + new Vector3(0, 0, -9.8f);
+        // Camera.main.transform.position = startPlace + new Vector3(0, 0, -9.8f);
         StartCoroutine(step2(startPlace));
     }
 
@@ -59,34 +59,13 @@ public class setup : MonoBehaviourPunCallbacks {
         yield return new WaitForSeconds(0);
         home.GetComponent<Unit>().addMeat(300);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
-        // GameObject topInner = PhotonNetwork.Instantiate("Units/dog", new Vector3(0, 0, -0.2f), Quaternion.identity);
-        // GameObject topPort = PhotonNetwork.Instantiate("Units/dog", new Vector3(3, 0, -0.2f), Quaternion.identity);
-        // GameObject topStarboard = PhotonNetwork.Instantiate("Units/dog", new Vector3(6, 0, -0.2f), Quaternion.identity);
-        // GameObject bottomInner = PhotonNetwork.Instantiate("Units/dog", new Vector3(9, 0, -0.2f), Quaternion.identity);
-        // GameObject bottomPort = PhotonNetwork.Instantiate("Units/dog", new Vector3(12, 0, -0.2f), Quaternion.identity);
-        // GameObject bottomStarboard = PhotonNetwork.Instantiate("Units/dog", new Vector3(15, 0, -0.2f), Quaternion.identity);
-        // GameObject leftInner = PhotonNetwork.Instantiate("Units/dog", new Vector3(18, 0, -0.2f), Quaternion.identity);
-        // GameObject leftPort = PhotonNetwork.Instantiate("Units/dog", new Vector3(21, 0, -0.2f), Quaternion.identity);
-        // GameObject leftStarboard = PhotonNetwork.Instantiate("Units/dog", new Vector3(24, 0, -0.2f), Quaternion.identity);
-        // GameObject rightInner = PhotonNetwork.Instantiate("Units/dog", new Vector3(27, 0, -0.2f), Quaternion.identity);
-        // GameObject rightPort = PhotonNetwork.Instantiate("Units/dog", new Vector3(30, 0, -0.2f), Quaternion.identity);
-        // GameObject rightStarboard = PhotonNetwork.Instantiate("Units/dog", new Vector3(33, 0, -0.2f), Quaternion.identity);
-        // yield return new WaitForSeconds(0);
-        // Unit_local topInnerScript = topInner.GetComponent<Unit_local>();
-        // Unit_local topPortScript = topPort.GetComponent<Unit_local>();
-        // Unit_local topStarboardScript = topStarboard.GetComponent<Unit_local>();
-        // Unit_local bottomInnerScript = bottomInner.GetComponent<Unit_local>();
-        // Unit_local bottomPortScript = bottomPort.GetComponent<Unit_local>();
-        // Unit_local bottomStarboardScript = bottomStarboard.GetComponent<Unit_local>();
-        // Unit_local leftInnerScript = leftInner.GetComponent<Unit_local>();
-        // Unit_local leftPortScript = leftPort.GetComponent<Unit_local>();
-        // Unit_local leftStarBoardScript = leftStarboard.GetComponent<Unit_local>();
-        // Unit_local rightInnerScript = rightInner.GetComponent<Unit_local>();
-        // Unit_local rightPortScript = rightPort.GetComponent<Unit_local>();
-        // Unit_local rightStarboardScript = rightStarboard.GetComponent<Unit_local>();
-        // Cohort newCohort = new Cohort(new List<Unit_local> {topInnerScript, topPortScript, topStarboardScript, bottomInnerScript, bottomPortScript, bottomStarboardScript,
-        //                                 leftInnerScript, leftPortScript, leftStarBoardScript, rightInnerScript, rightPortScript, rightStarboardScript});
-        // newCohort.MoveCohortBeta(new Vector2(18, 2), null);
+        GameObject leftDog = PhotonNetwork.Instantiate("Units/dog", new Vector3(-3, 0, -0.2f), Quaternion.identity);
+        GameObject rightDog = PhotonNetwork.Instantiate("Units/dog", new Vector3(5, 0, -0.2f), Quaternion.identity);
+        GameObject orb = PhotonNetwork.Instantiate("Orb", Vector3.zero, Quaternion.identity);
+        yield return new WaitForSeconds(0);
+        orb.GetComponent<OrbMeatContainer>().fill(1);
+        yield return new WaitForSeconds(1);
+        leftDog.GetComponent<Unit>().addMeat(10);
     }
 
     private void OnPlayerConnected() {

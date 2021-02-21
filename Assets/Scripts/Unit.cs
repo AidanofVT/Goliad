@@ -94,7 +94,7 @@ public class Unit : MonoBehaviourPun {
             meat -= toDeduct;
             statusBar.updateBar();
             gameState.activeUnitsChangedFlag = true;
-// I have no idea what this is intended for:
+// This is here because otherwise orbs would not seek nearby units which became full while in the orbs' search radius. 
             if (meat + toDeduct >= stats.meatCapacity) {
                 Physics2D.queriesHitTriggers = true;
                 Collider2D [] contacts = Physics2D.OverlapPointAll(transform.position);
