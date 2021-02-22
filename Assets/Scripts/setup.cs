@@ -50,7 +50,7 @@ public class setup : MonoBehaviourPunCallbacks {
         else if (me == 2) {
             startPlace = new Vector3 (distanceFromCenter, -distanceFromCenter, -.2f);
         }
-        // Camera.main.transform.position = startPlace + new Vector3(0, 0, -9.8f);
+        Camera.main.transform.position = startPlace + new Vector3(0, 0, -9.8f);
         StartCoroutine(step2(startPlace));
     }
 
@@ -59,13 +59,6 @@ public class setup : MonoBehaviourPunCallbacks {
         yield return new WaitForSeconds(0);
         home.GetComponent<Unit>().addMeat(300);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
-        GameObject leftDog = PhotonNetwork.Instantiate("Units/dog", new Vector3(-3, 0, -0.2f), Quaternion.identity);
-        GameObject rightDog = PhotonNetwork.Instantiate("Units/dog", new Vector3(5, 0, -0.2f), Quaternion.identity);
-        GameObject orb = PhotonNetwork.Instantiate("Orb", Vector3.zero, Quaternion.identity);
-        yield return new WaitForSeconds(0);
-        orb.GetComponent<OrbMeatContainer>().fill(1);
-        yield return new WaitForSeconds(1);
-        leftDog.GetComponent<Unit>().addMeat(10);
     }
 
     private void OnPlayerConnected() {

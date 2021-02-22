@@ -40,7 +40,6 @@ public class SheepBehavior_Local : SheepBehavior_Base
     }
 
     IEnumerator idle (float idleDuration = 0) {
-        //Debug.Log("idling");
         if (idleDuration > 0) {
             int roll = Random.Range(0, 11);
             if (roll > 3) {
@@ -83,7 +82,9 @@ public class SheepBehavior_Local : SheepBehavior_Base
                 // }
             }
             else {
-                conveneAppeal = shepherdMultiplier * Mathf.Pow(Vector2.Distance(transform.position, flockCenter), 1.7f) / 15;
+                // float flockSizeFactor = Mathf.Clamp(10 - flock.Count * 50 / Mathf.Pow(flock.Count, 1.8f), 1, 10);
+                // float distanceFactor = Mathf.Clamp(Mathf.Pow(Vector2.Distance(transform.position, flockCenter), 1.7f), 1, 100);
+                conveneAppeal = shepherdMultiplier * Mathf.Pow(Vector2.Distance(transform.position, flockCenter), 1.7f) / 20;
             }
             float roll = Random.Range(0, eatAppeal + conveneAppeal + idleMargin);
             // Debug.Log("The results are in: eatAppeal is " + eatAppeal + ". ConveneAppeal is " + conveneAppeal + ". The roll is " + roll + ".");
@@ -212,6 +213,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
     }    
 
     IEnumerator GoForSafety () {
+        Debug.Log("GoForSafety");
         float toGo = Vector3.Distance(transform.position, (Vector3) flockCenter);
         legs.speed = Mathf.Clamp(2 + toGo * 0.1f, 2, 6);
         float ETA = toGo / legs.speed;
@@ -227,12 +229,21 @@ public class SheepBehavior_Local : SheepBehavior_Base
         Vector2Int hereInt;      
         Vector2Int thereInt;
         int performantCycler = 0;
+        bool patchObstructedNow = false;
+        bool patchObstructedLastCycle = false;
         while (true) {
             performantCycler = (performantCycler + 1) % 20;
-            if (gameState.getPatchValue(Mathf.FloorToInt(currentMostAppealingPatch.x), Mathf.FloorToInt(currentMostAppealingPatch.y)) < 1
-                || (performantCycler == 0 && legs.isNavigable(currentMostAppealingPatch) == false)) {
-                    StartCoroutine(idle(0));
-                    break;
+            if (performantCycler % 2 == 0) {
+                if (performantCycler == 0){
+                    patchObstructedLastCycle = patchObstructedNow;
+                    patchObstructedNow = legs.isNavigable(currentMostAppealingPatch);
+                }
+                if (gameState.getPatchValue(Mathf.FloorToInt(currentMostAppealingPatch.x), Mathf.FloorToInt(currentMostAppealingPatch.y)) < 1
+                    || (patchObstructedLastCycle == true && patchObstructedNow == true)) {
+                        StartCoroutine(idle(0));
+                        Debug.Log("patch is baren");
+                        break;
+                }
             }
             hereInt = new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y));
             thereInt = new Vector2Int(Mathf.FloorToInt(currentMostAppealingPatch.x), Mathf.FloorToInt(currentMostAppealingPatch.y));
@@ -268,7 +279,6 @@ public class SheepBehavior_Local : SheepBehavior_Base
         }
         else if (thing.isTrigger == false && dogs.Contains(thing.transform)) {
             dogs.Remove(thing.transform);
-            Debug.Log("removed");
         }
     }
 

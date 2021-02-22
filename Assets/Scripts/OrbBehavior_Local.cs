@@ -57,7 +57,6 @@ public class OrbBehavior_Local : OrbBehavior_Base {
     }
 
     public IEnumerator GoForIt (GameObject it) {
-        Debug.Log("GoForIt");  
         itsTransform = it.transform;
         StopCoroutine("stopIt");
         photonView.RPC("setUnavailable", RpcTarget.AllViaServer);
@@ -88,7 +87,6 @@ public class OrbBehavior_Local : OrbBehavior_Base {
             else {
 // If the target can accomidate the whole payload...
                 if (roomInTarget >= meatBox.meat) {
-                    Debug.Log("Self-destructing.");
                     itsTransform.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, meatBox.meat);
                     PhotonNetwork.Destroy(gameObject);
                 }
