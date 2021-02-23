@@ -27,7 +27,7 @@ public class MobileUnit_local : Unit_local {
         if (stats.isArmed) {
             weapon.disengage();
         }
-        moveConductor.setDestination(goTo, leader, GetComponent<CircleCollider2D>().radius);            
+        moveConductor.setDestination(goTo, leader, bodyCircle.radius);            
     }
 
     public virtual void pathEnded () {

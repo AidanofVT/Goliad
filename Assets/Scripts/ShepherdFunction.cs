@@ -30,4 +30,9 @@ public class ShepherdFunction : MonoBehaviourPun {
         }
     }
 
+    [PunRPC]
+    void SheepDeparts (int pView) {
+        flock.Remove(PhotonNetwork.GetPhotonView(pView).gameObject);
+    }
+
 }

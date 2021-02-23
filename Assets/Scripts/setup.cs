@@ -56,6 +56,12 @@ public class setup : MonoBehaviourPunCallbacks {
 
     IEnumerator step2 (Vector3 startPlace) {
         GameObject home = PhotonNetwork.Instantiate("Units/depot", startPlace, Quaternion.identity);
+        // if (gameState.playerNumber == 1) {
+        //     GameObject sheep = PhotonNetwork.Instantiate("Units/sheep", startPlace * 0.03f, Quaternion.identity);
+        // }
+        // GameObject shepherd = PhotonNetwork.Instantiate("Units/shepherd", startPlace * 0.05f, Quaternion.identity);
+        // yield return new WaitForSeconds (0);
+        // GameObject dog = PhotonNetwork.Instantiate("Units/dog", startPlace * 0.07f, Quaternion.identity);
         yield return new WaitForSeconds(0);
         home.GetComponent<Unit>().addMeat(300);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));

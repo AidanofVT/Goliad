@@ -288,7 +288,7 @@ public class Cohort {
             Unit_local sliceLeader = unitsByDistance[0];
             int leaderDirectionIndex = unitsByDirection.IndexOf(sliceLeader);
             float leaderDistanceFromDestination = vsGoTo.DistanceOf(sliceLeader);
-            float leaderRadius = sliceLeader.GetComponent<CircleCollider2D>().radius;
+            float leaderRadius = sliceLeader.bodyCircle.radius;
             int totalUnaccounted = unitsByDirection.Count;
             List<Unit_local> slice = new List<Unit_local> {sliceLeader};
             for (int sign = -1; sign <= 1 && slice.Count < unitsByDirection.Count; sign = sign + 2) {
