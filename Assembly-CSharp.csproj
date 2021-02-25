@@ -62,8 +62,8 @@
      <Compile Include="Assets\Scripts\CameraPanner.cs" />
      <Compile Include="Assets\Scripts\Cohort.cs" />
      <Compile Include="Assets\Scripts\CohortUIManager.cs" />
+     <Compile Include="Assets\Scripts\DepotFunction.cs" />
      <Compile Include="Assets\Scripts\Dog_Weapon.cs" />
-     <Compile Include="Assets\Scripts\factory_functions.cs" />
      <Compile Include="Assets\Scripts\GameState.cs" />
      <Compile Include="Assets\Scripts\hoplite_Weapon.cs" />
      <Compile Include="Assets\Scripts\IconManager.cs" />
@@ -85,7 +85,6 @@
      <Compile Include="Assets\Scripts\SheepBehavior_Local.cs" />
      <Compile Include="Assets\Scripts\ShepherdFunction.cs" />
      <Compile Include="Assets\Scripts\Task.cs" />
-     <Compile Include="Assets\Scripts\TextureLab.cs" />
      <Compile Include="Assets\Scripts\Unit.cs" />
      <Compile Include="Assets\Scripts\Unit_local.cs" />
      <Compile Include="Assets\Scripts\Unit_remote.cs" />

@@ -4,6 +4,8 @@ using Photon.Realtime;
 
 public class SheepBehavior_Base : MonoBehaviourPun {
 
+    protected int alliedFaction = 0;
+
     void Start() {
         changeFaction(photonView.OwnerActorNr);
         if (photonView.IsMine && this.GetType() == typeof(SheepBehavior_Base)) {
@@ -15,6 +17,7 @@ public class SheepBehavior_Base : MonoBehaviourPun {
 
     [PunRPC]
     public virtual void changeFaction (int factionNumber) {
+        alliedFaction = factionNumber;
         if (factionNumber == 1) {
             transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/sheep_white");
             transform.GetChild(4).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/sheep_white_icon");
@@ -23,6 +26,11 @@ public class SheepBehavior_Base : MonoBehaviourPun {
             transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/sheep_orange");
             transform.GetChild(4).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/sheep_orange_icon");
         }        
+    }
+
+    [PunRPC]
+    public void Grow (float finalMagnitude) {
+        transform.localScale = new Vector3(finalMagnitude, finalMagnitude, 1);
     }
 
     [PunRPC]

@@ -45,17 +45,14 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: icon
-    uniqueID: 1808163563
-    locked: 0
-  - name: lower UI
-    uniqueID: 276028819
-    locked: 0
-  - name: upper UI
-    uniqueID: 2671098565
-    locked: 0
   - name: ground
     uniqueID: 906846967
+    locked: 0
+  - name: obstacles
+    uniqueID: 678018277
+    locked: 0
+  - name: bulbs
+    uniqueID: 276028819
     locked: 0
   - name: blue circles
     uniqueID: 2404867607
@@ -87,6 +84,9 @@ TagManager:
   - name: unit meat bars
     uniqueID: 996351935
     locked: 0
+  - name: attack graphics
+    uniqueID: 2671098565
+    locked: 0
   - name: sheep icons
     uniqueID: 1504611995
     locked: 0
@@ -105,10 +105,19 @@ TagManager:
   - name: depot icons
     uniqueID: 3595372081
     locked: 0
+  - name: selection shapes
+    uniqueID: 3354912233
+    locked: 0
+  - name: UI Basis
+    uniqueID: 360552015
+    locked: 0
   - name: UI meat capacity
     uniqueID: 2241627315
     locked: 0
-  - name: UI current meat
+  - name: UI current meat 1
+    uniqueID: 851648849
+    locked: 0
+  - name: UI current meat 2
     uniqueID: 2224886237
     locked: 0
   - name: UI buttons

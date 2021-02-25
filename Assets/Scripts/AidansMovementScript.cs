@@ -11,7 +11,7 @@ public class AidansMovementScript : MonoBehaviourPun {
     Transform transToFollow = null;
     Rigidbody2D body;
     Collider2D selfToIgnore;
-    Unit thisUnit;
+    Unit_local thisUnit;
 //this boolean isn't used by this script, but it is needed for other scripts to register what's going on. toggling path to null and back doesn't work: a new path is spontaneously created for some reason
     public bool isRunning = false;
     float baseSpeed;
@@ -21,20 +21,18 @@ public class AidansMovementScript : MonoBehaviourPun {
     int currentWaypoint = 0;
 
     void Start() {
-//The seeker is the script that branches into all the A* pathfinding stuff
         seeker = GetComponent<Seeker>();
         baseSpeed = GetComponent<UnitBlueprint>().speed;
         speed = baseSpeed;
         body = GetComponent<Rigidbody2D>();
         selfToIgnore = GetComponent<Collider2D>();
-        thisUnit = GetComponent<Unit>();
-        if (changePointThreshhold != 0) {
-            changePointThreshhold = GetComponent<CircleCollider2D>().radius;
-        }
+        thisUnit = GetComponent<Unit_local>();
+        changePointThreshhold = thisUnit.bodyCircle.radius;
     }
 
     public void setDestination (Vector3 destination, Transform movingTransform = null, float acceptableDistance = 0.15f) {
-        CancelInvoke("moveAlong");
+        // Debug.Log("Moving from " + transform.position + " to " + (Vector2) destination);
+        StopCoroutine("MoveAlong");
         StopCoroutine("stuckCheck");
         CancelInvoke("setRoute");
         photonView.RPC("stopTurning", RpcTarget.All);
@@ -55,27 +53,21 @@ public class AidansMovementScript : MonoBehaviourPun {
             seeker.StartPath(transform.position, placetoGo, OnPathComplete);
             // Debug.Log("moving to " + placetoGo);
         }
-        currentWaypoint = 0;
     }
 
 //This function is needed because the seeker's startpath() function can only deliver it's output via a backwards-parameter, or whatever it's called.
 //The name of the intermediary function, in this case OnePathComplete, is put as a parameter for StartPath (see lines 33 and 36), and the resulting path gets passed here as a parameter.
     void OnPathComplete (Path finishedPath) {
         path = (ABPath) finishedPath;
-        InvokeRepeating("moveAlong", 0, .05f);
-        isRunning = true;
+        currentWaypoint = 0;
+        // if (isRunning == false) {
+            StartCoroutine("MoveAlong");
+            isRunning = true;
+        // }
     }
 
-    void moveAlong() {
-        if (Vector2.Distance(transform.position, path.endPoint) < roundToArrived) {
-            if (transToFollow == null || transToFollow.GetComponent<AidansMovementScript>() == null || transToFollow.GetComponent<AidansMovementScript>().isRunning == false) {
-                terminatePathfinding(true, true);
-            }
-            else {
-                CancelInvoke("moveAlong");
-            }
-            return;
-        }
+    IEnumerator MoveAlong() {
+        while (Vector2.Distance(transform.position, path.endPoint) > roundToArrived) {
             try {
 //if you are within a specified range of the next waypoint
                 if (Vector2.Distance(transform.position, path.vectorPath[currentWaypoint]) < changePointThreshhold) {
@@ -84,40 +76,49 @@ public class AidansMovementScript : MonoBehaviourPun {
         //increment the currentWaypoint
                         currentWaypoint++;
                     }
-                    // else {
-                    //     //end reached
-                    //     terminatePathfinding();
-                    //     return;
-                    // }
                 }
             }
             catch {
                 Debug.Log("CAUGHT IT. Tried to access index " + currentWaypoint + " when the size of the path is " + path.vectorPath.Count + " entries long.");
             }
-        Vector2 dirNew = (path.vectorPath[currentWaypoint] - transform.position).normalized * speed;
-        if (Mathf.Sqrt(Mathf.Pow(body.velocity.x, 2) + Mathf.Pow(body.velocity.y, 2)) <= speed) {
-            body.AddForce(neededPush(dirNew));
+            Vector2 dirNew = (path.vectorPath[currentWaypoint] - transform.position).normalized * speed;
+            if (Mathf.Sqrt(Mathf.Pow(body.velocity.x, 2) + Mathf.Pow(body.velocity.y, 2)) <= speed) {
+                body.AddForce(neededPush(dirNew));
+            }
+            else {
+                body.AddForce(body.velocity * -0.5f);
+            }
+            yield return new WaitForSeconds(0.05f);
+        }
+        if (transToFollow == null || transToFollow.GetComponent<AidansMovementScript>() == null || transToFollow.GetComponent<AidansMovementScript>().isRunning == false) {
+            terminatePathfinding(true, true);
         }
         else {
-            body.AddForce(body.velocity * -0.5f);
+// This is the case of a unit following a moving unit that hasn't stopped yet.
+            StopCoroutine("moveAlong");
         }
+        yield return null;
     }
 
     IEnumerator stuckCheck () {
         Vector3 positionOneSecondAgo = transform.position;
-        yield return new WaitForSeconds(1);
+// This reduces instances where units that were made together check and jerk at the same time, making for stickier traffic jams. The extra second is to allow the path to finish computing.
+        yield return new WaitForSeconds(1 + (Mathf.Abs(transform.position.x) % 10) / 5);
         while (true) {
-            Vector3 change = transform.position - positionOneSecondAgo;
-            if (change.magnitude < 0.1f) {
-                // Debug.Log("jerking because this unit has moved " + change.magnitude + " in the last second.");
-                Vector2 swayWay = (path.vectorPath[currentWaypoint] - transform.position).normalized;
-                float temp  = swayWay.x;
-                swayWay.x = swayWay.y * -1;
-                swayWay.y = temp;
-                if (Random.value < 0.5) {
-                    swayWay *= -1;
+            if (body.velocity.magnitude < 0.04f) {
+                // Debug.Log("jerking because this unit has moved " + body.velocity.magnitude + " in the last second.");
+                try {
+                    Vector2 swayWay = (path.vectorPath[currentWaypoint] - transform.position).normalized;
+                    float temp  = swayWay.x;
+                    swayWay.x = swayWay.y * -1;
+                    swayWay.y = temp;
+                    if (Random.value < 0.5) {
+                        swayWay *= -1;
+                    }
+                    body.AddForce(swayWay * Random.Range(0, 100));
                 }
-                body.AddForce(swayWay * 100);
+                catch {
+                }
             }
             positionOneSecondAgo = transform.position;
             yield return new WaitForSeconds(1);
@@ -128,12 +129,12 @@ public class AidansMovementScript : MonoBehaviourPun {
         return (desiredCourse - body.velocity);
     }
 
-    public bool isNavigable (Vector3 where) {
-        float girth = GetComponent<CircleCollider2D>().radius * transform.localScale.magnitude * 1.1f;
+    public bool isNavigable (Vector3 where, bool ignoreMobileUnits = false) {
+        float girth = thisUnit.bodyCircle.radius * transform.localScale.magnitude * 1.1f;
         Collider2D[] occupants = Physics2D.OverlapCircleAll(where, girth);
         List<Collider2D> listFormat = new List<Collider2D>(occupants);
         foreach (Collider2D contact in listFormat) {
-            if (contact.tag == "unit" || contact.tag == "obstacle" || contact.tag == "out of bounds") {
+            if (contact.tag == "obstacle" || contact.tag == "out of bounds" || (ignoreMobileUnits == false && contact.tag == "unit")) {
                 if (contact != selfToIgnore) {
                     //Debug.Log("Point obstructed by " + contact.name + ".");
                     return false;
@@ -144,9 +145,9 @@ public class AidansMovementScript : MonoBehaviourPun {
     }
 
     public void terminatePathfinding (bool passUpward = true, bool hardStop = false) {
-        // Debug.Log("terminatePathfinding");
+        // Debug.Log("terminatePathfinding at " + transform.position);
         isRunning = false;
-        CancelInvoke("moveAlong");
+        StopCoroutine("MoveAlong");
         StopCoroutine("stuckCheck");
         CancelInvoke("setRoute");
         photonView.RPC("stopTurning", RpcTarget.All);
@@ -159,7 +160,7 @@ public class AidansMovementScript : MonoBehaviourPun {
             body.velocity = new Vector2(0, 0);
         }
         if (passUpward) {
-            SendMessage("pathEnded");
+            SendMessage("PathEnded");
         }
     }
 

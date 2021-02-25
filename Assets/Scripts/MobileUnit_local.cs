@@ -27,10 +27,10 @@ public class MobileUnit_local : Unit_local {
         if (stats.isArmed) {
             weapon.disengage();
         }
-        moveConductor.setDestination(goTo, leader, GetComponent<CircleCollider2D>().radius);            
+        moveConductor.setDestination(goTo, leader, bodyCircle.radius);            
     }
 
-    public virtual void pathEnded () {
+    public virtual void PathEnded () {
         if (task != null) { 
             if (task.nature != Task.actions.move) {
                 if (task.objectUnit.activeInHierarchy == false) {

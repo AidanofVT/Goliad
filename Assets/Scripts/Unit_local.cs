@@ -5,6 +5,7 @@ using Photon.Pun;
 
 public class Unit_local : Unit {
     public Task task;
+    public CircleCollider2D bodyCircle;
     int dispensed = 0;
 
     void Awake () {
@@ -23,12 +24,13 @@ public class Unit_local : Unit {
         listOfOne.Add(this);
         soloCohort = new Cohort(listOfOne);
         cohort = soloCohort;
+        bodyCircle = GetComponent<CircleCollider2D>();
         icon.gameObject.AddComponent<IconMouseContactBridge>();
     }
 
     public override void ignition () {
         StartForLocals();
-        int radius = Mathf.CeilToInt(GetComponent<CircleCollider2D>().radius);
+        int radius = Mathf.CeilToInt(bodyCircle.radius);
         AstarPath.active.UpdateGraphs(new Bounds(transform.position, new Vector3 (radius, radius, 1)));
     }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -159,7 +161,6 @@ public class Unit_local : Unit {
     }
 
     GameObject spawnOrb (Vector3 where, int poolSize, Unit_local pullFrom) {
-        Debug.Log("spawnorb");
         int payload;
         if (poolSize >= 70) {
             payload = Random.Range(5, 8);
@@ -173,7 +174,6 @@ public class Unit_local : Unit {
         else {
             payload = poolSize;
         }
-        Debug.Log(payload);
         GameObject newOrb = PhotonNetwork.Instantiate("Orb", where, Quaternion.identity);
         newOrb.GetPhotonView().RPC("fill", RpcTarget.All, payload);
         if (pullFrom != null) {

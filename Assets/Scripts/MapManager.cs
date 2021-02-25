@@ -111,7 +111,8 @@ public class MapManager : MonoBehaviourPun {
 
     public bool exploitPatch (Vector2Int targetPatch) {
         //Debug.Log("exploitPatch called on patch " + targetPatch.ToString());
-        if (mapTiles[targetPatch.x + offset, targetPatch.y + offset] > 0) {
+// Remember that this array maps the actual textures, with four per grass level.
+        if (mapTiles[targetPatch.x + offset, targetPatch.y + offset] / 4 > 0) {
             photonView.RPC("changeMap", RpcTarget.All, targetPatch.x, targetPatch.y);
             return true;
         }

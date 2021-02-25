@@ -17,6 +17,7 @@ public class NeutralUnit : MobileUnit_local {
     public override void ignition () {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
         moveConductor = GetComponent<AidansMovementScript>();
+        bodyCircle = GetComponent<CircleCollider2D>();
     }
 
     public override void activate () {
@@ -39,7 +40,7 @@ public class NeutralUnit : MobileUnit_local {
         
     }
 
-    public override void pathEnded () {
+    public override void PathEnded () {
 
     }
 

@@ -18,7 +18,7 @@ public class OrbBehavior_Local : OrbBehavior_Base {
         StartCoroutine("launchStage");
     }
 
-    void activeSearch () {
+    bool activeSearch () {
         GameObject closest = null;
         List <GameObject> nearbyCanTake = new List<GameObject>();
         for (int radius = 3; radius <= 9; radius += 3) {
@@ -40,9 +40,11 @@ public class OrbBehavior_Local : OrbBehavior_Base {
         }
         if (closest != null) {
             StartCoroutine("GoForIt", closest);
+            return true;
         }
         else {
             photonView.RPC("setAvailable", RpcTarget.AllViaServer);
+            return false;
         }
     }
 
@@ -54,37 +56,50 @@ public class OrbBehavior_Local : OrbBehavior_Base {
         StartCoroutine("GoForIt", toSeek);
     }
 
-    public IEnumerator GoForIt (GameObject it) {   
+    public IEnumerator GoForIt (GameObject it) {
         itsTransform = it.transform;
         StopCoroutine("stopIt");
         photonView.RPC("setUnavailable", RpcTarget.AllViaServer);
-        while (true) {
-            int roomInTarget = itsTransform.GetComponent<Unit>().roomForMeat();
-            if (itsTransform == null || roomInTarget <= 0) {
-                StartCoroutine("stopIt");
+        while (itsTransform != null && itsTransform.GetComponent<Unit>().roomForMeat() > 0) {            
+            direction = (itsTransform.position - transform.position);
+            if (direction.magnitude <= 0.5) {
                 break;
             }
-            direction = (itsTransform.position - transform.position);
-            if (direction.magnitude < 0.5) {
+            else {
+                if (speed < 12) {
+                    speed += 15 * Time.deltaTime;
+                }
+                transform.position += Time.deltaTime * speed * direction.normalized;
+                yield return new WaitForSeconds(0.05f);
+            }
+        }
+// If the movement broke because the target disappeared...
+        if (itsTransform == null) {
+            activeSearch();            
+        }
+        else {
+            int roomInTarget = itsTransform.GetComponent<Unit>().roomForMeat();
+// If the loop broke because the target is now full...
+            if (roomInTarget < 0) {
+                activeSearch();                
+            }
+// Else, the loop must have broken by proximity to a viable target.
+            else {
+// If the target can accomidate the whole payload...
                 if (roomInTarget >= meatBox.meat) {
                     itsTransform.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, meatBox.meat);
                     PhotonNetwork.Destroy(gameObject);
-                    break;
                 }
                 else {
+// Else, this bulb will have to split.
                     GameObject childOrb = PhotonNetwork.Instantiate("orb", transform.position, transform.rotation);
                     childOrb.GetPhotonView().RPC("fill", RpcTarget.All, roomInTarget);
                     photonView.RPC("fill", RpcTarget.All, (meatBox.meat - roomInTarget));
                     yield return new WaitForSeconds(0);
                     childOrb.GetComponent<OrbBehavior_Local>().embark(itsTransform.gameObject);
                     StartCoroutine("stopIt");
-                }
+                }                
             }
-            if (speed < 12) {
-                speed += 15 * Time.deltaTime;
-            }
-            transform.position += Time.deltaTime * speed * direction.normalized;
-            yield return new WaitForSeconds(0.05f);
         }
     }
     
@@ -111,24 +126,28 @@ public class OrbBehavior_Local : OrbBehavior_Base {
     
     IEnumerator stopIt () {
         StopCoroutine("GoForIt");
-        photonView.RPC("setAvailable", RpcTarget.AllViaServer);
-        itsTransform = null;
-        int cycler = 0;
-        while (true) {
-            if (speed > 0.1f) {
-                speed *= 0.75f;
-                transform.position += Time.deltaTime * speed * direction.normalized;
-            }
-            else {
-                speed = 0;
-                StopCoroutine("stopIt");
-            }
-            if (cycler % 5 == 0) {
-                activeSearch();
-            }
-            ++cycler;
-            yield return new WaitForSeconds(0.05f);
+        if (activeSearch() == false) {
+            Debug.Log("proceeding with stop");
+            photonView.RPC("setAvailable", RpcTarget.AllViaServer);
+            itsTransform = null;
+            int cycler = 0;
+            while (true) {
+                if (speed > 0.1f) {
+                    speed *= 0.75f;
+                    transform.position += Time.deltaTime * speed * direction.normalized;
+                }
+                else {
+                    speed = 0;
+                    StopCoroutine("stopIt");
+                }
+                if (cycler % 5 == 0) {
+                    activeSearch();
+                }
+                ++cycler;
+                yield return new WaitForSeconds(0.05f);
+            }            
         }
+
     }
 
 }

@@ -13,12 +13,17 @@ public class SheepBehavior_Local : SheepBehavior_Base
 
     List<GameObject> flock = new List<GameObject>();
     List<GameObject> farFlock = new List<GameObject>();
+    float flockSizeFactor = 1;
+    List<Transform> dogs = new List<Transform>();
     Vector2 flockCenter;
+    Vector2 noDogsHere = Vector2.zero;
     public GameObject shepherd;
     public int shepherdMultiplier = 1;
     public int idleMargin = 5;
     short eatTime = 2;
     Vector3 currentMostAppealingPatch;
+    enum sheepBehaviors {idling, goingToFood, chewing, goingToSafety};
+    sheepBehaviors sheepState;
 
     void Awake() {
         Goliad = GameObject.Find("Goliad");
@@ -38,29 +43,38 @@ public class SheepBehavior_Local : SheepBehavior_Base
         StartCoroutine(idle(0));
     }
 
-    IEnumerator idle (float idleDuration = 0) {
-        //Debug.Log("idling");
-        if (idleDuration > 0) {
-            int roll = Random.Range(0, 11);
-            if (roll > 3) {
-                float direction = (Mathf.Pow(roll, 4) / 0.3f * roll) + thisSheep.facing;
-                Vector2 runRise = new Vector2(Mathf.Sin(direction), Mathf.Cos(direction));
-                runRise *= (idleDuration / thisSheep.stats.speed) * 0.7f;
-                Vector3 wayPoint = transform.position + (Vector3) runRise;
-                if (legs.isNavigable(wayPoint)) {
-                    legs.setDestination(wayPoint);
-                }
+    IEnumerator CalculateDogRepulsion () {
+        while (true) {
+            Vector2 totalOffSet = Vector2.zero;
+            foreach (Transform pusher in dogs) {
+                Vector2 offset = transform.position - pusher.position;
+                offset = offset.normalized * Mathf.Pow(15 - Mathf.Clamp(offset.magnitude, 5, 15), 2) / 7;
+                if (pusher.gameObject.GetPhotonView().OwnerActorNr != alliedFaction) {
+                    offset *= 3;
+                }            
+                totalOffSet += offset;
             }
-            yield return new WaitForSeconds (idleDuration);
+// This is phrased like so because you can't clamp a Vector's magnitude directly.
+            totalOffSet *= Mathf.Clamp(90 / totalOffSet.magnitude, 0, 1);
+// This is here to compensate for the use of flockSizeFactor in calculating ConveneAppeal. Without this, smaller flocks would respond to sheep more strongly.
+            totalOffSet *= flockSizeFactor;
+            noDogsHere = totalOffSet;
+            yield return new WaitForSeconds(0.2f);
         }
-        if (changeBehavior() == false) {
-            StartCoroutine(idle(1));
-        }
-        yield return null;
     }
 
+    void consume () {
+        Vector2Int patchIndex = new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y));
+        if (Goliad.GetComponent<MapManager>().exploitPatch(patchIndex)) {
+            if (thisSheep.addMeat(1) == true) {
+                photonView.RPC("Grow", RpcTarget.All, transform.localScale.x * 1.02f);
+            }
+        }
+        StartCoroutine(idle(0));
+    }    
+
     bool changeBehavior () {
-        if (searchForFood() == true || flock.Count > 1 || shepherd != null) {
+        if (searchForFood() == true || flock.Count > 1 || shepherd != null || dogs.Count > 0) {
             float eatAppeal;
             if (currentMostAppealingPatch.z > 1) {
                 eatAppeal = 0;
@@ -71,9 +85,10 @@ public class SheepBehavior_Local : SheepBehavior_Base
                 eatAppeal = Mathf.Clamp(eatAppeal, 1.5f, 30 * grassHeightHere);
             }
             float conveneAppeal;
-            if (legs.isNavigable(updateFlockCenter()) == false || Vector2.Distance(flockCenter, transform.position) < 6) {
+            updateFlockCenter();
+            if (Vector2.Distance(flockCenter, transform.position) + noDogsHere.magnitude < 4 || legs.isNavigable(flockCenter + noDogsHere, true) == false) {
                 conveneAppeal = 0;
-                // if (legs.isNavigable(updateFlockCenter()) == false) {
+                // if (legs.isNavigable(flockCenter + noDogsHere) == false) {
                 //     Debug.Log("flock center obstructed");
                 // }
                 // if (Vector2.Distance(flockCenter, transform.position) < 6) {
@@ -81,17 +96,18 @@ public class SheepBehavior_Local : SheepBehavior_Base
                 // }
             }
             else {
-                conveneAppeal = shepherdMultiplier * Mathf.Pow(Vector2.Distance(transform.position, flockCenter), 1.3f) / 2;
+                float distanceFactor = Mathf.Pow(Vector2.Distance(transform.position, flockCenter + noDogsHere), 1.7f) / 15;
+                distanceFactor = Mathf.Clamp(distanceFactor, 0, 100);
+                conveneAppeal = shepherdMultiplier * distanceFactor / flockSizeFactor;
             }
             float roll = Random.Range(0, eatAppeal + conveneAppeal + idleMargin);
-            // Debug.Log("The results are in: eatAppeal is " + eatAppeal + ". ConveneAppeal is " + conveneAppeal + ". The roll is " + roll + ".");
+            // Debug.Log("The results from " + (Vector2) transform.position + " are: eatAppeal is " + eatAppeal + ". ConveneAppeal is " + conveneAppeal + ". The roll is " + roll + ".");
             if (roll <= eatAppeal) {
-                InvokeRepeating("walkToFood", 0, 0.1f);
-                InvokeRepeating("checkFoodTarget", 1, 1);
+                StartCoroutine("WalkToFood");
                 return true;
             }
             else if (roll <= eatAppeal + conveneAppeal) {
-                goForSafety();
+                StartCoroutine("GoForSafety");
                 return true;
             }
         }
@@ -99,43 +115,29 @@ public class SheepBehavior_Local : SheepBehavior_Base
         return false;
     }
 
-    bool searchForFood (int range = 15, bool randomGlance = true) {
-        //Debug.Log("SearchForFood");
-        if (range < 0) {
-            Debug.Log("PROBLEM: searchForFood called with range <= 0!");
-            return false;
+    void deathProtocal () {
+        if (shepherd != null) {
+            shepherd.GetComponent<ShepherdFunction>().flock.Remove(gameObject);
         }
-        float direction;
-        if (randomGlance == true) {
-            float roll = Random.Range(-1.0f, 1.0f);
-            direction = (Mathf.Pow(roll, 4) / 0.3f * roll) + thisSheep.facing; // this formula generates a number between approximately negative pi and pi, prefering outcomes close to zero
+    }
+
+    IEnumerator DecayShepherdPower () {
+        while (shepherdMultiplier > 1) {
+            yield return new WaitForSeconds(7);
+            shepherdMultiplier /= 2;
+            // Debug.Log("Shepherd power decayed, now = " + shepherdMultiplier);
         }
-        else {
-            direction = thisSheep.facing;
-        }
-        List<Vector2> percievedPatches = new List<Vector2>();
-        int shortGrassIndex = -1;
-        int mediumGrassIndex = -1;
-        int longGrassIndex = -1;
-        float clockwise = direction + 0.5f;
-        float counterClockwise = direction - 0.5f;
-        glanceForFood(direction, range, ref shortGrassIndex, ref mediumGrassIndex, ref longGrassIndex, ref percievedPatches);
-        glanceForFood(counterClockwise, range, ref shortGrassIndex, ref mediumGrassIndex, ref longGrassIndex, ref percievedPatches);
-        glanceForFood(clockwise, range, ref shortGrassIndex, ref mediumGrassIndex, ref longGrassIndex, ref percievedPatches);
-        if (percievedPatches.Count == 0) {
-            currentMostAppealingPatch = transform.position + new Vector3(0,0,1000);
-            //Debug.Log("Failed to find food.");
-            return false;
-        }
-        else {
-            if (( (Vector3)percievedPatches[0] - transform.position).magnitude > 15) {
-                Debug.Log("PROBLEM: long-range destination set.");
-            }            
-            if ((int) currentMostAppealingPatch.x != (int) percievedPatches[0].x || (int) currentMostAppealingPatch.y != (int) percievedPatches[0].y) {
-                currentMostAppealingPatch = percievedPatches[0];
+        yield return null;
+    }
+
+    void forgetFlockMates () {
+        foreach (GameObject flockMate in farFlock.ToArray()) {
+            if (Random.Range(1, 100) <= 7 && flockMate != gameObject) {
+                farFlock.Remove(flockMate);
+                flock.Remove(flockMate);
+                RecalculateFlockSizeFactor();
+                // Debug.Log("Friend lost. Flock size: " + flock.Count);
             }
-            safetyNudge();
-            return true;
         }
     }
 
@@ -198,79 +200,24 @@ public class SheepBehavior_Local : SheepBehavior_Base
         }        
     }
 
-    void consume () {
-        //Debug.Log("Exploiting " + Mathf.FloorToInt(transform.position.x) + Mathf.FloorToInt(transform.position.y));
-        if (Goliad.GetComponent<MapManager>().exploitPatch(new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y)))) {
-            if (gameObject.GetComponent<Unit>().addMeat(1) == true) {
-                        transform.localScale *= 1.02f;
-            }
+    IEnumerator GoForSafety () {
+        // Debug.Log("GoForSafety");
+        Vector2 randomOffset = new Vector2 (Random.Range (-1 * flockSizeFactor, flockSizeFactor), Random.Range (-1 * flockSizeFactor, flockSizeFactor));
+        Vector2 safeSpotRelative = randomOffset + noDogsHere + (flockCenter - (Vector2) transform.position);
+        if (shepherdMultiplier <= 1) {
+// this is equivalent to reducing the magnitude of safeSpotRelative by flocksizefactor
+            safeSpotRelative *= Mathf.Clamp((safeSpotRelative.magnitude - flockSizeFactor) / safeSpotRelative.magnitude, 0, 1);
         }
-        CancelInvoke("walkToFood");
-        CancelInvoke("checkFoodTarget");
-        StartCoroutine(idle(0));
-    }    
-
-    void checkFoodTarget () {
-        //Debug.Log("checkfoodtarget with range " + ((int) Vector3.Distance(transform.position, currentMostAppealingPatch) + 2));
-        if (!searchForFood((int) Vector3.Distance(transform.position, currentMostAppealingPatch) + 2, false)) {
-            CancelInvoke("walkToFood");
-            CancelInvoke("checkFoodTarget");
-            StartCoroutine(idle(0));
-        }
-    }
-
-    void goForSafety () {
-        int toGo = (int) Vector3.Distance(transform.position, (Vector3) flockCenter);
-        if (toGo < 40) {
-            legs.speed += 0.1f * toGo;
-        }
-        else {
-            legs.speed = 6;
-        }
-        legs.setDestination(flockCenter, null, Mathf.Pow(flock.Count, 0.6f));
-        StartCoroutine(idle(toGo / legs.speed));
-        Invoke("resetSpeed", toGo / legs.speed);
-    }
-
-    void walkToFood () {
-        if (legs.isRunning) {
-            //Debug.Log("legs running");
-            if (gameState.getPatchValue(Mathf.FloorToInt(currentMostAppealingPatch.x), Mathf.FloorToInt(currentMostAppealingPatch.y)) < 1) {
-                CancelInvoke("walkToFood");
-                CancelInvoke("checkFoodTarget");
-                StartCoroutine(idle(0));
-            }
-        }
-        else {
-            //Debug.Log("legs not running");
-            Vector2Int hereInt = new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y));
-            Vector2Int thereInt = new Vector2Int(Mathf.FloorToInt(currentMostAppealingPatch.x), Mathf.FloorToInt(currentMostAppealingPatch.y));
-            if (hereInt != thereInt) {
-                legs.setDestination(currentMostAppealingPatch);
-            }
-            else {
-                //Debug.Log("eating clock started");
-                CancelInvoke("walkToFood");
-                CancelInvoke("checkFoodTarget");
-                Invoke("consume", eatTime);
-            }
-        }
-    }
-
-    void OnTriggerEnter2D(Collider2D thing) {
-        if (thing.gameObject.GetComponent<SheepBehavior_Base>() != null && thing.isTrigger == false && flock.Contains(thing.gameObject) == false) {
-            flock.Add(thing.gameObject);
-            //Debug.Log("New friend spotted. Flock count = " + flock.Count);
-            if (farFlock.Contains(thing.gameObject)) {
-                farFlock.Remove(thing.gameObject);
-            }
-        }
-    }
-
-    void OnTriggerExit2D(Collider2D thing) {
-        if (thing.gameObject.GetComponent<SheepBehavior_Base>() != null && thing.isTrigger == false && flock.Contains(thing.gameObject) == true) {
-            farFlock.Add(thing.gameObject);
-        }
+        float toGo = safeSpotRelative.magnitude;
+        legs.speed = Mathf.Clamp(2 + toGo * 0.1f, 2, 6);
+        float ETA = toGo / legs.speed;
+        // Debug.Log("running " + safeSpotRelative + "to safety. Expected to go " + toGo + " distance, at a speed of " + legs.speed);
+        legs.setDestination(safeSpotRelative + (Vector2) transform.position, null);
+        sheepState = sheepBehaviors.goingToSafety;
+        yield return new WaitForSeconds (ETA * 2);
+        legs.speed = thisSheep.stats.speed;
+        StartCoroutine(idle());
+        yield return null;
     }
 
     [PunRPC]
@@ -282,7 +229,9 @@ public class SheepBehavior_Local : SheepBehavior_Base
                 photonView.RPC("changeFaction", RpcTarget.All, newFactionNumber);
             }
             else {
-                shepherd.GetComponent<ShepherdFunction>().flock.Remove(gameObject);
+                PhotonView shepView = shepherd.GetPhotonView();
+                Debug.Log(shepView.Owner);
+                shepView.RPC("SheepDeparts", shepView.Owner, photonView.ViewID);
                 if (newFactionNumber != shepherd.GetPhotonView().Owner.ActorNumber) {
                     photonView.RPC("changeFaction", RpcTarget.All, newFactionNumber);
                 }
@@ -290,21 +239,135 @@ public class SheepBehavior_Local : SheepBehavior_Base
             shepherdMultiplier = 1;           
             shepherd = chimer;
         }
-        if (shepherdMultiplier < 1024) {
-            shepherdMultiplier *= 2;
-            updateFlockCenter();
-            Invoke("decayShepherdPower", 15);
-        }
+        shepherdMultiplier = Mathf.Clamp(shepherdMultiplier *= 2, 1, 256);
+        updateFlockCenter();
+        StopCoroutine("DecayShepherdPower");
+        StartCoroutine("DecayShepherdPower");
         // Debug.Log("Chime heard. Shepherd influence is now " + shepherdMultiplier);
     }
 
-    void decayShepherdPower () {
-        shepherdMultiplier /= 2;
-        //Debug.Log("Shepherd power decayed, now = " + shepherdPower);
+    IEnumerator idle (float idleDuration = 0) {
+        // Debug.Log("idle");
+        sheepState = sheepBehaviors.idling;
+        if (legs.isRunning) {
+            // Debug.Log("stopping legs");
+            legs.terminatePathfinding();
+        }
+        if (idleDuration > 0) {
+            int roll = Random.Range(0, 11);
+            if (roll > 3) {
+                float direction = (Mathf.Pow(roll, 4) / 0.3f * roll) + thisSheep.facing;
+                Vector2 runRise = new Vector2(Mathf.Sin(direction), Mathf.Cos(direction));
+                runRise *= (idleDuration / thisSheep.stats.speed) * 0.7f;
+                Vector3 wayPoint = transform.position + (Vector3) runRise;
+                if (legs.isNavigable(wayPoint)) {
+                    legs.setDestination(wayPoint);
+                }
+            }
+            yield return new WaitForSeconds (idleDuration);
+        }
+        if (changeBehavior() == false) {
+            StartCoroutine(idle(1));
+        }
+        yield return null;
     }
 
-    void resetSpeed () {
-        legs.speed = thisSheep.stats.speed;
+    void OnTriggerEnter2D(Collider2D thing) {
+        if (thing.name.Contains("sheep") && thing.isTrigger == false && flock.Contains(thing.gameObject) == false) {
+            flock.Add(thing.gameObject);
+            RecalculateFlockSizeFactor();
+            // Debug.Log("New friend spotted. Flock count = " + flock.Count);
+            if (farFlock.Contains(thing.gameObject)) {
+                farFlock.Remove(thing.gameObject);
+            }
+        }
+        else if (thing.name.Contains("dog") && thing.isTrigger == false && thing.isTrigger == false) {
+            dogs.Add(thing.transform);
+            if (dogs.Count == 1) {
+                StartCoroutine("CalculateDogRepulsion");
+            }
+            if (thing.gameObject.GetPhotonView().OwnerActorNr != alliedFaction) {
+                changeBehavior();
+            }
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D thing) {
+        if (thing.isTrigger == false && flock.Contains(thing.gameObject) == true) {
+            farFlock.Add(thing.gameObject);
+        }
+        else if (thing.isTrigger == false && dogs.Contains(thing.transform)) {
+            dogs.Remove(thing.transform);
+            if (dogs.Count == 0) {
+                StopCoroutine("CalculateDogRepulsion");
+            }
+            noDogsHere = Vector2.zero;
+        }
+    }
+
+    void PathEnded () {
+        if (sheepState == sheepBehaviors.goingToSafety) {
+            legs.speed = thisSheep.stats.speed;
+            StopCoroutine("GoForSafety");
+            StartCoroutine(idle());
+        }
+        else if (sheepState == sheepBehaviors.goingToFood) {
+            StopCoroutine("WalkToFood");
+            Invoke("consume", eatTime);
+            sheepState = sheepBehaviors.chewing;
+        }
+    }
+
+    void RecalculateFlockSizeFactor () {
+        flockSizeFactor = Mathf.Clamp(11 - ((flock.Count * 20) / Mathf.Pow(flock.Count, 1.3f)), 1, 10);
+    }
+
+    void safetyNudge () {
+        Vector2 squareCenter = new Vector2 ((int) currentMostAppealingPatch.x, (int) currentMostAppealingPatch.y);
+        squareCenter.x += Mathf.Sign(squareCenter.x) * 0.5f;
+        squareCenter.y += Mathf.Sign(squareCenter.y) * 0.5f;
+        Vector2 direction = squareCenter - (Vector2) currentMostAppealingPatch;
+        currentMostAppealingPatch += (Vector3) direction * 0.3f;
+    }
+
+    bool searchForFood (int range = 15, bool randomGlance = true) {
+        //Debug.Log("SearchForFood");
+        if (range < 0) {
+            Debug.Log("PROBLEM: searchForFood called with range <= 0!");
+            return false;
+        }
+        float direction;
+        if (randomGlance == true) {
+            float roll = Random.Range(-1.0f, 1.0f);
+            direction = (Mathf.Pow(roll, 4) / 0.3f * roll) + thisSheep.facing; // this formula generates a number between approximately negative pi and pi, prefering outcomes close to zero
+        }
+        else {
+            direction = thisSheep.facing;
+        }
+        List<Vector2> percievedPatches = new List<Vector2>();
+        int shortGrassIndex = -1;
+        int mediumGrassIndex = -1;
+        int longGrassIndex = -1;
+        float clockwise = direction + 0.5f;
+        float counterClockwise = direction - 0.5f;
+        glanceForFood(direction, range, ref shortGrassIndex, ref mediumGrassIndex, ref longGrassIndex, ref percievedPatches);
+        glanceForFood(counterClockwise, range, ref shortGrassIndex, ref mediumGrassIndex, ref longGrassIndex, ref percievedPatches);
+        glanceForFood(clockwise, range, ref shortGrassIndex, ref mediumGrassIndex, ref longGrassIndex, ref percievedPatches);
+        if (percievedPatches.Count == 0) {
+            currentMostAppealingPatch = transform.position + new Vector3(0,0,1000);
+            //Debug.Log("Failed to find food.");
+            return false;
+        }
+        else {
+            if (( (Vector3)percievedPatches[0] - transform.position).magnitude > 15) {
+                Debug.Log("PROBLEM: long-range destination set.");
+            }            
+            if ((int) currentMostAppealingPatch.x != (int) percievedPatches[0].x || (int) currentMostAppealingPatch.y != (int) percievedPatches[0].y) {
+                currentMostAppealingPatch = percievedPatches[0];
+            }
+            safetyNudge();
+            return true;
+        }
     }
 
     Vector2 updateFlockCenter () {
@@ -324,34 +387,46 @@ public class SheepBehavior_Local : SheepBehavior_Base
             flockCenter = new Vector2 (there.x / (flock.Count + shepherdMultiplier) + Random.Range(-3, 3), there.y / (flock.Count + shepherdMultiplier) + Random.Range(-3, 3));
         }
         else {
-            flockCenter = new Vector2 (there.x / (flock.Count) + Random.Range(-3, 3), there.y / (flock.Count) + Random.Range(-3, 3));
+            flockCenter = new Vector2 (there.x / (flock.Count), there.y / (flock.Count));
         }
         // Debug.Log("Flockcenter updated. Now " + ((Vector2) transform.position - flockCenter) + " away. Flock size: " + flock.Count + ". Farflock size: " + farFlock.Count + ". Shepherd power: " + shepherdMultiplier);
         return flockCenter;
     }
 
-    void safetyNudge () {
-        Vector2 squareCenter = new Vector2 ((int) currentMostAppealingPatch.x, (int) currentMostAppealingPatch.y);
-        squareCenter.x += Mathf.Sign(squareCenter.x) * 0.5f;
-        squareCenter.y += Mathf.Sign(squareCenter.y) * 0.5f;
-        Vector2 direction = squareCenter - (Vector2) currentMostAppealingPatch;
-        currentMostAppealingPatch += (Vector3) direction * 0.3f;
-    }
-
-    void forgetFlockMates () {
-        foreach (GameObject flockMate in flock.ToArray()) {
-            if (Random.Range(1, 100) <= 10 && flockMate != gameObject) {
-                farFlock.Remove(flockMate);
-                flock.Remove(flockMate);
-                //Debug.Log("Friend lost. Flock size: " + flock.Count);
+    IEnumerator WalkToFood () {
+        legs.setDestination(currentMostAppealingPatch);
+        // Vector2Int hereInt;      
+        // Vector2Int thereInt;
+        int performantCycler = 0;
+        bool patchObstructedNow = false;
+        bool patchObstructedLastCycle = false;
+        float startTime = Time.time;
+        float distance = Vector2.Distance(transform.position, currentMostAppealingPatch);
+        float ETA = 1.5f + 2 * distance / legs.speed;
+        sheepState = sheepBehaviors.goingToFood;
+        // Debug.Log("Target patch " + distance + " away. ETA: " + ETA);
+        while (Time.time - startTime < ETA) {
+            // Debug.Log("On my way to " + currentMostAppealingPatch + ". " + (Time.time - startTime) + " elapsed. Now at " + (Vector2) transform.position);
+            performantCycler = (performantCycler + 1) % 20;
+            if (performantCycler % 2 == 0) {
+                if (performantCycler == 0){
+                    patchObstructedLastCycle = patchObstructedNow;
+                    patchObstructedNow = !legs.isNavigable(currentMostAppealingPatch);
+                }
+                if (gameState.getPatchValue(Mathf.FloorToInt(currentMostAppealingPatch.x), Mathf.FloorToInt(currentMostAppealingPatch.y)) < 1) {
+                    // Debug.Log((Vector2) transform.position + ": patch is baren");
+                    break;
+                }
+                else if (patchObstructedLastCycle == true && patchObstructedNow == true) {
+                    // Debug.Log((Vector2) transform.position + ": patch obstructed");
+                    break;
+                }
             }
+            yield return new WaitForSeconds(0.1f);
         }
-    }
-
-    void deathProtocal () {
-        if (shepherd != null) {
-            shepherd.GetComponent<ShepherdFunction>().flock.Remove(gameObject);
-        }
+        // Debug.Log("Timed out: " + Time.time + ", " + startTime);
+        StartCoroutine(idle());
+        yield return null;
     }
 
 }
