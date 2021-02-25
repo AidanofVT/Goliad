@@ -127,7 +127,6 @@ public class OrbBehavior_Local : OrbBehavior_Base {
     IEnumerator stopIt () {
         StopCoroutine("GoForIt");
         if (activeSearch() == false) {
-            Debug.Log("proceeding with stop");
             photonView.RPC("setAvailable", RpcTarget.AllViaServer);
             itsTransform = null;
             int cycler = 0;

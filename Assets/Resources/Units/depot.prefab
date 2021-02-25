@@ -758,7 +758,7 @@ MonoBehaviour:
   isMobile: 0
   isArmed: 0
   speed: 0
-  costToBuild: 300
+  costToBuild: 180
   meatCapacity: 500
   startingMeat: 0
   toughness: 200
