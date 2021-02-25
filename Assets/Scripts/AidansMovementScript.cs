@@ -102,18 +102,23 @@ public class AidansMovementScript : MonoBehaviourPun {
 
     IEnumerator stuckCheck () {
         Vector3 positionOneSecondAgo = transform.position;
-        yield return new WaitForSeconds((Mathf.Abs(transform.position.x) % 10) / 5);
+// This reduces instances where units that were made together check and jerk at the same time, making for stickier traffic jams. The extra second is to allow the path to finish computing.
+        yield return new WaitForSeconds(1 + (Mathf.Abs(transform.position.x) % 10) / 5);
         while (true) {
             if (body.velocity.magnitude < 0.04f) {
                 // Debug.Log("jerking because this unit has moved " + body.velocity.magnitude + " in the last second.");
-                Vector2 swayWay = (path.vectorPath[currentWaypoint] - transform.position).normalized;
-                float temp  = swayWay.x;
-                swayWay.x = swayWay.y * -1;
-                swayWay.y = temp;
-                if (Random.value < 0.5) {
-                    swayWay *= -1;
+                try {
+                    Vector2 swayWay = (path.vectorPath[currentWaypoint] - transform.position).normalized;
+                    float temp  = swayWay.x;
+                    swayWay.x = swayWay.y * -1;
+                    swayWay.y = temp;
+                    if (Random.value < 0.5) {
+                        swayWay *= -1;
+                    }
+                    body.AddForce(swayWay * Random.Range(0, 100));
                 }
-                body.AddForce(swayWay * Random.Range(0, 100));
+                catch {
+                }
             }
             positionOneSecondAgo = transform.position;
             yield return new WaitForSeconds(1);
@@ -124,12 +129,12 @@ public class AidansMovementScript : MonoBehaviourPun {
         return (desiredCourse - body.velocity);
     }
 
-    public bool isNavigable (Vector3 where) {
+    public bool isNavigable (Vector3 where, bool ignoreMobileUnits = false) {
         float girth = thisUnit.bodyCircle.radius * transform.localScale.magnitude * 1.1f;
         Collider2D[] occupants = Physics2D.OverlapCircleAll(where, girth);
         List<Collider2D> listFormat = new List<Collider2D>(occupants);
         foreach (Collider2D contact in listFormat) {
-            if (contact.tag == "unit" || contact.tag == "obstacle" || contact.tag == "out of bounds") {
+            if (contact.tag == "obstacle" || contact.tag == "out of bounds" || (ignoreMobileUnits == false && contact.tag == "unit")) {
                 if (contact != selfToIgnore) {
                     //Debug.Log("Point obstructed by " + contact.name + ".");
                     return false;
@@ -155,7 +160,7 @@ public class AidansMovementScript : MonoBehaviourPun {
             body.velocity = new Vector2(0, 0);
         }
         if (passUpward) {
-            SendMessage("pathEnded");
+            SendMessage("PathEnded");
         }
     }
 

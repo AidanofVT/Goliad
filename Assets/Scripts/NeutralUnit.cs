@@ -40,7 +40,7 @@ public class NeutralUnit : MobileUnit_local {
         
     }
 
-    public override void pathEnded () {
+    public override void PathEnded () {
 
     }
 

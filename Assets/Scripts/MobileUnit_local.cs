@@ -30,7 +30,7 @@ public class MobileUnit_local : Unit_local {
         moveConductor.setDestination(goTo, leader, bodyCircle.radius);            
     }
 
-    public virtual void pathEnded () {
+    public virtual void PathEnded () {
         if (task != null) { 
             if (task.nature != Task.actions.move) {
                 if (task.objectUnit.activeInHierarchy == false) {
