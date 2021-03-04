@@ -9,7 +9,6 @@ public class Unit_local : Unit {
     int dispensed = 0;
 
     void Awake () {
-//can't this be moved to Unit.Start()?
         stats = GetComponent<UnitBlueprint>();
         if (this.GetType() == typeof(Unit_local)) {
             if (stats.isMobile == true) {
@@ -44,10 +43,6 @@ public class Unit_local : Unit {
         }
     }
 
-    public void attack (GameObject target) {
-        weapon.engage(target);
-    }
-
     public void changeCohort (Cohort newCohort = null) {
         if (cohort != soloCohort) {
             cohort.removeMember(this);
@@ -77,11 +72,10 @@ public class Unit_local : Unit {
     public override void die () {
         SendMessage("deathProtocal", null, SendMessageOptions.DontRequireReceiver);
         spindown();
-        if (cohort == soloCohort) {
-        }
-        else {
+        if (cohort != soloCohort) {
             cohort.removeMember(this);
         }
+        DeathNotice();
         gameState.deadenUnit(gameObject);
         PhotonNetwork.Destroy(gameObject);
     }
@@ -90,12 +84,12 @@ public class Unit_local : Unit {
         GameObject to;
         GameObject from;
         if (task.nature == Task.actions.give) {
-            to = task.objectUnit;
-            from = task.subjectUnit;
+            to = task.objectUnit.gameObject;
+            from = task.subjectUnit.gameObject;
         }
         else {
-            to = task.subjectUnit;
-            from = task.objectUnit;
+            to = task.subjectUnit.gameObject;
+            from = task.objectUnit.gameObject;
         }
         while (true) {
             if (from.GetComponent<Unit>().meat > 0 && dispensed < task.quantity && to.GetComponent<Unit>().roomForMeat() > 0) {
@@ -139,7 +133,7 @@ public class Unit_local : Unit {
         yield return null;
     }
 
-    public virtual void move (Vector2 goTo, GameObject toFollow) { }
+    public virtual void move (Vector2 goTo, Unit toFollow) { }
 
     void OnTriggerEnter2D(Collider2D contact) {
         if (contact.isTrigger == false && task != null) {
@@ -205,7 +199,7 @@ public class Unit_local : Unit {
             StopMoving();
         }
         if (stats.isArmed) {
-            weapon.disengage();
+            weapon.Disengage();
         }
         dispensed = 0;
         task = null;
@@ -234,6 +228,9 @@ public class Unit_local : Unit {
             else {
                 dispenseOutranged();
             }
+        }
+        else if (task.nature == Task.actions.attack) {
+            weapon.engage(task.objectUnit.gameObject);
         }
         else if (task.nature == Task.actions.move) {
             move(task.center, task.objectUnit);

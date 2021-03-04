@@ -2,22 +2,22 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UnitPositionSorter : IComparer <Unit> {
+public class UnitRelativePositionSorter : IComparer <Unit> {
 
     enum comparables {compassDirection, distance};
     comparables mode = new comparables();
     Vector2 referencePosition;
 
-    public UnitPositionSorter (Vector2 pointToReference) {
+    public UnitRelativePositionSorter (Vector2 pointToReference) {
         referencePosition = pointToReference;
     }
 
-    public float DirectionOf (Unit_local inQuestion) {
+    public float DirectionOf (Unit inQuestion) {
         Vector2 runRise = (Vector2) inQuestion.transform.position - referencePosition;
         return Mathf.Atan2(runRise.y, runRise.x);
     }
 
-    public float DistanceOf (Unit_local inQuestion) {
+    public float DistanceOf (Unit inQuestion) {
         return Vector2.Distance(inQuestion.transform.position, referencePosition);
     }
 

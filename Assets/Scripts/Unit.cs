@@ -16,6 +16,7 @@ public class Unit : MonoBehaviourPun {
     public Weapon weapon;
     public Cohort soloCohort;
     public Cohort cohort;
+    public List<Cohort> cohortsAttackingThisUnit = new List<Cohort>();
     public float facing = 0;
     public int meat = 0;
     public int strikes = 3;
@@ -88,6 +89,12 @@ public class Unit : MonoBehaviourPun {
         }
     }
 
+    protected void DeathNotice () {
+        foreach (Cohort aggressor in cohortsAttackingThisUnit) {
+            aggressor.TargetDown(this);
+        }
+    }
+
     [PunRPC]
     public bool deductMeat (int toDeduct) {
         if (meat - toDeduct >= 0) {
@@ -111,10 +118,6 @@ public class Unit : MonoBehaviourPun {
         else {
             return false;
         }
-    }
-
-    [PunRPC]
-    public virtual void takeHit (int power) {  
     }
 
     [PunRPC]
@@ -146,6 +149,10 @@ public class Unit : MonoBehaviourPun {
     [PunRPC]
     public void stopTurning () {
         StopCoroutine("updateFacing");
+    }
+
+    [PunRPC]
+    public virtual void takeHit (int power) {  
     }
 
     public virtual void Unhighlight () {

@@ -23,6 +23,7 @@ public class Unit_remote : Unit {
 
     [PunRPC]
     public override void die() {
+        DeathNotice();
         gameState.deadenUnit(gameObject);
     }
 

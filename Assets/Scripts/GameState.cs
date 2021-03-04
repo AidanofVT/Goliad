@@ -7,10 +7,6 @@ public class GameState : MonoBehaviourPun {
     List<GameObject> alliedUnits = new List<GameObject>();
     public List<Unit_local> activeUnits = new List<Unit_local>();
     public List<Transform> allIconTransforms = new List<Transform>();
-//activeCohorts only exists to facilitate the dissolving of cohorts prior to a new cohort being formed
-//there should never be more than one cohort responding to a single order
-
-    //NOTE: If you want to go bigger by using a smaller sort of number, you'll have to do something in the shader, because it needs things passed to it as 32-bit words. 
     public byte [,] map;
     public int mapOffset;
     public int playerNumber;
@@ -21,29 +17,6 @@ public class GameState : MonoBehaviourPun {
         int mapSize = GetComponent<setup>().mapSize;
         map = new byte [mapSize,mapSize];
         mapOffset = map.GetLength(0) / 2;        
-    }
-
-    public Cohort combineActiveCohorts () {
-        bool onlyOneCohort = true;
-        Cohort firstCohort = activeUnits[0].cohort;
-        int accounted = 0;
-        foreach (Unit_local individual in activeUnits) {
-            ++accounted;
-            if (individual.cohort.Equals(firstCohort) == false) {
-                onlyOneCohort = false;
-                break;
-            }
-        }
-        if (onlyOneCohort == false || accounted != firstCohort.members.Count) {
-            Cohort newCohort = new Cohort();
-            foreach (Unit_local individual in activeUnits) {            
-                individual.changeCohort(newCohort);
-            }
-            return newCohort;
-        }
-        else {
-            return firstCohort;
-        }
     }
 
     public void activateUnit (Unit_local toAdd) {

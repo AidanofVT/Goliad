@@ -13,13 +13,48 @@ public class InputHandler : MonoBehaviour {
 
     GameState gameState;
     SelectionRectManager rectManage;
-    bool targeting;
+    LineRenderer targetingCircle;
+
+    List<Unit_local> activeUnits;
     
     void Awake () {
         gameState = GetComponent<GameState>();
-        rectManage = GameObject.Find("Player Perspective").transform.GetChild(1).GetComponent<SelectionRectManager>();
+        activeUnits = gameState.activeUnits;
+        GameObject playerPerspective = GameObject.Find("Player Perspective");
+        rectManage = playerPerspective.transform.GetChild(1).GetComponent<SelectionRectManager>();
+        targetingCircle = playerPerspective.transform.GetChild(0).GetChild(2).GetChild(0).GetComponent<LineRenderer>();
     }
     
+    public Cohort combineActiveUnits (Task.actions intent) {
+        Cohort newCohort = new Cohort();
+        foreach (Unit_local individual in activeUnits) {
+            bool unitIsEligible = false;
+            switch (intent) {
+                case Task.actions.move:
+                    unitIsEligible = individual.stats.isMobile;
+                    break;
+                case Task.actions.attack:
+                    unitIsEligible = individual.stats.isArmed;
+                    break;
+                case Task.actions.take:
+                    unitIsEligible = individual.roomForMeat() > 0;
+                    break;
+                case Task.actions.give:
+                    unitIsEligible = individual.meat > 0;
+                    break;
+                case Task.actions.build:
+                    unitIsEligible = individual.meat > 0;
+                    break;
+                default:
+                    break;
+            }
+            if (unitIsEligible == true) {
+                individual.changeCohort(newCohort);
+            }
+        }
+        return newCohort;
+    }
+
     void Update() {
         if (Input.GetKeyUp(KeyCode.Mouse0) && !Input.GetKey(KeyCode.Mouse1)) {
             if (rectManage.rectOn == false) {
@@ -29,7 +64,7 @@ public class InputHandler : MonoBehaviour {
             Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
             commandMode = commands.neutral;
         }
-        if (Input.GetKeyUp(KeyCode.Mouse1) && !Input.GetKey(KeyCode.Mouse0) && targeting == false) {
+        if (Input.GetKeyUp(KeyCode.Mouse1) && !Input.GetKey(KeyCode.Mouse0) && targetingCircle.enabled == false) {
             if (rectManage.rectOn == false) {
                 Collider2D[] detectedThings = Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition));
                 thingRightClicked(detectedThings[0].gameObject);
@@ -55,27 +90,26 @@ public class InputHandler : MonoBehaviour {
         }
     }
 
-    // void testThing () {
-    // }
-
     public void thingRightClicked (GameObject thingClicked) {
         if (gameState.activeUnits.Count > 0) {
-            Cohort newCohort = gameState.combineActiveCohorts();
             switch (thingClicked.tag) {
                 case "unit":
                     if (thingClicked.name == "Icon") {
                         thingClicked = thingClicked.transform.parent.gameObject;
                     }
-                    if (thingClicked.GetComponent<PhotonView>().OwnerActorNr != PhotonNetwork.LocalPlayer.ActorNumber) {                    
-                        newCohort.commenceAttack(thingClicked);
+                    if (thingClicked.GetComponent<PhotonView>().OwnerActorNr != PhotonNetwork.LocalPlayer.ActorNumber) {
+                        Cohort attackingCohort = combineActiveUnits(Task.actions.attack);                
+                        attackingCohort.commenceAttack(new Task(null, Task.actions.attack, thingClicked.transform.position, thingClicked.GetComponent<Unit>()));
                     }
                     else {
-                        newCohort.MoveCohort(thingClicked.transform.position, thingClicked);
+                        Cohort followingCohort = combineActiveUnits(Task.actions.move);
+                        followingCohort.MoveCohort(thingClicked.transform.position, thingClicked.GetComponent<Unit_local>());
                     }
                     break;
                 case "ground":
                     Vector2 waypoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                    newCohort.MoveCohort(waypoint, null);
+                    Cohort movingCohort = combineActiveUnits(Task.actions.move);
+                    movingCohort.MoveCohort(waypoint, null);
                     break;
                 case "UI":
                     return;
@@ -109,12 +143,13 @@ public class InputHandler : MonoBehaviour {
                         }
                     }
                     else {
-                        Cohort newCohort = gameState.combineActiveCohorts();
                         if (commandMode == commands.take) {
-                            newCohort.commenceTransact(new Task(null, Task.actions.take, Vector2.zero, unit.gameObject));
+                            Cohort takingCohort = combineActiveUnits(Task.actions.take);
+                            takingCohort.commenceTransact(new Task(null, Task.actions.take, Vector2.zero, unit));
                         }
                         else if (commandMode == commands.give) {
-                            newCohort.commenceTransact(new Task(null, Task.actions.give, Vector2.zero, unit.gameObject));
+                            Cohort givingCohort = combineActiveUnits(Task.actions.give);
+                            givingCohort.commenceTransact(new Task(null, Task.actions.give, Vector2.zero, unit));
                         }
                     }
                 }
@@ -129,52 +164,6 @@ public class InputHandler : MonoBehaviour {
             default:
                 Debug.Log("PROBLEM: nothing with a valid tag hit by raycast.");
                 break;
-        }
-    }
-
-    IEnumerator holdTarget (GameObject target) {
-        float timeDown = Time.time;
-        GameObject targetingUI = target.transform.GetChild(2).GetChild(1).gameObject;
-        while (true) {
-            if (Time.time - timeDown < 0.1f) {
-                if (Input.GetKeyUp(KeyCode.Mouse1)) {
-                    break;
-                }
-            }
-            else {
-                if (targetingUI.activeInHierarchy == false) {
-                    targeting = true;
-                    targetingUI.SetActive(true);
-                }
-                if (Input.GetKeyUp(KeyCode.Mouse1)) {
-                    m1UpButtonPress(target, targetingUI);
-                    break;
-                }
-            }
-            yield return new WaitForSeconds(0);
-        }
-        targeting = false;
-        targetingUI.SetActive(false);
-        StopCoroutine("holdTarget");
-        yield return null;
-    }
-
-    void m1UpButtonPress (GameObject unit, GameObject buttonContainer) {
-        Collider2D contact = Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition))[0];
-        BoxCollider2D [] buttonColliders = buttonContainer.GetComponentsInChildren<BoxCollider2D>();
-        if (contact.gameObject.name.Contains("Button")) {
-            Cohort newCohort = gameState.combineActiveCohorts();
-            // string toprint = "acting on a cohort composed of ";
-            // foreach (Unit_local member in newCohort.members) {
-            //     toprint += (member.gameObject.name + ", ");
-            // }
-            // Debug.Log(toprint);
-            if (contact.gameObject.name == "Button--Give") {
-                newCohort.commenceTransact(new Task(newCohort.members[0].gameObject,Task.actions.give, Vector2.zero, contact.transform.parent.parent.parent.gameObject));
-            }
-            else {
-                newCohort.commenceTransact(new Task(newCohort.members[0].gameObject,Task.actions.take, Vector2.zero, contact.transform.parent.parent.parent.gameObject));
-            }
         }
     }
 

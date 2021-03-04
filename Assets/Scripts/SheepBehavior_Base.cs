@@ -4,7 +4,7 @@ using Photon.Realtime;
 
 public class SheepBehavior_Base : MonoBehaviourPun {
 
-    protected int alliedFaction = 0;
+    public int alliedFaction = 0;
 
     void Start() {
         changeFaction(photonView.OwnerActorNr);
