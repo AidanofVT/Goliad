@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using Photon.Pun;
 
 public class MobileUnit_local : Unit_local {
-    protected AidansMovementScript moveConductor;
+    public AidansMovementScript moveConductor;
 
     protected override void dispenseOutranged() {
         if (task.nature == Task.actions.give || task.nature == Task.actions.take) {

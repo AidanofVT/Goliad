@@ -80,16 +80,16 @@ public class Unit_local : Unit {
         PhotonNetwork.Destroy(gameObject);
     }
 
-    protected virtual IEnumerator dispense () {
-        GameObject to;
-        GameObject from;
-        if (task.nature == Task.actions.give) {
-            to = task.objectUnit.gameObject;
-            from = task.subjectUnit.gameObject;
-        }
-        else {
-            to = task.subjectUnit.gameObject;
-            from = task.objectUnit.gameObject;
+    public virtual IEnumerator dispense (GameObject to = null, GameObject from = null) {
+        if (to == null && from == null) {
+            if (task.nature == Task.actions.give) {
+                to = task.objectUnit.gameObject;
+                from = task.subjectUnit.gameObject;
+            }
+            else {
+                to = task.subjectUnit.gameObject;
+                from = task.objectUnit.gameObject;
+            }
         }
         while (true) {
             if (from.GetComponent<Unit>().meat > 0 && dispensed < task.quantity && to.GetComponent<Unit>().roomForMeat() > 0) {
@@ -113,10 +113,14 @@ public class Unit_local : Unit {
             }
             yield return new WaitForSeconds(0.2f);
         }
+//this condition is here because dispense can be called from places other than the cohort, like when an attacking raged unit refills itself.
+        if (task.nature == Task.actions.take || task.nature == Task.actions.give) {
 //this has to be this way because if the taskcompleted call comes before the null assignment, then task will be set to null while the next dispense coroutine is working on it.
-        Task taskRecord = task;
-        task = null;
-        cohort.taskCompleted(taskRecord);
+            Task taskRecord = task;
+            task = null;
+            cohort.taskCompleted(taskRecord);
+            dispensed = 0;
+        }
         yield return null;
     }
 

@@ -63,6 +63,7 @@ public class Weapon : MonoBehaviour {
     }
 
     public virtual void Disengage () {
+        Debug.Log("disengage");
         StopCoroutine("fire");
         target = null;        
         rangeCircle.enabled = false;
@@ -80,6 +81,7 @@ public class Weapon : MonoBehaviour {
 
     void OnTriggerExit2D(Collider2D other) {
         if (other.gameObject == target && other.gameObject.activeInHierarchy == true) {
+            Debug.Log("ontriggerexit");
             StopCoroutine("fire");
             if (treatAsMobile) {
                 legs.setDestination(target.transform.position, target.transform);
@@ -89,16 +91,46 @@ public class Weapon : MonoBehaviour {
 
     public virtual IEnumerator fire () {
         while (target != null) {
+            Debug.Log((Vector2) transform.position + " a");
             if (thisUnit.meat >= shotCost) {
                 doIt();
                 thisUnit.deductMeat(shotCost);
                 yield return new WaitForSeconds(reloadTime);
             }
             else {
+                Unit_local provider = null;
+                int halfAdjusted = 0;                
+                foreach (Unit_local comrade in thisUnit.cohort.armedMembers) {
+                    halfAdjusted = (comrade.meat - (comrade.meat % shotCost)) / 2;
+                    if (comrade.task.nature == Task.actions.attack
+                        && Vector2.Distance(transform.position, comrade.transform.position) < 10
+                        && halfAdjusted >= shotCost) {
+                            provider = comrade;
+                            break;
+                    }
+                }
+                if (provider != null) {
+                    Debug.Log((Vector2) transform.position + " b");
+                    thisUnit.task.quantity = halfAdjusted;
+                    Coroutine dispenseRoutine = StartCoroutine(thisUnit.dispense(thisUnit.gameObject, provider.gameObject));
+                    float mark = Time.time;
+                    while (Time.time - mark < 8 && thisUnit.meat < shotCost) {
+                        Debug.Log((Vector2) transform.position + " b.5");
+                        yield return new WaitForSeconds(0.1f);
+                    }
+                    Debug.Log((Vector2) transform.position + " c");
+                    StopCoroutine(dispenseRoutine);
+                    if (thisUnit.meat >= shotCost) {
+                        Debug.Log((Vector2) transform.position + " d");
+                        continue;
+                    }
+                }
+                Debug.Log((Vector2) transform.position + "e");
                 StopCoroutine("fire");
                 yield return null;
             }
         }
+        Debug.Log((Vector2) transform.position + " f");
         Disengage();
         yield return null;
     }

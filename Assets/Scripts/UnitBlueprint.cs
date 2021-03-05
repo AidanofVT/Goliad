@@ -8,7 +8,7 @@ public class UnitBlueprint : MonoBehaviour {
 
     public bool isArmed;
 
-    public int speed;
+    public float speed;
 
     public int costToBuild;
 

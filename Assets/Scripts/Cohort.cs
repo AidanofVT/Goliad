@@ -126,16 +126,14 @@ public class Cohort {
             }
         }
         Unit targetUnit = null;
-        if (inRange.Count > 0) {
-            if (closestHoplite != null) {
-                targetUnit = closestHoplite;
-            }
-            else if (closestDog != null) {
-                targetUnit = closestDog;
-            }
-            else if (closestCourier != null) {
-                targetUnit = closestCourier;
-            }
+        if (closestHoplite != null) {
+            targetUnit = closestHoplite;
+        }
+        else if (closestDog != null) {
+            targetUnit = closestDog;
+        }
+        else if (closestCourier != null) {
+            targetUnit = closestCourier;
         }
         else {
             targetUnit = remainingToPerish[0];
@@ -208,6 +206,11 @@ public class Cohort {
             areaAttackSensor.GetComponent<SensorBridge>().Setup(this, attackWork.radius);
         }
     }
+
+    // public void CommenceHelp () {
+// Units should be allocated to tasks with the following order of priorities (1) Attack master's target, (2) Defend master from attackers, (3) Refill ranged units with attack orders, (4) Herd sheep, (5) Move with master.
+// Commenceattack(), CommenceTransact(), and MoveCohort() will need slight rewrites to allow different actions within the same cohort.
+    // }
 
     public void commenceTransact (Task transaction) {
         Stop();
@@ -317,10 +320,17 @@ public class Cohort {
         Stop();
         masterTask = new Task (null, Task.actions.move, goTo, toFollow);
         List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(members);
+        float weakLinkETA = 0;
         foreach (Unit_local toMove in thisIsToSupressWarnings) {
             if (mobileMembers.Contains(toMove) == false) {
                 toMove.changeCohort();
                 toMove.deactivate();
+            }
+            else {
+                float thisMoversETA = Vector2.Distance(toMove.transform.position, goTo) / toMove.stats.speed;
+                if (thisMoversETA > weakLinkETA) {
+                    weakLinkETA = thisMoversETA;
+                }
             }
         }
         UnitRelativePositionSorter vsGoTo = new UnitRelativePositionSorter(goTo);
@@ -356,6 +366,8 @@ public class Cohort {
             }
             slice.Sort(vsGoTo);
             sliceLeader.work(new Task(sliceLeader, Task.actions.move, goTo, toFollow));
+// This line prevents faster units from running ahead.
+            ((MobileUnit_local) sliceLeader).moveConductor.speed = Vector2.Distance(sliceLeader.transform.position, goTo) / weakLinkETA;
             for (int followerIndex = 1; followerIndex < slice.Count; ++followerIndex) {
                 slice[followerIndex].work(new Task(slice[followerIndex], Task.actions.move, goTo, slice[followerIndex - 1]));
             }
@@ -368,7 +380,7 @@ public class Cohort {
     }
 
     public void ProcessTargetingCandidate (GameObject inTargetArea) {
-// Unwieldy, but necessary because sheep PUN ownership does not change when the sheep change factions.
+// Ugly, but necessary because sheep PUN ownership does not change when the sheep change factions.
         if (inTargetArea.tag == "unit" &&
         (inTargetArea.GetPhotonView().Owner != PhotonNetwork.LocalPlayer
         ^ (inTargetArea.name.Contains("sheep") && inTargetArea.GetComponent<SheepBehavior_Base>().alliedFaction != PhotonNetwork.LocalPlayer.ActorNumber))) {
