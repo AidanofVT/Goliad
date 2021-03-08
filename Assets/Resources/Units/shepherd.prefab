@@ -1193,7 +1193,7 @@ GameObject:
   - component: {fileID: 2164311883605478742}
   m_Layer: 5
   m_Name: Icon
-  m_TagString: unit
+  m_TagString: unit icon
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

@@ -26,33 +26,59 @@ public class InputHandler : MonoBehaviour {
     }
     
     public Cohort combineActiveUnits (Task.actions intent) {
-        Cohort newCohort = new Cohort();
-        foreach (Unit_local individual in activeUnits) {
-            bool unitIsEligible = false;
-            switch (intent) {
-                case Task.actions.move:
-                    unitIsEligible = individual.stats.isMobile;
-                    break;
-                case Task.actions.attack:
-                    unitIsEligible = individual.stats.isArmed;
-                    break;
-                case Task.actions.take:
-                    unitIsEligible = individual.roomForMeat() > 0;
-                    break;
-                case Task.actions.give:
-                    unitIsEligible = individual.meat > 0;
-                    break;
-                case Task.actions.build:
-                    unitIsEligible = individual.meat > 0;
-                    break;
-                default:
-                    break;
+        if (activeUnits.Count <= 0) {
+            return null;
+        }
+        else {
+            Cohort firstCohort = activeUnits[0].cohort;
+            bool newCohortNecessary = false;
+            List<Unit_local> eligibleUnits = new List<Unit_local>();
+            List<Unit_local> thisIsToSuppressWarnings = new List<Unit_local> (activeUnits);
+            foreach (Unit_local individual in thisIsToSuppressWarnings) {
+                bool unitIsEligible = false;
+                switch (intent) {
+                    case Task.actions.move:
+                        unitIsEligible = individual.stats.isMobile;
+                        break;
+                    case Task.actions.attack:
+                        unitIsEligible = individual.stats.isArmed;
+                        break;
+    // Leaving unconditional because the cohort should remain unchanged as long as at least one unit is eligable for building.
+                    case Task.actions.take:
+                    case Task.actions.give:
+                    case Task.actions.build:
+                        unitIsEligible = true;
+                        break;
+                    default:
+                        break;
+                }
+                if (unitIsEligible == true) {
+                    eligibleUnits.Add(individual);
+                    if (individual.cohort != firstCohort) {
+                        newCohortNecessary = true;
+                    }
+                }
+                else {
+                    newCohortNecessary = true;
+                    individual.deactivate();
+                }
             }
-            if (unitIsEligible == true) {
-                individual.changeCohort(newCohort);
+            if (eligibleUnits.Count != firstCohort.members.Count) {
+                newCohortNecessary = true;
+            }
+    // We're going to all this trouble because if we create cohorts unnecessarily, stuff happens like unit spawn positions not appearing to increment.
+            if (newCohortNecessary == true || firstCohort == activeUnits[0].soloCohort) {
+                Cohort newCohort = new Cohort();
+                foreach (Unit_local changing in eligibleUnits) {
+                    changing.changeCohort(newCohort);
+                }
+                // Debug.Log($"New cohort, {newCohort.members.Count} large.");
+                return newCohort;
+            }
+            else {
+                return firstCohort;
             }
         }
-        return newCohort;
     }
 
     void Update() {
@@ -94,6 +120,7 @@ public class InputHandler : MonoBehaviour {
         if (gameState.activeUnits.Count > 0) {
             switch (thingClicked.tag) {
                 case "unit":
+                case "unit icon":
                     if (thingClicked.name == "Icon") {
                         thingClicked = thingClicked.transform.parent.gameObject;
                     }
@@ -123,6 +150,7 @@ public class InputHandler : MonoBehaviour {
     void thingLeftClicked (GameObject thingClicked) {
         switch (thingClicked.tag) {
             case "unit":
+            case "unit icon":
                 if (thingClicked.name == "Icon") {
                     thingClicked = thingClicked.transform.parent.gameObject;
                 }

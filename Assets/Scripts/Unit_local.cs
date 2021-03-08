@@ -5,6 +5,7 @@ using Photon.Pun;
 
 public class Unit_local : Unit {
     public Task task;
+    public Task temporaryOverrideTask;
     public CircleCollider2D bodyCircle;
     int dispensed = 0;
 
@@ -80,29 +81,45 @@ public class Unit_local : Unit {
         PhotonNetwork.Destroy(gameObject);
     }
 
-    public virtual IEnumerator dispense (GameObject to = null, GameObject from = null) {
-        if (to == null && from == null) {
-            if (task.nature == Task.actions.give) {
-                to = task.objectUnit.gameObject;
-                from = task.subjectUnit.gameObject;
-            }
-            else {
-                to = task.subjectUnit.gameObject;
-                from = task.objectUnit.gameObject;
-            }
+    public virtual IEnumerator dispense () {
+        GameObject to;
+        GameObject from;
+        Task transaction = null;
+        if (temporaryOverrideTask != null && (temporaryOverrideTask.nature == Task.actions.give || temporaryOverrideTask.nature == Task.actions.take)) {
+            transaction = temporaryOverrideTask;
+        }
+        else if (task.nature == Task.actions.give || task.nature == Task.actions.take) {
+            transaction = task;
+        }
+        else {
+            yield return null;
+        }
+        if (transaction.nature == Task.actions.give) {
+            to = transaction.objectUnit.gameObject;
+            from = transaction.subjectUnit.gameObject;
+        }
+        else {
+            to = transaction.subjectUnit.gameObject;
+            from = transaction.objectUnit.gameObject;
         }
         while (true) {
-            if (from.GetComponent<Unit>().meat > 0 && dispensed < task.quantity && to.GetComponent<Unit>().roomForMeat() > 0) {
-                if (Vector2.Distance(transform.position, task.objectUnit.transform.position) > 10) {
-                    task.quantity -= dispensed;
-                    dispenseOutranged();
-                    StopCoroutine(dispense());
-                    yield return null;
+            if (from.GetComponent<Unit>().meat > 0 && dispensed < transaction.quantity && to.GetComponent<Unit>().roomForMeat() > 0) {
+                if (Vector2.Distance(transform.position, transaction.objectUnit.transform.position) > 10) {
+                    if (transaction != temporaryOverrideTask) {
+                        task.quantity -= dispensed;
+                        dispenseOutranged();
+                        StopCoroutine("dispense");
+                        yield return null;
+                    }
+                    else {
+                        temporaryOverrideTask = null;
+                        break;
+                    }
                 }
                 Transform toTrans = to.transform;
                 Transform fromTrans = from.transform;
                 Vector3 startOut = (Vector3) ((Vector2) toTrans.position - (Vector2) fromTrans.position).normalized * (from.GetComponent<CircleCollider2D>().radius + 0.5f) + fromTrans.position;
-                int leftToDispense = task.quantity - dispensed;
+                int leftToDispense = transaction.quantity - dispensed;
                 GameObject newOrb = spawnOrb(startOut, leftToDispense, from.GetComponent<Unit_local>());
                 dispensed += newOrb.GetComponent<OrbMeatContainer>().meat;
                 StartCoroutine(passOrb(to, newOrb));
@@ -114,7 +131,7 @@ public class Unit_local : Unit {
             yield return new WaitForSeconds(0.2f);
         }
 //this condition is here because dispense can be called from places other than the cohort, like when an attacking raged unit refills itself.
-        if (task.nature == Task.actions.take || task.nature == Task.actions.give) {
+        if (transaction == task) {
 //this has to be this way because if the taskcompleted call comes before the null assignment, then task will be set to null while the next dispense coroutine is working on it.
             Task taskRecord = task;
             task = null;
@@ -143,7 +160,7 @@ public class Unit_local : Unit {
         if (contact.isTrigger == false && task != null) {
             if (task.nature == Task.actions.give || task.nature == Task.actions.take) {
                 if (contact.gameObject == task.objectUnit) {
-                    StartCoroutine(dispense());
+                    StartCoroutine("dispense");
                     Destroy(gameObject.GetComponents<CircleCollider2D>()[1]);
                 }
             }

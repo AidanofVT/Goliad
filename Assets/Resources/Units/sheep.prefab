@@ -332,7 +332,7 @@ GameObject:
   - component: {fileID: 215878233166514999}
   m_Layer: 5
   m_Name: Icon
-  m_TagString: unit
+  m_TagString: unit icon
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -765,6 +765,7 @@ MonoBehaviour:
   meat: 0
   strikes: 3
   bodyCircle: {fileID: 0}
+  moveConductor: {fileID: 0}
 --- !u!114 &3906374602848986028
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -793,6 +794,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d29c7c5d5cbb834a8540170f1e8c994, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  alliedFaction: 0
 --- !u!58 &3906374602848986024
 CircleCollider2D:
   m_ObjectHideFlags: 0

@@ -63,7 +63,6 @@ public class Weapon : MonoBehaviour {
     }
 
     public virtual void Disengage () {
-        Debug.Log("disengage");
         StopCoroutine("fire");
         target = null;        
         rangeCircle.enabled = false;
@@ -81,7 +80,6 @@ public class Weapon : MonoBehaviour {
 
     void OnTriggerExit2D(Collider2D other) {
         if (other.gameObject == target && other.gameObject.activeInHierarchy == true) {
-            Debug.Log("ontriggerexit");
             StopCoroutine("fire");
             if (treatAsMobile) {
                 legs.setDestination(target.transform.position, target.transform);
@@ -91,10 +89,9 @@ public class Weapon : MonoBehaviour {
 
     public virtual IEnumerator fire () {
         while (target != null) {
-            Debug.Log((Vector2) transform.position + " a");
             if (thisUnit.meat >= shotCost) {
                 doIt();
-                thisUnit.deductMeat(shotCost);
+                thisUnit.photonView.RPC("deductMeat", RpcTarget.All, shotCost);
                 yield return new WaitForSeconds(reloadTime);
             }
             else {
@@ -110,27 +107,22 @@ public class Weapon : MonoBehaviour {
                     }
                 }
                 if (provider != null) {
-                    Debug.Log((Vector2) transform.position + " b");
-                    thisUnit.task.quantity = halfAdjusted;
-                    Coroutine dispenseRoutine = StartCoroutine(thisUnit.dispense(thisUnit.gameObject, provider.gameObject));
+                    thisUnit.temporaryOverrideTask = new Task(thisUnit, Task.actions.take, Vector2.zero, provider, halfAdjusted);
+                    Coroutine dispenseRoutine = thisUnit.StartCoroutine("dispense");
                     float mark = Time.time;
                     while (Time.time - mark < 8 && thisUnit.meat < shotCost) {
-                        Debug.Log((Vector2) transform.position + " b.5");
                         yield return new WaitForSeconds(0.1f);
                     }
-                    Debug.Log((Vector2) transform.position + " c");
                     StopCoroutine(dispenseRoutine);
+                    thisUnit.temporaryOverrideTask = null;
                     if (thisUnit.meat >= shotCost) {
-                        Debug.Log((Vector2) transform.position + " d");
                         continue;
                     }
                 }
-                Debug.Log((Vector2) transform.position + "e");
                 StopCoroutine("fire");
                 yield return null;
             }
         }
-        Debug.Log((Vector2) transform.position + " f");
         Disengage();
         yield return null;
     }

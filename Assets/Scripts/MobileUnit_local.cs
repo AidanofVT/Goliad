@@ -39,10 +39,10 @@ public class MobileUnit_local : Unit_local {
                 else {
                     switch (task.nature.ToString()) {
                         case "give":
-                            StartCoroutine(dispense());
+                            StartCoroutine("dispense", null);
                             break;
                         case "take":
-                            StartCoroutine(dispense());
+                            StartCoroutine("dispense", null);
                             break;
                         case "attack":
                             break;
@@ -61,7 +61,7 @@ public class MobileUnit_local : Unit_local {
 
     public override void StopMoving () {
         if (moveConductor.isRunning) {
-            moveConductor.terminatePathfinding();
+            moveConductor.terminatePathfinding(false);
         }
     }
 

@@ -5,6 +5,7 @@ using UnityEngine;
 public class SelectionCircleManager : MonoBehaviour {
 
     InputHandler inputHandler;
+    List<Unit_local> activeUnits;
     LineRenderer lineRenderer;
     Camera camera;
     int fidelity;
@@ -15,7 +16,9 @@ public class SelectionCircleManager : MonoBehaviour {
     float mouseDown = 1000000;
 
     void Start() {
-        inputHandler = GameObject.Find("Goliad").GetComponent<InputHandler>();
+        GameObject goliad = GameObject.Find("Goliad");
+        inputHandler = goliad.GetComponent<InputHandler>();
+        activeUnits = goliad.GetComponent<GameState>().activeUnits;
         camera = Camera.main;
         lineRenderer = GetComponent<LineRenderer>();
         lineRenderer.startWidth = 2f;
@@ -47,7 +50,7 @@ public class SelectionCircleManager : MonoBehaviour {
             placeOnScreen = Input.mousePosition;
         }
         else if (Input.GetKeyUp(KeyCode.Mouse1)) {
-            if (lineRenderer.enabled == true) {
+            if (lineRenderer.enabled == true && activeUnits.Count > 0) {
                 Cohort attackers = inputHandler.combineActiveUnits(Task.actions.attack);
                 float adjustedRadius = radius * ((camera.orthographicSize * 2) / Screen.height);
                 attackers.commenceAttack(new Task(null, Task.actions.attack, camera.ScreenToWorldPoint(placeOnScreen), null, 0, adjustedRadius));

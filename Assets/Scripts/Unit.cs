@@ -82,6 +82,10 @@ public class Unit : MonoBehaviourPun {
             if (photonView.IsMine == true && blueCircle.activeInHierarchy == true) {
                 gameState.activeUnitsChangedFlag = true;
             }
+            if (name.Contains("sheep")) {
+                float finalMagnitude = transform.localScale.x * Mathf.Pow(1.02f, toAdd);
+                transform.localScale = new Vector3(finalMagnitude, finalMagnitude, 1);
+            }
             return true;
         }
         else {

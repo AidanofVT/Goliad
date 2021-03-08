@@ -42,7 +42,7 @@ public class setup : MonoBehaviourPunCallbacks {
         Debug.Log("Joined room " + PhotonNetwork.CurrentRoom.Name + ". Player number " + PhotonNetwork.LocalPlayer.ActorNumber);
         int me = PhotonNetwork.LocalPlayer.ActorNumber;
         gameState.playerNumber = me;
-        int distanceFromCenter = (int) (0.2f * (float) mapSize);
+        int distanceFromCenter = (int) (0.16f * (float) mapSize);
         Vector3 startPlace = Vector3.zero;
         if (me == 1) {
             startPlace = new Vector3 (-distanceFromCenter, distanceFromCenter, -.2f);
@@ -59,10 +59,7 @@ public class setup : MonoBehaviourPunCallbacks {
         yield return new WaitForSeconds(0);
         home.GetComponent<Unit>().addMeat(270);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
-        GameObject shooter1 = PhotonNetwork.Instantiate("Units/hoplite", startPlace * -0.7f, Quaternion.identity);
-        GameObject shooter2 = PhotonNetwork.Instantiate("Units/hoplite", startPlace * -0.73f, Quaternion.identity);
-        yield return new WaitForEndOfFrame();
-        shooter1.GetComponent<Unit>().addMeat(10);
+//      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     }
 
     private void OnPlayerConnected() {

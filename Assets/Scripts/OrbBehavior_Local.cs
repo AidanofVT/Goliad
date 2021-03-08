@@ -89,6 +89,7 @@ public class OrbBehavior_Local : OrbBehavior_Base {
                 if (roomInTarget >= meatBox.meat) {
                     itsTransform.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, meatBox.meat);
                     PhotonNetwork.Destroy(gameObject);
+                    yield return null;
                 }
                 else {
 // Else, this bulb will have to split.
