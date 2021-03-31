@@ -66,9 +66,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
     void consume () {
         Vector2Int patchIndex = new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y));
         if (Goliad.GetComponent<MapManager>().exploitPatch(patchIndex)) {
-            if (thisSheep.addMeat(1) == true) {
-                photonView.RPC("Grow", RpcTarget.All, transform.localScale.x * 1.02f);
-            }
+            thisSheep.photonView.RPC("addMeat", RpcTarget.All, 1);
         }
         StartCoroutine(idle(0));
     }    
@@ -117,7 +115,8 @@ public class SheepBehavior_Local : SheepBehavior_Base
 
     void deathProtocal () {
         if (shepherd != null) {
-            shepherd.GetComponent<ShepherdFunction>().flock.Remove(gameObject);
+            PhotonView shepView = shepherd.GetPhotonView();
+            shepView.RPC("SheepDeparts", shepView.Owner, photonView.ViewID);
         }
     }
 
@@ -230,7 +229,6 @@ public class SheepBehavior_Local : SheepBehavior_Base
             }
             else {
                 PhotonView shepView = shepherd.GetPhotonView();
-                Debug.Log(shepView.Owner);
                 shepView.RPC("SheepDeparts", shepView.Owner, photonView.ViewID);
                 if (newFactionNumber != shepherd.GetPhotonView().Owner.ActorNumber) {
                     photonView.RPC("changeFaction", RpcTarget.All, newFactionNumber);

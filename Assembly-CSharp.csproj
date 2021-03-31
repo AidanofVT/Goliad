@@ -79,6 +79,7 @@
      <Compile Include="Assets\Scripts\ProductionButtonBridge.cs" />
      <Compile Include="Assets\Scripts\SelectionCircleManager.cs" />
      <Compile Include="Assets\Scripts\SelectionRectManager.cs" />
+     <Compile Include="Assets\Scripts\SensorBridge.cs" />
      <Compile Include="Assets\Scripts\setup.cs" />
      <Compile Include="Assets\Scripts\ShaderHandler.cs" />
      <Compile Include="Assets\Scripts\SheepBehavior_Base.cs" />
@@ -89,7 +90,7 @@
      <Compile Include="Assets\Scripts\Unit_local.cs" />
      <Compile Include="Assets\Scripts\Unit_remote.cs" />
      <Compile Include="Assets\Scripts\UnitBlueprint.cs" />
-     <Compile Include="Assets\Scripts\UnitPositionComparer.cs" />
+     <Compile Include="Assets\Scripts\UnitRelativePositionSorter.cs" />
      <Compile Include="Assets\Scripts\ViewManager.cs" />
      <Compile Include="Assets\Scripts\Weapon.cs" />
      <None Include="Assets\Photon\PhotonLibs\netstandard2.0\Photon3Unity3D.xml" />

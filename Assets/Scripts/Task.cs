@@ -5,15 +5,15 @@ using UnityEngine;
 
 public class Task {
 
-    public GameObject subjectUnit;
-    public GameObject objectUnit;
-    public enum actions {give, take, move, attack, help};
+    public Unit_local subjectUnit;
+    public Unit objectUnit;
+    public enum actions {give, take, move, attack, help, build};
     public actions nature;
     public int quantity;
     public Vector2 center;
-    public int radius;
+    public float radius;
 
-    public Task (GameObject doneBy, actions doWhat, Vector2 where, GameObject doneTo = null, int howMuch = 0, int howWide = 0) {
+    public Task (Unit_local doneBy, actions doWhat, Vector2 where, Unit doneTo = null, int howMuch = 0, float howWide = 0) {
         subjectUnit = doneBy;
         nature = doWhat;
         center = where;

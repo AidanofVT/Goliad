@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,7 +17,9 @@ public class Cohort {
     public List<Task> assignments = new List<Task>();
     Hashtable remainingToProvide = new Hashtable();
     Hashtable remainingToAccept = new Hashtable();
+    List <Unit> remainingToPerish = new List<Unit>();
     int spawnLocationCycler = 0;
+    GameObject areaAttackSensor;
     
     public Cohort (List<Unit_local> recruits = null) {
         if (recruits != null) {
@@ -47,9 +50,11 @@ public class Cohort {
         if (recruit.stats.isMobile) {
             mobileMembers.Add(recruit);
         }
+        // Debug.Log("Added " + recruit.name + ". Now " + members.Count + " members.");
     }
 
     public bool assignTransactionWork (Unit_local baseParty, bool assignByTarget = false) {
+        // Debug.Log("AssignTransactionWork");
         float bestDistance = 999999;
         Hashtable counterParties = null;
         Unit_local otherOne = null;
@@ -76,24 +81,24 @@ public class Cohort {
         }
         if (masterTask.nature == Task.actions.give) {
             if ((int) remainingToAccept[target] <= actor.meat) {
-                newTask = new Task(actor.gameObject, Task.actions.give, Vector2.zero, target.gameObject, (int) remainingToAccept[target]);
+                newTask = new Task(actor, Task.actions.give, Vector2.zero, target, (int) remainingToAccept[target]);
                 remainingToProvide[actor] = (int) remainingToProvide[actor] - (int) remainingToAccept[target];
                 remainingToAccept.Remove(target);
             }
             else{
-                newTask = new Task(actor.gameObject, Task.actions.give, Vector2.zero, target.gameObject, (int) remainingToProvide[actor]);
+                newTask = new Task(actor, Task.actions.give, Vector2.zero, target, (int) remainingToProvide[actor]);
                 remainingToAccept[target] = (int) remainingToAccept[target] - (int) remainingToProvide[actor];                   
                 remainingToProvide.Remove(actor);
             }
         }
         else {
             if ((int) remainingToAccept[actor] <= target.meat) {
-                newTask = new Task(actor.gameObject, Task.actions.take, Vector2.zero, target.gameObject, (int) remainingToAccept[actor]);
+                newTask = new Task(actor, Task.actions.take, Vector2.zero, target, (int) remainingToAccept[actor]);
                 remainingToProvide[target] = (int) remainingToProvide[target] - (int) remainingToAccept[actor];
                 remainingToAccept.Remove(actor);
             }
             else{
-                newTask = new Task(actor.gameObject, Task.actions.take, Vector2.zero, target.gameObject, (int) remainingToProvide[target]);
+                newTask = new Task(actor, Task.actions.take, Vector2.zero, target, (int) remainingToProvide[target]);
                 remainingToAccept[actor] = (int) remainingToAccept[actor] - (int) remainingToProvide[target];                   
                 remainingToProvide.Remove(target);
             }
@@ -101,6 +106,44 @@ public class Cohort {
         actor.work(newTask);
         assignments.Add(newTask);
         return true;
+    }
+
+    void assignViolentWork (Unit_local worker) {
+        UnitRelativePositionSorter comparer = new UnitRelativePositionSorter(worker.transform.position);
+        comparer.DistanceMode();
+        remainingToPerish.Sort(comparer);
+        List<Unit> inRange = new List<Unit>();
+        Unit closestHoplite = null;
+        Unit closestDog = null;
+        Unit closestCourier = null;
+        for (int i = 0; i < remainingToPerish.Count && comparer.DistanceOf(remainingToPerish[i]) <= worker.stats.weapon_range; ++i) {
+            inRange.Add(remainingToPerish[i]);
+            if (closestHoplite == null && remainingToPerish[i].name.Contains("hoplite")) {
+                closestHoplite = remainingToPerish[i];
+            }
+            else if (closestDog == null && remainingToPerish[i].name.Contains("dog")) {
+                closestDog = remainingToPerish[i];
+            }
+            else if (closestCourier == null && remainingToPerish[i].name.Contains("courier")) {
+                closestCourier = remainingToPerish[i];
+            }
+        }
+        Unit targetUnit = null;
+        if (closestHoplite != null) {
+            targetUnit = closestHoplite;
+        }
+        else if (closestDog != null) {
+            targetUnit = closestDog;
+        }
+        else if (closestCourier != null) {
+            targetUnit = closestCourier;
+        }
+        else {
+            targetUnit = remainingToPerish[0];
+        }
+        Task result = new Task(worker, Task.actions.attack, targetUnit.transform.position, targetUnit);
+        worker.work(result);
+        assignments.Add(result);
     }
 
     public void Brake () {
@@ -120,6 +163,12 @@ public class Cohort {
         }
     }
 
+    public void chime () {
+        foreach (Unit member in shepherdMembers) {
+            member.GetComponent<ShepherdFunction>().chime();
+        }
+    }
+
     public int collectiveMeat () {
         int collection = 0;
         foreach (Unit meatHolder in members) {
@@ -128,47 +177,90 @@ public class Cohort {
         return collection;
     }
 
-    public void chime () {
-        foreach (Unit member in shepherdMembers) {
-            member.GetComponent<ShepherdFunction>().chime();
+    public void commenceAttack (Task attackWork) {
+        // Debug.Log("cohort attacking " + getIt.name);
+        masterTask = attackWork;
+        if (armedMembers.Count > 0) {
+            Stop();
+            foreach (Unit_local member in members){
+                if (member.stats.isArmed == false) {
+                        member.changeCohort();
+                        member.deactivate();
+                }
+            }
+            if (attackWork.radius == 0) {
+// ProcessTargetingCandidate isn't necessary because that logic is implicit in the InputHandler's response to single unit being clicked on.
+                remainingToPerish.Add(attackWork.objectUnit);
+                attackWork.objectUnit.cohortsAttackingThisUnit.Add(this);
+            }
+            else {
+                Collider2D [] inTargetArea = Physics2D.OverlapCircleAll(attackWork.center, attackWork.radius);
+                foreach (Collider2D contact in inTargetArea) {
+                    ProcessTargetingCandidate(contact.gameObject);
+                }
+                areaAttackSensor = (GameObject) GameObject.Instantiate(Resources.Load("Sensor"), attackWork.center, Quaternion.identity);
+                areaAttackSensor.GetComponent<SensorBridge>().Setup(this, attackWork.radius);
+            }
+            foreach (Unit_local attacker in members) {
+                if (remainingToPerish.Count <= 0) {
+                    break;
+                }
+                assignViolentWork(attacker);
+            }
+            
         }
     }
 
-    public void commenceAttack (GameObject getIt) {
-        Stop();
-        Debug.Log("cohort attacking " + getIt.name);
-        foreach (Unit_local unit in armedMembers) {
-            Debug.Log("instructing " + unit.name + " to attack");
-            unit.task = new Task(unit.gameObject, Task.actions.attack, Vector2.zero, getIt);
-            unit.attack(getIt);
-        }
-    }
+    // public void CommenceHelp () {
+// Units should be allocated to tasks with the following order of priorities (1) Attack master's target, (2) Defend master from attackers, (3) Refill ranged units with attack orders, (4) Herd sheep, (5) Move with master.
+// Commenceattack(), CommenceTransact(), and MoveCohort() will need slight rewrites to allow different actions within the same cohort.
+    // }
 
     public void commenceTransact (Task transaction) {
+        // Debug.Log("CommenceTransact");
         Stop();
         masterTask = transaction;
         Cohort from;
         Cohort to;
-        if (masterTask.nature == Task.actions.give) {
+        if (transaction.nature == Task.actions.give) {
             from = this;
-            to = masterTask.objectUnit.GetComponent<Unit>().cohort;
+            to = transaction.objectUnit.GetComponent<Unit>().cohort;
         }
         else {
-            from = masterTask.objectUnit.GetComponent<Unit>().cohort;
+            from = transaction.objectUnit.GetComponent<Unit>().cohort;
             to = this;
         }
-        foreach (Unit_local recipient in to.members) {
-            if (recipient.roomForMeat() > 0) {
-                remainingToAccept.Add(recipient, recipient.roomForMeat());
+        List<Unit_local> validProviders = null;
+        List<Unit_local> validRecievers = null;
+        if (to == from) {
+            Unit_local singledOut = (Unit_local) transaction.objectUnit;
+            if (transaction.nature == Task.actions.take && singledOut.meat > 0) {
+                validProviders = new List<Unit_local>(new Unit_local[] {singledOut});
+                validRecievers = new List<Unit_local>(members);
+                validRecievers.Remove(singledOut);
+            }
+            else if (transaction.nature == Task.actions.give && singledOut.roomForMeat() > 0) {
+                validRecievers = new List<Unit_local>(new Unit_local[] {singledOut});
+                validProviders = new List<Unit_local>(members);
+                validProviders.Remove(singledOut);
             }
         }
-        foreach (Unit_local giver in from.members) {
+        else {
+            validProviders = from.members;
+            validRecievers = to.members;
+        }
+        foreach (Unit_local giver in validProviders) {
             if (giver.meat > 0 && remainingToAccept.ContainsKey(giver) == false) {
                 remainingToProvide.Add(giver, giver.meat);
             }
         }
+        foreach (Unit_local recipient in validRecievers) {
+            if (recipient.roomForMeat() > 0) {
+                remainingToAccept.Add(recipient, recipient.roomForMeat());
+            }
+        }
         Hashtable workers;
-        if (masterTask.nature == Task.actions.give) {
+        if (transaction.nature == Task.actions.give) {
             workers = new Hashtable(remainingToProvide);
         }
         else {
@@ -200,9 +292,9 @@ public class Cohort {
         }
     }
 
-    public void makeUnit (string unitType, int batchSize = 1) {
-        unitType = "Units/" + unitType;
-        int expense = ((GameObject)Resources.Load(unitType)).GetComponent<UnitBlueprint>().costToBuild;
+    public IEnumerator makeUnit (string unitType, int batchSize = 1) {
+        string unitAddress = "Units/" + unitType;
+        int expense = ((GameObject)Resources.Load(unitAddress)).GetComponent<UnitBlueprint>().costToBuild;
         int purse = collectiveMeat();
         if (Input.GetButton("modifier") == true) {
             batchSize = Mathf.Clamp(purse / expense, 0, 6);
@@ -210,77 +302,78 @@ public class Cohort {
         expense *= batchSize;
         int share = Mathf.CeilToInt(expense / members.Count);
         int covered = 0;
-        int loopBreaker = 100;
+        int loopBreaker = 0;
         int loopItterator = 0;
         while (covered < expense) {
             int ask = Mathf.Clamp(expense - covered, 0, share);
-            if (members[loopItterator].deductMeat(ask) == true) {                
+            if (members[loopItterator].meat >= ask) {                
+                members[loopItterator].photonView.RPC("deductMeat", RpcTarget.All, share);
                 covered += share;
             }
             else {
                 int scrapeBottom = members[loopItterator].meat;
                 members[loopItterator].deductMeat(scrapeBottom);
+                members[loopItterator].photonView.RPC("deductMeat", RpcTarget.All, scrapeBottom);
                 covered += scrapeBottom;
             }
             if (++loopItterator >= members.Count) {
                 loopItterator = 0;
             }
-            if (loopBreaker <= 0) {
-                Debug.Log("PROBLEM: infinite loop in cohort.makeUnit. Loop broken.");
-                return;
+            if (++loopBreaker >= 1000) {
+                Debug.Log("PROBLEM: infinite loop in cohort.makeUnit. Loop broken.");               
+                break;
             }
         }
-        Vector3 [] spots = spawnLocations(unitType);
-        while (batchSize > 0 && loopBreaker < 1000) {
+        Vector3 [] spots = spawnLocations(unitAddress);
+        List<GameObject> batch = new List<GameObject>();
+        for (int i = 0; i < batchSize; ++i) {
 //In the future, there needs to be a mechanism to detect whether the space around the factory is obstructed, and probably to move those obstructing units. I'd suggest making makeUnit return a boolean
 //which will be false as long as the space is obstructed, and then have the ordering method handle the subsiquent calls and the moving of units.
-            PhotonNetwork.Instantiate(unitType, spots[spots.Length - batchSize], Quaternion.identity);
+            GameObject justCreated = PhotonNetwork.Instantiate(unitAddress, spots[i], Quaternion.identity);
+            batch.Add(justCreated);
             spawnLocationCycler = (spawnLocationCycler + 1) % 6;
-            --batchSize;
-            ++loopBreaker;
+            if (++loopBreaker >= 1000) {
+                Debug.Log("PROBLEM: infinite loop in cohort.makeUnit. Loop broken.");
+                yield return null;
+            }
         }
-    }
-
-    public void moveCohort_Depreciated (Vector2 goTo, GameObject follow) {
-        Stop();
-        masterTask = new Task (null, Task.actions.move, goTo, follow);
-        List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(members);
-        Task moveTask;
-        float longestETA = 0;
-        foreach (Unit_local toMove in thisIsToSupressWarnings) {
-            if (mobileMembers.Contains(toMove)) {
-                moveTask = new Task(toMove.gameObject, Task.actions.move, goTo, follow);
-                toMove.work(moveTask);
-                assignments.Add(moveTask);
-                float ETA = Vector2.Distance(toMove.transform.position, goTo) / toMove.GetComponent<UnitBlueprint>().speed;
-                if (ETA > longestETA) {
-                    longestETA = ETA;
-                }     
+        yield return new WaitForSeconds(0);
+        if (unitType != "sheep"){ 
+            Cohort cohortToJoin;
+            if (this == members[0].soloCohort) {
+                cohortToJoin = new Cohort(new List<Unit_local>(new Unit_local[] {members[0]}));
             }
             else {
-                toMove.changeCohort();
-                toMove.deactivate();
+                cohortToJoin = this;
             }
+            for (int i = 0; i < batchSize; ++i) {
+                batch[i].GetComponent<Unit_local>().changeCohort(cohortToJoin);
+            }
+            cohortToJoin.activate();
         }
-        foreach (Unit_local mover in mobileMembers) {
-            mover.GetComponent<AidansMovementScript>().speed = Mathf.Clamp(Vector2.Distance(mover.transform.position, goTo) / longestETA, 1, mover.GetComponent<UnitBlueprint>().speed);
-        }
+        yield return null;
     }
 
-    public void MoveCohort (Vector2 goTo, GameObject toFollow) {
+    public void MoveCohort (Vector2 goTo, Unit_local toFollow) {
         Stop();
         masterTask = new Task (null, Task.actions.move, goTo, toFollow);
         List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(members);
+        float weakLinkETA = 0;
         foreach (Unit_local toMove in thisIsToSupressWarnings) {
-            if (mobileMembers.Contains(toMove) == false) {
-                toMove.changeCohort();
-                toMove.deactivate();
+            if (toMove.stats.isMobile == false) {
+                throw new InvalidOperationException("Cannot move a cohort that includes immobile members.");
+            }
+            else {
+                float thisMoversETA = Vector2.Distance(toMove.transform.position, goTo) / toMove.stats.speed;
+                if (thisMoversETA > weakLinkETA) {
+                    weakLinkETA = thisMoversETA;
+                }
             }
         }
-        UnitPositionSorter vsGoTo = new UnitPositionSorter(goTo);
+        UnitRelativePositionSorter vsGoTo = new UnitRelativePositionSorter(goTo);
         vsGoTo.DirectionMode();
         List <Unit_local> unitsByDirection = new List<Unit_local>(members);
-        unitsByDirection.Sort(vsGoTo);
+        (unitsByDirection).Sort(vsGoTo);
         vsGoTo.DistanceMode();
         List <Unit_local> unitsByDistance = new List<Unit_local>(members);
         unitsByDistance.Sort(vsGoTo);
@@ -309,15 +402,28 @@ public class Cohort {
                 }
             }
             slice.Sort(vsGoTo);
-            sliceLeader.work(new Task(sliceLeader.gameObject, Task.actions.move, goTo, toFollow));
+            sliceLeader.work(new Task(sliceLeader, Task.actions.move, goTo, toFollow));
+// This line prevents faster units from running ahead.
+            ((MobileUnit_local) sliceLeader).moveConductor.speed = Vector2.Distance(sliceLeader.transform.position, goTo) / weakLinkETA;
             for (int followerIndex = 1; followerIndex < slice.Count; ++followerIndex) {
-                slice[followerIndex].work(new Task(slice[followerIndex].gameObject, Task.actions.move, goTo, slice[followerIndex - 1].gameObject));
+                slice[followerIndex].work(new Task(slice[followerIndex], Task.actions.move, goTo, slice[followerIndex - 1]));
             }
             foreach (Unit_local sliceMember in slice) {
                 assignments.Add(sliceMember.task);
                 unitsByDirection.Remove(sliceMember);
                 unitsByDistance.Remove(sliceMember);
             }    
+        }
+    }
+
+    public void ProcessTargetingCandidate (GameObject inTargetArea) {
+// Ugly, but necessary because sheep PUN ownership does not change when the sheep change factions.
+        if (inTargetArea.tag == "unit" &&
+        (inTargetArea.GetPhotonView().Owner != PhotonNetwork.LocalPlayer
+        || (inTargetArea.name.Contains("sheep") && inTargetArea.GetComponent<SheepBehavior_Base>().alliedFaction != PhotonNetwork.LocalPlayer.ActorNumber))) {
+            Unit confirmedTarget = inTargetArea.GetComponent<Unit>();
+            remainingToPerish.Add(confirmedTarget);
+            confirmedTarget.cohortsAttackingThisUnit.Add(this);
         }
     }
 
@@ -328,6 +434,7 @@ public class Cohort {
         mobileMembers.Remove(reject);
         depotMembers.Remove(reject);
         shepherdMembers.Remove(reject);
+        // Debug.Log("Removed " + reject.name + ". Now " + members.Count + " members.");
     }
 
     public void Slaughter () {
@@ -364,6 +471,26 @@ public class Cohort {
         assignments.Clear();
         remainingToAccept.Clear();
         remainingToProvide.Clear();
+        remainingToPerish.Clear();
+    }
+
+    public void TargetDown (Unit slain) {
+        remainingToPerish.Remove(slain);
+        List <Unit_local> reassignable = new List<Unit_local>();
+        foreach (Task attackOrder in assignments) {
+            if (attackOrder.objectUnit == slain) {
+                attackOrder.subjectUnit.Stop();
+                reassignable.Add(attackOrder.subjectUnit);
+            }
+        }
+        if (remainingToPerish.Count > 0) {
+            foreach (Unit_local reassigned in reassignable) {
+                assignViolentWork(reassigned);
+            }
+        }
+        else {
+            Stop();
+        }
     }
 
     public void taskCompleted (Task completedTask) {
@@ -389,6 +516,15 @@ public class Cohort {
             case Task.actions.move:
                 if (completedTask.objectUnit == null) {
                     Brake();
+                }
+                break;
+            case Task.actions.attack:
+                remainingToPerish.Remove(completedTask.objectUnit);
+                if (remainingToPerish.Count > 0) {
+                    assignViolentWork(completedTask.subjectUnit);
+                }
+                else {
+                    Stop();
                 }
                 break;
             default:

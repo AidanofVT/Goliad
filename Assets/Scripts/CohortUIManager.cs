@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class CohortUIManager : MonoBehaviour {
     GameState gameState;
+    InputHandler inputHandler;
     public List<Unit_local> units = new List<Unit_local>();
     GameObject bar;
     GameObject buttonsGroup;
@@ -21,7 +22,9 @@ public class CohortUIManager : MonoBehaviour {
     int maxWidth;
 
     void Start() {
-        gameState = GameObject.Find("Goliad").GetComponent<GameState>();
+        GameObject goliad = GameObject.Find("Goliad");
+        gameState = goliad.GetComponent<GameState>();
+        inputHandler = goliad.GetComponent<InputHandler>();
         units = gameState.activeUnits;
         bar = transform.GetChild(0).GetChild(0).gameObject;
         greyBar = transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<SpriteRenderer>();
@@ -141,8 +144,8 @@ public class CohortUIManager : MonoBehaviour {
     }
 
     public void OrderThing(string whatThing) {
-        Cohort newCohort = gameState.combineActiveCohorts();
-        newCohort.makeUnit(whatThing);
+        Cohort newCohort = inputHandler.combineActiveUnits(Task.actions.build);
+        StartCoroutine(newCohort.makeUnit(whatThing));
         updateInterface();
         ShowCost();
     }

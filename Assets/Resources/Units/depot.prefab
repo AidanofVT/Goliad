@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6069528730125506445}
   m_Layer: 11
   m_Name: Icon
-  m_TagString: unit
+  m_TagString: unit icon
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -758,7 +758,7 @@ MonoBehaviour:
   isMobile: 0
   isArmed: 0
   speed: 0
-  costToBuild: 300
+  costToBuild: 180
   meatCapacity: 500
   startingMeat: 0
   toughness: 200
@@ -1291,10 +1291,15 @@ PrefabInstance:
       propertyPath: m_LocalScale.y
       value: 2.5
       objectReference: {fileID: 0}
-    - target: {fileID: 6333273497692839683, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 1692503810332600162, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
-      propertyPath: m_Layer
-      value: 11
+      propertyPath: m_SortingLayerID
+      value: 996351935
+      objectReference: {fileID: 0}
+    - target: {fileID: 1692503810332600162, guid: 178d9eefee423f54780c7bb7694e10c3,
+        type: 3}
+      propertyPath: m_SortingLayer
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 7330625356227100076, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
@@ -1306,15 +1311,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 11
       objectReference: {fileID: 0}
-    - target: {fileID: 1692503810332600162, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 6333273497692839683, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
-      propertyPath: m_SortingLayerID
-      value: 996351935
-      objectReference: {fileID: 0}
-    - target: {fileID: 1692503810332600162, guid: 178d9eefee423f54780c7bb7694e10c3,
-        type: 3}
-      propertyPath: m_SortingLayer
-      value: 13
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 4468847616019998242, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}

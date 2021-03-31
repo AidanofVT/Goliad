@@ -42,7 +42,7 @@ public class setup : MonoBehaviourPunCallbacks {
         Debug.Log("Joined room " + PhotonNetwork.CurrentRoom.Name + ". Player number " + PhotonNetwork.LocalPlayer.ActorNumber);
         int me = PhotonNetwork.LocalPlayer.ActorNumber;
         gameState.playerNumber = me;
-        int distanceFromCenter = (int) (0.2f * (float) mapSize);
+        int distanceFromCenter = (int) (0.16f * (float) mapSize);
         Vector3 startPlace = Vector3.zero;
         if (me == 1) {
             startPlace = new Vector3 (-distanceFromCenter, distanceFromCenter, -.2f);
@@ -56,15 +56,10 @@ public class setup : MonoBehaviourPunCallbacks {
 
     IEnumerator step2 (Vector3 startPlace) {
         GameObject home = PhotonNetwork.Instantiate("Units/depot", startPlace, Quaternion.identity);
-        // if (gameState.playerNumber == 1) {
-        //     GameObject sheep = PhotonNetwork.Instantiate("Units/sheep", startPlace * 0.03f, Quaternion.identity);
-        // }
-        // GameObject shepherd = PhotonNetwork.Instantiate("Units/shepherd", startPlace * 0.05f, Quaternion.identity);
-        // yield return new WaitForSeconds (0);
-        // GameObject dog = PhotonNetwork.Instantiate("Units/dog", startPlace * 0.07f, Quaternion.identity);
         yield return new WaitForSeconds(0);
-        home.GetComponent<Unit>().addMeat(300);
+        home.GetComponent<Unit>().addMeat(270);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
+//      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     }
 
     private void OnPlayerConnected() {

@@ -4,7 +4,7 @@ using Photon.Realtime;
 
 public class SheepBehavior_Base : MonoBehaviourPun {
 
-    protected int alliedFaction = 0;
+    public int alliedFaction = 0;
 
     void Start() {
         changeFaction(photonView.OwnerActorNr);
@@ -26,11 +26,6 @@ public class SheepBehavior_Base : MonoBehaviourPun {
             transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/sheep_orange");
             transform.GetChild(4).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/sheep_orange_icon");
         }        
-    }
-
-    [PunRPC]
-    public void Grow (float finalMagnitude) {
-        transform.localScale = new Vector3(finalMagnitude, finalMagnitude, 1);
     }
 
     [PunRPC]

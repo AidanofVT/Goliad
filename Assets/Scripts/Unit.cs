@@ -16,6 +16,7 @@ public class Unit : MonoBehaviourPun {
     public Weapon weapon;
     public Cohort soloCohort;
     public Cohort cohort;
+    public List<Cohort> cohortsAttackingThisUnit = new List<Cohort>();
     public float facing = 0;
     public int meat = 0;
     public int strikes = 3;
@@ -81,10 +82,20 @@ public class Unit : MonoBehaviourPun {
             if (photonView.IsMine == true && blueCircle.activeInHierarchy == true) {
                 gameState.activeUnitsChangedFlag = true;
             }
+            if (name.Contains("sheep")) {
+                float finalMagnitude = transform.localScale.x * Mathf.Pow(1.02f, toAdd);
+                transform.localScale = new Vector3(finalMagnitude, finalMagnitude, 1);
+            }
             return true;
         }
         else {
             return false;
+        }
+    }
+
+    protected void DeathNotice () {
+        foreach (Cohort aggressor in cohortsAttackingThisUnit) {
+            aggressor.TargetDown(this);
         }
     }
 
@@ -111,10 +122,6 @@ public class Unit : MonoBehaviourPun {
         else {
             return false;
         }
-    }
-
-    [PunRPC]
-    public virtual void takeHit (int power) {  
     }
 
     [PunRPC]
@@ -146,6 +153,10 @@ public class Unit : MonoBehaviourPun {
     [PunRPC]
     public void stopTurning () {
         StopCoroutine("updateFacing");
+    }
+
+    [PunRPC]
+    public virtual void takeHit (int power) {  
     }
 
     public virtual void Unhighlight () {
