@@ -53,7 +53,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Photon\PhotonRealtime\Demos\DemoLoadBalancing\ConnectAndJoinRandomLb.cs" />
      <Compile Include="Assets\Scripts\AidansMovementScript.cs" />
      <Compile Include="Assets\Scripts\BarManager.cs" />
      <Compile Include="Assets\Scripts\BeamLifeSpan.cs" />
@@ -693,12 +692,6 @@
   <ItemGroup>
     <ProjectReference Include="PhotonUnityNetworking.Utilities.PhotonPlayer.Editor.csproj">
       <Project>{C17D974F-9B00-9384-11B7-593186FB1D74}</Project>      <Name>PhotonUnityNetworking.Utilities.PhotonPlayer.Editor</Name>    </ProjectReference>
-    <ProjectReference Include="PunDemos.DemoHubEditor.csproj">
-      <Project>{F7149ECB-29FC-A32A-1562-DC2D224431DD}</Project>      <Name>PunDemos.DemoHubEditor</Name>    </ProjectReference>
-    <ProjectReference Include="PunDemos.DemoSlotcarEditor.csproj">
-      <Project>{D1442A24-EF49-C1BF-069C-9083C940359E}</Project>      <Name>PunDemos.DemoSlotcarEditor</Name>    </ProjectReference>
-    <ProjectReference Include="PhotonUnityNetworking.Demos.csproj">
-      <Project>{6956363A-E0E8-5053-D4F6-8DAD2E97E748}</Project>      <Name>PhotonUnityNetworking.Demos</Name>    </ProjectReference>
     <ProjectReference Include="PhotonUnityNetworking.Utilities.csproj">
       <Project>{83D860F1-D6FA-281C-831F-92F0BAE8CED4}</Project>      <Name>PhotonUnityNetworking.Utilities</Name>    </ProjectReference>
     <ProjectReference Include="AstarPathfindingProject.csproj">

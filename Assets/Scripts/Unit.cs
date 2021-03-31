@@ -4,7 +4,7 @@ using UnityEngine;
 using Photon.Pun;
 
 public class Unit : MonoBehaviourPun {
-    protected GameState gameState;
+    public GameState gameState;
     protected ViewManager viewManager;
     protected BarManager statusBar;
     protected SpriteRenderer icon;
@@ -12,6 +12,7 @@ public class Unit : MonoBehaviourPun {
     protected Sprite highlightedIcon;
     protected GameObject contextCircle;
     protected GameObject blueCircle;
+    public CircleCollider2D bodyCircle;
     public UnitBlueprint stats;
     public Weapon weapon;
     public Cohort soloCohort;
@@ -57,6 +58,7 @@ public class Unit : MonoBehaviourPun {
         gameState.allIconTransforms.Add(icon.transform);
         viewManager = GameObject.Find("Player Perspective").GetComponent<ViewManager>();
         viewManager.resizeIcons(icon.gameObject);
+        bodyCircle = GetComponent<CircleCollider2D>();
         contextCircle = transform.GetChild(2).GetChild(0).gameObject;
         blueCircle = transform.GetChild(3).gameObject;
         statusBar = transform.GetChild(1).GetComponent<BarManager>();

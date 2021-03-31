@@ -36,7 +36,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
     }
 
     IEnumerator Start2 () {
-        yield return new WaitForSeconds(0);
+        yield return new WaitForSeconds(0.2f);
         thisSheep = GetComponent<NeutralUnit>();
         thisSheep.facing = Random.Range(-1, 1);
         InvokeRepeating("forgetFlockMates", 5, 5);
@@ -208,13 +208,12 @@ public class SheepBehavior_Local : SheepBehavior_Base
             safeSpotRelative *= Mathf.Clamp((safeSpotRelative.magnitude - flockSizeFactor) / safeSpotRelative.magnitude, 0, 1);
         }
         float toGo = safeSpotRelative.magnitude;
-        legs.speed = Mathf.Clamp(2 + toGo * 0.1f, 2, 6);
         float ETA = toGo / legs.speed;
         // Debug.Log("running " + safeSpotRelative + "to safety. Expected to go " + toGo + " distance, at a speed of " + legs.speed);
-        legs.setDestination(safeSpotRelative + (Vector2) transform.position, null);
+        Vector2 safeSpotAbsolute = safeSpotRelative + (Vector2) transform.position;
+        photonView.RPC("Move", RpcTarget.AllViaServer, safeSpotAbsolute.x, safeSpotAbsolute.y, -1, Mathf.Clamp(2 + toGo * 0.1f, 2, 6), -1f);
         sheepState = sheepBehaviors.goingToSafety;
         yield return new WaitForSeconds (ETA * 2);
-        legs.speed = thisSheep.stats.speed;
         StartCoroutine(idle());
         yield return null;
     }
@@ -249,7 +248,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
         sheepState = sheepBehaviors.idling;
         if (legs.isRunning) {
             // Debug.Log("stopping legs");
-            legs.terminatePathfinding();
+            thisSheep.StopMoving();
         }
         if (idleDuration > 0) {
             int roll = Random.Range(0, 11);
@@ -259,7 +258,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
                 runRise *= (idleDuration / thisSheep.stats.speed) * 0.7f;
                 Vector3 wayPoint = transform.position + (Vector3) runRise;
                 if (legs.isNavigable(wayPoint)) {
-                    legs.setDestination(wayPoint);
+                    photonView.RPC("Move", RpcTarget.AllViaServer, wayPoint.x, wayPoint.y, -1, -1f, -1f);
                 }
             }
             yield return new WaitForSeconds (idleDuration);
@@ -305,7 +304,6 @@ public class SheepBehavior_Local : SheepBehavior_Base
 
     void PathEnded () {
         if (sheepState == sheepBehaviors.goingToSafety) {
-            legs.speed = thisSheep.stats.speed;
             StopCoroutine("GoForSafety");
             StartCoroutine(idle());
         }
@@ -392,7 +390,8 @@ public class SheepBehavior_Local : SheepBehavior_Base
     }
 
     IEnumerator WalkToFood () {
-        legs.setDestination(currentMostAppealingPatch);
+        photonView.RPC("Move", RpcTarget.AllViaServer, currentMostAppealingPatch.x, currentMostAppealingPatch.y, -1, -1f, -1f);
+        legs.roundToArrived = 0.15f;
         // Vector2Int hereInt;      
         // Vector2Int thereInt;
         int performantCycler = 0;

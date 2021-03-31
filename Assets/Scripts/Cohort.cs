@@ -154,7 +154,7 @@ public class Cohort {
         foreach (Task movement in thisIsToSupressWarnings) {
             float toGo = Vector2.Distance(movement.subjectUnit.transform.position, movement.center);
             if (toGo < Mathf.Pow(members.Count, 0.5f)) {
-                movement.subjectUnit.GetComponent<AidansMovementScript>().terminatePathfinding(false);
+                movement.subjectUnit.StopMoving();
                 assignments.Remove(movement);
             }
         }

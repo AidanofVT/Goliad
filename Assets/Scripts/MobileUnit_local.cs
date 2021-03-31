@@ -5,6 +5,8 @@ using Photon.Pun;
 
 public class MobileUnit_local : Unit_local {
     public AidansMovementScript moveConductor;
+    Rigidbody2D body;
+    Vector2 pastPosition;
 
     protected override void dispenseOutranged() {
         if (task.nature == Task.actions.give || task.nature == Task.actions.take) {
@@ -16,24 +18,31 @@ public class MobileUnit_local : Unit_local {
     public override void ignition () {
         StartForLocals();
         moveConductor = GetComponent<AidansMovementScript>();
+        body = GetComponent<Rigidbody2D>();
+        StartCoroutine("allignRemotes");
     }
 
-//if network traffic is an issue in the future, and CPU load isn't too bad, maybe we could put these in MobileUnit_remote too and slow down the photon update rate?
-    public override void move (Vector2 goTo, Unit toFollow) {
+    [PunRPC]
+    public void Move (float toX, float toY, int leaderID = -1, float speed = -1, float arrivalThreshholdOverride = -1) {
+        Vector2 destination = new Vector2 (toX, toY);
         Transform leader = null;
-        if (toFollow != null) {
-            leader = toFollow.transform;
+        if (leaderID != -1) {
+            leader = PhotonNetwork.GetPhotonView(leaderID).transform;
         }
-        if (stats.isArmed) {
-            weapon.Disengage();
+        float arrivalThreshhold;
+        if (arrivalThreshholdOverride != -1) {
+            arrivalThreshhold = bodyCircle.radius;
         }
-        moveConductor.setDestination(goTo, leader, bodyCircle.radius);            
+        else {
+            arrivalThreshhold = arrivalThreshholdOverride;
+        }
+        moveConductor.setDestination(destination, leader, speed, arrivalThreshhold);            
     }
 
     public virtual void PathEnded () {
         if (task != null) { 
             if (task.nature != Task.actions.move) {
-                if (task.objectUnit.gameObject.activeInHierarchy == false) {
+                if (task.objectUnit.gameObject == null) {
                     task = null;
                 }
                 else {
@@ -62,6 +71,17 @@ public class MobileUnit_local : Unit_local {
     public override void StopMoving () {
         if (moveConductor.isRunning) {
             moveConductor.terminatePathfinding(false);
+        }
+    }
+
+    IEnumerator allignRemotes () {
+        while (true) {
+            pastPosition = transform.position;
+            yield return new WaitForSeconds(0.5f);
+            float discrepancy = Vector2.Distance(pastPosition, transform.position);
+            if (discrepancy != 0) {
+                photonView.RPC("AuthoritativeNudge", RpcTarget.Others, transform.position.x, transform.position.y, body.velocity.x, body.velocity.y, PhotonNetwork.ServerTimestamp);
+            }
         }
     }
 

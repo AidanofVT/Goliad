@@ -6,7 +6,6 @@ using Photon.Pun;
 public class Unit_local : Unit {
     public Task task;
     public Task temporaryOverrideTask;
-    public CircleCollider2D bodyCircle;
     int dispensed = 0;
 
     void Awake () {
@@ -24,7 +23,6 @@ public class Unit_local : Unit {
         listOfOne.Add(this);
         soloCohort = new Cohort(listOfOne);
         cohort = soloCohort;
-        bodyCircle = GetComponent<CircleCollider2D>();
         icon.gameObject.AddComponent<IconMouseContactBridge>();
     }
 
@@ -72,7 +70,7 @@ public class Unit_local : Unit {
     [PunRPC]
     public override void die () {
         SendMessage("deathProtocal", null, SendMessageOptions.DontRequireReceiver);
-        spindown();
+        StartCoroutine("Spindown");
         if (cohort != soloCohort) {
             cohort.removeMember(this);
         }
@@ -154,7 +152,7 @@ public class Unit_local : Unit {
         yield return null;
     }
 
-    public virtual void move (Vector2 goTo, Unit toFollow) { }
+    public virtual void move (Vector2 goTo, int leaderID = -1, float speed = -1, float arrivalThreshholdOverride = -1) { }
 
     void OnTriggerEnter2D(Collider2D contact) {
         if (contact.isTrigger == false && task != null) {
@@ -197,16 +195,22 @@ public class Unit_local : Unit {
         return newOrb;
     }
   
-    void spindown () {
+    IEnumerator Spindown () {
         GameObject orb = (GameObject)Resources.Load("Orb");
         int drop = meat + (int) (stats.costToBuild * Random.Range(0.2f, 0.6f));
         float quantityMultiplier = (float) (drop / 15) + 1;
-        while (drop > 0) {
-            Vector3 place = new Vector3(transform.position.x + Random.Range(-.5f, 0.5f) * quantityMultiplier, transform.position.y + Random.Range(-.5f, 0.5f) * quantityMultiplier, -.2f);
-            GameObject lastOrb = spawnOrb(place, drop, this);
-            lastOrb.GetComponent<Rigidbody2D>().AddForce((lastOrb.transform.position - transform.position).normalized * Random.Range(0, 2) * quantityMultiplier);
-            drop -= lastOrb.GetComponent<OrbMeatContainer>().meat;
+// This is to spread it out over two physics computation cycles.
+        int dropsPerFrame = drop / 2;
+        for (int i = 1; i > 0; --i){
+            while (drop > dropsPerFrame * i) {
+                Vector3 place = new Vector3(transform.position.x + Random.Range(-.5f, 0.5f) * quantityMultiplier, transform.position.y + Random.Range(-.5f, 0.5f) * quantityMultiplier, -.2f);
+                GameObject lastOrb = spawnOrb(place, drop, this);
+                lastOrb.GetComponent<Rigidbody2D>().AddForce((lastOrb.transform.position - transform.position).normalized * Random.Range(0, 2) * quantityMultiplier);
+                drop -= lastOrb.GetComponent<OrbMeatContainer>().meat;
+            }
+            yield return new WaitForEndOfFrame();
         }
+        yield return null;
     }
 
     public void Stop () {
@@ -254,7 +258,11 @@ public class Unit_local : Unit {
             weapon.engage(task.objectUnit.gameObject);
         }
         else if (task.nature == Task.actions.move) {
-            move(task.center, task.objectUnit);
+            int leaderID = -1;
+            if (task.objectUnit != null) {
+                leaderID = task.objectUnit.photonView.ViewID;
+            }
+            photonView.RPC("Move", RpcTarget.AllViaServer, task.center.x, task.center.y, leaderID, -1f, -1f);
         }
     }
 }

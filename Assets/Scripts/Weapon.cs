@@ -73,7 +73,7 @@ public class Weapon : MonoBehaviour {
         if (other.gameObject == target && other.isTrigger == false) {
             StartCoroutine("fire");
             if (treatAsMobile) {
-                legs.terminatePathfinding();
+                thisUnit.StopMoving();
             }
         }
     }

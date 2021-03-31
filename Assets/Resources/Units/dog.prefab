@@ -268,7 +268,6 @@ GameObject:
   - component: {fileID: 1064180774609560603}
   - component: {fileID: 6454337184819129654}
   - component: {fileID: 1756424582288950945}
-  - component: {fileID: 2798151748477937140}
   - component: {fileID: 3359827502056792201}
   - component: {fileID: 5565126818029317433}
   - component: {fileID: 6144199613834735664}
@@ -292,7 +291,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2186315992651876298}
-  - {fileID: 1064180775448429498}
+  - {fileID: 2582071161501608121}
   - {fileID: 1319056809437317896}
   - {fileID: 5196304700398860185}
   - {fileID: 7139134664587815689}
@@ -318,7 +317,7 @@ MonoBehaviour:
   speed: 5
   costToBuild: 20
   meatCapacity: 10
-  startingMeat: 0
+  startingMeat: 10
   toughness: 35
   weapon_power: 15
   weapon_range: 3
@@ -336,6 +335,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf46a0957e385e34b926cb1155cf2b2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameState: {fileID: 0}
+  bodyCircle: {fileID: 0}
   stats: {fileID: 0}
   weapon: {fileID: 0}
   facing: 0
@@ -359,26 +360,10 @@ MonoBehaviour:
   observableSearch: 2
   Synchronization: 3
   OwnershipTransfer: 0
-  ObservedComponents:
-  - {fileID: 2798151748477937140}
+  ObservedComponents: []
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &2798151748477937140
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1064180774609560595}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
 --- !u!58 &3359827502056792201
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -412,7 +397,7 @@ Rigidbody2D:
   m_AngularDrag: 0.05
   m_GravityScale: 1
   m_Material: {fileID: 6200000, guid: 9987dd1b4c512d8459fa52fecdcc8e01, type: 2}
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
@@ -456,6 +441,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2daa2c563d37b35468497f439a0a0311, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  placetoGo: {x: 0, y: 0, z: 0}
   isRunning: 0
   speed: 0
   changePointThreshhold: 0.5
@@ -1428,17 +1414,17 @@ PrefabInstance:
       propertyPath: m_SortingLayer
       value: 13
       objectReference: {fileID: 0}
-    - target: {fileID: 7330625356227100076, guid: 178d9eefee423f54780c7bb7694e10c3,
-        type: 3}
-      propertyPath: m_Layer
-      value: 5
-      objectReference: {fileID: 0}
     - target: {fileID: 6824311193087415967, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_Layer
       value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6333273497692839683, guid: 178d9eefee423f54780c7bb7694e10c3,
+        type: 3}
+      propertyPath: m_Layer
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7330625356227100076, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_Layer
       value: 5
@@ -1475,7 +1461,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 178d9eefee423f54780c7bb7694e10c3, type: 3}
---- !u!4 &1064180775448429498 stripped
+--- !u!4 &2582071161501608121 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3247630572699396463, guid: 178d9eefee423f54780c7bb7694e10c3,
     type: 3}

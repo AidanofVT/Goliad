@@ -97,7 +97,9 @@ public class OrbBehavior_Local : OrbBehavior_Base {
                     childOrb.GetPhotonView().RPC("fill", RpcTarget.All, roomInTarget);
                     photonView.RPC("fill", RpcTarget.All, (meatBox.meat - roomInTarget));
                     yield return new WaitForSeconds(0);
-                    childOrb.GetComponent<OrbBehavior_Local>().embark(itsTransform.gameObject);
+                    if (itsTransform != null){
+                        childOrb.GetComponent<OrbBehavior_Local>().embark(itsTransform.gameObject);
+                    }
                     StartCoroutine("stopIt");
                 }                
             }
@@ -105,8 +107,11 @@ public class OrbBehavior_Local : OrbBehavior_Base {
     }
     
     IEnumerator launchStage () {
-//This yield needs to be here because the object doesn't yet have velocity. forces don't get added immediately: we have to wait for coroutine-call-time in the next frame.
-        yield return new WaitForSeconds(0);
+// This yield needs to be here because the object doesn't yet have velocity. forces don't get added immediately: we have to wait for coroutine-call-time in the next frame.
+// We also want the rigidbody to stay active for at least one physics update.
+        for (int i = 0; i < 2; ++i) {
+            yield return new WaitForFixedUpdate();
+        }
         while (body.velocity.magnitude > 0.5f) {
             yield return new WaitForSeconds(0.1f);
         }

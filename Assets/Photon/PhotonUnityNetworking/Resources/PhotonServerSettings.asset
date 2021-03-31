@@ -33,11 +33,7 @@ MonoBehaviour:
   RunInBackground: 1
   StartInOfflineMode: 0
   RpcList:
-  - ClickRpc
-  - DestroyRpc
-  - DestroySpaceship
   - Fire
-  - RespawnSpaceship
   - changeMap
   - addMeat
   - die
@@ -66,6 +62,12 @@ MonoBehaviour:
   - GoForIt
   - Grow
   - SheepDeparts
+  - StopMoving
+  - SmallMove
+  - Move
+  - AuthoritativeNudge
+  - ClickRpc
+  - DestroyRpc
   DisableAutoOpenWizard: 1
-  ShowSettings: 0
+  ShowSettings: 1
   DevRegionSetOnce: 1
