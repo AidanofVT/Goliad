@@ -206,6 +206,8 @@ GameObject:
   - component: {fileID: 1064180774374186210}
   - component: {fileID: 1064180774374186220}
   - component: {fileID: 1064180774374186221}
+  - component: {fileID: 2801212640611485667}
+  - component: {fileID: 8524738510583063403}
   m_Layer: 0
   m_Name: Weapon
   m_TagString: Untagged
@@ -256,6 +258,41 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 0}
+--- !u!114 &2801212640611485667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1064180774374186211}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69643d92eeab3d544a8f918f7099624a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  thisWeapon: {fileID: 0}
+--- !u!114 &8524738510583063403
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1064180774374186211}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  observableSearch: 2
+  Synchronization: 3
+  OwnershipTransfer: 0
+  ObservedComponents: []
+  viewIdField: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &1064180774609560595
 GameObject:
   m_ObjectHideFlags: 0
@@ -317,7 +354,7 @@ MonoBehaviour:
   speed: 5
   costToBuild: 20
   meatCapacity: 10
-  startingMeat: 10
+  startingMeat: 0
   toughness: 35
   weapon_power: 15
   weapon_range: 3
@@ -342,6 +379,7 @@ MonoBehaviour:
   facing: 0
   meat: 0
   strikes: 3
+  deathThrows: 0
 --- !u!114 &1756424582288950945
 MonoBehaviour:
   m_ObjectHideFlags: 0

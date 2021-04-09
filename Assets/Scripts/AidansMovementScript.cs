@@ -20,6 +20,7 @@ public class AidansMovementScript : MonoBehaviourPun {
     public float changePointThreshhold;
     public float roundToArrived = 0.15f;
     int currentWaypoint = 0;
+    int noisePoint;
 
     void Start() {
         seeker = GetComponent<Seeker>();
@@ -29,7 +30,8 @@ public class AidansMovementScript : MonoBehaviourPun {
         selfToIgnore = GetComponent<CircleCollider2D>();
         girth = selfToIgnore.radius;
         thisUnit = GetComponent<Unit>();
-        changePointThreshhold = girth;
+        changePointThreshhold = girth * 1.5f;
+        noisePoint = 1337 + Random.Range(0, 100);
     }
 
     IEnumerator GuideRemotes () {
@@ -57,15 +59,14 @@ public class AidansMovementScript : MonoBehaviourPun {
 
 // Only for use without a leading transform:
     public void LightRecalculate (Vector2 destination) {
-        Debug.Log("lightRecalculate");
+        // Debug.Log("lightRecalculate");
         transToFollow = null;
-        CancelInvoke("setRoute");
         placetoGo = destination;
-        InvokeRepeating("setRoute", 0, 2);
+        SetRoute();
     }
 
-    IEnumerator MoveAlong() {
-        while (Vector2.Distance(transform.position, path.endPoint) > roundToArrived) {
+    private IEnumerator MoveAlong() {
+        while (true) {
             try {
 //if you are within a specified range of the next waypoint
                 if (Vector2.Distance(transform.position, path.vectorPath[currentWaypoint]) < changePointThreshhold) {
@@ -79,72 +80,90 @@ public class AidansMovementScript : MonoBehaviourPun {
             catch {
                 Debug.Log("CAUGHT IT. Tried to access index " + currentWaypoint + " when the size of the path is " + path.vectorPath.Count + " entries long.");
             }
-            Vector2 dirNew = (path.vectorPath[currentWaypoint] - transform.position).normalized * speed;
-            if (body.velocity.magnitude <= speed) {
-                body.AddForce(neededPush(dirNew));
+            if (Vector2.Distance(transform.position, path.endPoint) > roundToArrived) {
+                // Debug.Log("Velocity: " + body.velocity + ". Position: " + transform.position + ". Waypoint: " + currentWaypoint);
+                if (Vector2.Distance(transform.position, path.endPoint) < speed && transToFollow == null) {
+                    body.drag = Mathf.Clamp(body.velocity.magnitude, 0.5f, 20);
+                }
+                else {
+                    body.drag = 0.5f;
+                }
+                if (body.velocity.magnitude <= speed) {
+                    Vector2 idealCourse = ((Vector2)path.vectorPath[currentWaypoint] - (Vector2)transform.position).normalized * speed;
+                    Vector2 hit = idealCourse - body.velocity;
+                    // Debug.Log("hitting it with a " + hit + ".  Velocity is now " + body.velocity.magnitude);
+                    body.AddForce(hit);
+                    yield return new WaitForFixedUpdate();
+                }
             }
-// Remote instances should be able to exceed a unit's given speed in order to catch up, and we want a little grace-zone to smooth things out.
-            else if (body.velocity.magnitude > speed * 1.2f) {
-                body.AddForce(body.velocity * -0.5f);
+            else if (transToFollow != null && transToFollow.GetComponent<AidansMovementScript>() != null && transToFollow.GetComponent<AidansMovementScript>().isRunning == true) {
+// This is the case of a unit catching up to a followed unit that hasn't stopped yet.
+                Debug.Log("Caught up.");
+                yield return new WaitForSeconds(0.3f);
+                CancelInvoke("SetRoute");
+                InvokeRepeating("SetRoute", 0, 2);
             }
-            yield return new WaitForSeconds(0.05f);
+            else {
+                break;
+            }
         }
-        if (transToFollow == null || transToFollow.GetComponent<AidansMovementScript>() == null || transToFollow.GetComponent<AidansMovementScript>().isRunning == false) {
-            body.drag = 10;
-            yield return new WaitForSeconds(0.5f);
-            body.drag = 0.5f;
-            terminatePathfinding(true);
-        }
-        else {
-// This is the case of a unit following a moving unit that hasn't stopped yet.
-            StopCoroutine("moveAlong");
-        }
+        body.drag = 10;
+        yield return new WaitForSeconds(0.5f);
+        terminatePathfinding(true);  
         yield return null;
-    }
-
-    Vector2 neededPush (Vector2 desiredCourse) {
-        return (desiredCourse - body.velocity);
     }
 
 //This function is needed because the seeker's startpath() function can only deliver it's output via a backwards-parameter, or whatever it's called.
 //The intermediary function, in this case OnePathComplete, is put as a parameter for StartPath (see lines 33 and 36), and the resulting path gets passed here as a parameter.
     void OnPathComplete (Path finishedPath) {
         path = (ABPath) finishedPath;
+        // string debugOut = "Path: ";
+        // foreach (Vector3 point in path.vectorPath) {
+        //     debugOut += point.ToString() + ", ";
+        // }
+        // Debug.Log(debugOut);
         currentWaypoint = 0;
-        if (photonView.IsMine && isRunning == false){      
+        if (isRunning == false) {
+            thisUnit.startTurning();
+            StartCoroutine("MoveAlong");
             StartCoroutine("stuckCheck");
-            StartCoroutine("GuideRemotes");
+            isRunning = true;
+            if (photonView.IsMine) {
+                photonView.RPC("syncNoise", RpcTarget.Others, noisePoint);
+                // StartCoroutine("GuideRemotes");
+            }
         }
-        StartCoroutine("MoveAlong");
-        isRunning = true;
     }
 
     public void setDestination (Vector2 destination, Transform movingTransform = null, float giddyup = -1, float acceptableDistance = -1) {
         // Debug.Log("Moving from " + transform.position + " to " + (Vector2) destination);
-        StopCoroutine("MoveAlong");
-        StopCoroutine("stuckCheck");
-        CancelInvoke("setRoute");
-        photonView.RPC("stopTurning", RpcTarget.All);
         placetoGo = new Vector3(destination.x, destination.y, transform.position.z);
         transToFollow = movingTransform;
         if (acceptableDistance != -1){
             roundToArrived = acceptableDistance;
         }
-        InvokeRepeating("setRoute", 0, 2);
-        photonView.RPC("startTurning", RpcTarget.All);
+        else if (transToFollow != null) {
+            roundToArrived = changePointThreshhold;
+        }
+        if  (isRunning == false) {
+            InvokeRepeating("SetRoute", 0, 2);
+        }
+        else {
+            SetRoute();
+        }
         if (giddyup != -1) {
             speed = giddyup;
         }
     }
 
-    void setRoute () {
+    void SetRoute () {
         if (transToFollow != null) {
             seeker.StartPath(transform.position, transToFollow.position, OnPathComplete);
-            // Debug.Log("moving to follow " + transToFollow.position);
+            Debug.Log("moving to follow " + transToFollow.position);
         }
         else {
             seeker.StartPath(transform.position, placetoGo, OnPathComplete);
-            // Debug.Log("moving to " + placetoGo);
+            Debug.Log("moving to " + placetoGo);
         }
     }
 
@@ -154,17 +173,17 @@ public class AidansMovementScript : MonoBehaviourPun {
         yield return new WaitForSeconds(1 + (Mathf.Abs(transform.position.x) % 10) / 5);
         while (true) {
             if (body.velocity.magnitude < 0.04f) {
-                // Debug.Log("jerking because this unit has moved " + body.velocity.magnitude + " in the last second.");
                 try {
-                    Vector2 swayWay = (path.vectorPath[currentWaypoint] - transform.position).normalized;
-                    float temp  = swayWay.x;
-                    swayWay.x = swayWay.y * -1;
-                    swayWay.y = temp;
-                    if (Random.value < 0.5) {
-                        swayWay *= -1;
-                    }
-                    // Debug.Log("jerk");
-                    body.AddForce(swayWay * Random.Range(0, 100));
+                    Vector2 swayWay = new Vector2(Mathf.PerlinNoise(noisePoint + 0.5f, 1234), Mathf.PerlinNoise(noisePoint + 0.5f, 5678)) * Mathf.PerlinNoise(1, noisePoint + 0.5f) * 50; // = (path.vectorPath[currentWaypoint] - transform.position).normalized;
+                    // float temp  = swayWay.x;
+                    // swayWay.x = swayWay.y * -1;
+                    // swayWay.y = temp;
+                    // if (Random.value < 0.5) {
+                    //     swayWay *= -1;
+                    // }
+                // Debug.Log("Jerking " + swayWay + " because this unit has moved " + body.velocity.magnitude + " in the last second.");
+                    body.AddForce(swayWay);
+                    noisePoint += 1;
                 }
                 catch {
                 }
@@ -174,13 +193,18 @@ public class AidansMovementScript : MonoBehaviourPun {
         }
     }
 
+    [PunRPC]
+    void syncNoise (int incomingSeed) {
+        noisePoint = incomingSeed;
+    }
+
     public void terminatePathfinding (bool passUpward = true, bool hardStop = false) {
-        Debug.Log("terminatePathfinding at " + transform.position);
+        // Debug.Log("terminatePathfinding at " + transform.position);
         StopCoroutine("MoveAlong");
         StopCoroutine("stuckCheck");
         StopCoroutine("GuideRemotes");
-        CancelInvoke("setRoute");
-        photonView.RPC("stopTurning", RpcTarget.All);
+        CancelInvoke("SetRoute");
+        thisUnit.stopTurning();
         if (hardStop == true) {
             body.velocity = new Vector2(0, 0);
         }
@@ -190,6 +214,7 @@ public class AidansMovementScript : MonoBehaviourPun {
         path = null;
         currentWaypoint = 0;
         transToFollow = null;
+        body.drag = 0.5f;
         if (passUpward) {
             SendMessage("PathEnded");
         }

@@ -68,15 +68,18 @@ public class Unit_local : Unit {
     }
 
     [PunRPC]
-    public override void die () {
-        SendMessage("deathProtocal", null, SendMessageOptions.DontRequireReceiver);
-        StartCoroutine("Spindown");
-        if (cohort != soloCohort) {
-            cohort.removeMember(this);
+    public override IEnumerator die () {
+        if (deathThrows == false) {
+            deathThrows = true;
+            SendMessage("deathProtocal", null, SendMessageOptions.DontRequireReceiver);
+            yield return StartCoroutine(Spindown());
+            if (cohort != soloCohort) {
+                cohort.removeMember(this);
+            }
+            gameState.deadenUnit(gameObject);
+            Debug.Log("destroying " + gameObject.GetPhotonView().ViewID);
+            PhotonNetwork.Destroy(gameObject);
         }
-        DeathNotice();
-        gameState.deadenUnit(gameObject);
-        PhotonNetwork.Destroy(gameObject);
     }
 
     public virtual IEnumerator dispense () {
@@ -119,7 +122,7 @@ public class Unit_local : Unit {
                 Vector3 startOut = (Vector3) ((Vector2) toTrans.position - (Vector2) fromTrans.position).normalized * (from.GetComponent<CircleCollider2D>().radius + 0.5f) + fromTrans.position;
                 int leftToDispense = transaction.quantity - dispensed;
                 GameObject newOrb = spawnOrb(startOut, leftToDispense, from.GetComponent<Unit_local>());
-                dispensed += newOrb.GetComponent<OrbMeatContainer>().meat;
+                dispensed += newOrb.GetComponent<OrbBehavior_Base>().meat;
                 StartCoroutine(passOrb(to, newOrb));
             }
             else {
@@ -151,8 +154,6 @@ public class Unit_local : Unit {
         inQuestion.embark(to);
         yield return null;
     }
-
-    public virtual void move (Vector2 goTo, int leaderID = -1, float speed = -1, float arrivalThreshholdOverride = -1) { }
 
     void OnTriggerEnter2D(Collider2D contact) {
         if (contact.isTrigger == false && task != null) {
@@ -187,16 +188,12 @@ public class Unit_local : Unit {
         else {
             payload = poolSize;
         }
-        GameObject newOrb = PhotonNetwork.Instantiate("Orb", where, Quaternion.identity);
-        newOrb.GetPhotonView().RPC("fill", RpcTarget.All, payload);
-        if (pullFrom != null) {
-            pullFrom.photonView.RPC("deductMeat", RpcTarget.All, payload);
-        }
+// Meat deduction is done in the Orb's Awake function.
+        GameObject newOrb = PhotonNetwork.Instantiate("Orb", where, Quaternion.identity, 0, new object[]{payload, pullFrom.photonView.ViewID});
         return newOrb;
     }
   
     IEnumerator Spindown () {
-        GameObject orb = (GameObject)Resources.Load("Orb");
         int drop = meat + (int) (stats.costToBuild * Random.Range(0.2f, 0.6f));
         float quantityMultiplier = (float) (drop / 15) + 1;
 // This is to spread it out over two physics computation cycles.
@@ -206,7 +203,7 @@ public class Unit_local : Unit {
                 Vector3 place = new Vector3(transform.position.x + Random.Range(-.5f, 0.5f) * quantityMultiplier, transform.position.y + Random.Range(-.5f, 0.5f) * quantityMultiplier, -.2f);
                 GameObject lastOrb = spawnOrb(place, drop, this);
                 lastOrb.GetComponent<Rigidbody2D>().AddForce((lastOrb.transform.position - transform.position).normalized * Random.Range(0, 2) * quantityMultiplier);
-                drop -= lastOrb.GetComponent<OrbMeatContainer>().meat;
+                drop -= lastOrb.GetComponent<OrbBehavior_Base>().meat;
             }
             yield return new WaitForEndOfFrame();
         }
@@ -223,8 +220,8 @@ public class Unit_local : Unit {
         if (stats.isMobile) {
             StopMoving();
         }
-        if (stats.isArmed) {
-            weapon.Disengage();
+        if (stats.isArmed && task != null && task.nature == Task.actions.attack) {
+            weapon.photonView.RPC("Disengage", RpcTarget.All);
         }
         dispensed = 0;
         task = null;
@@ -235,11 +232,17 @@ public class Unit_local : Unit {
 
     [PunRPC]
     public override void takeHit (int power) {
-        int roll = Random.Range(0, stats.toughness);
-        if (roll + power >= stats.toughness) {
-            photonView.RPC("deductStrike", RpcTarget.All);
-            takeHit(roll + power - stats.toughness);
-        }    
+        if (deathThrows == false) {
+            int landedStrikes = 0;
+            while (power > 0) {
+                int roll = Random.Range(0, stats.toughness);
+                if (roll + power >= stats.toughness) {
+                    ++landedStrikes;
+                }
+                power = roll + power - stats.toughness;
+            }
+            photonView.RPC("DeductStrikes", RpcTarget.All, landedStrikes);  
+        }
     }
 
     public virtual void work (Task newTask) {
@@ -255,14 +258,14 @@ public class Unit_local : Unit {
             }
         }
         else if (task.nature == Task.actions.attack) {
-            weapon.engage(task.objectUnit.gameObject);
+            weapon.photonView.RPC("Engage", RpcTarget.All, task.objectUnit.photonView.ViewID);
         }
         else if (task.nature == Task.actions.move) {
             int leaderID = -1;
             if (task.objectUnit != null) {
                 leaderID = task.objectUnit.photonView.ViewID;
             }
-            photonView.RPC("Move", RpcTarget.AllViaServer, task.center.x, task.center.y, leaderID, -1f, -1f);
+            Move(newTask.center, leaderID, -1f, -1f);
         }
     }
 }

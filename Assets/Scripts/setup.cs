@@ -22,7 +22,7 @@ public class setup : MonoBehaviourPunCallbacks {
 
     void Start () {
         PhotonNetwork.NetworkingClient.LoadBalancingPeer.DisconnectTimeout = 360000;
-        // PhotonNetwork.SendRate = 5;
+        // PhotonNetwork.SendRate = 4;
         PhotonNetwork.ConnectUsingSettings();
     }
 
@@ -62,25 +62,14 @@ public class setup : MonoBehaviourPunCallbacks {
         home.GetComponent<Unit>().addMeat(500); //(270);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // List<GameObject> dogs = new List<GameObject>();
-        // yield return new WaitForSeconds(7);
-        // for (int i = 0; i < 8; ++i) {
-        //     for (int j = 0; j < 8; ++j) {
-        //         Vector3 spot = new Vector3 (startPlace.x + i * 2, startPlace.y + j * 2, startPlace.z);
-        //         GameObject newDog = PhotonNetwork.Instantiate("Units/courier", spot, Quaternion.identity);
-        //         dogs.Add(newDog);
-        //     }
-        // }
-        // yield return new WaitForSeconds(1);
-        // for (int i = 0; i < dogs.Count; ++i) {
-        //     dogs[i].GetPhotonView().RPC("addMeat", RpcTarget.All, 25);
-        // }
-        // yield return new WaitForSeconds(1);
-        // for (int i = 0; i < dogs.Count; ++i) {
-        //     dogs[i].GetPhotonView().RPC("die", RpcTarget.All);
-        //     yield return new WaitForSeconds(0.5f);
-        // }
-        // yield return null;
+        Vector3 spot = startPlace * -1 + new Vector3(4, 0, -0.4f);
+        GameObject enemy = PhotonNetwork.Instantiate("Units/dog", spot, Quaternion.identity);
+        while (true) {
+            if (enemy == null || enemy.activeInHierarchy == false) {
+                enemy = PhotonNetwork.Instantiate("Units/dog", spot, Quaternion.identity);
+            }
+            yield return new WaitForSeconds(0.5f);
+        }
     }
 
     private void OnPlayerConnected() {

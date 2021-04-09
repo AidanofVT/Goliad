@@ -6,14 +6,12 @@ using Photon.Pun;
 public class OrbBehavior_Local : OrbBehavior_Base {
 
     float speed = 0;
-    OrbMeatContainer meatBox;
     Vector3 direction;
     public Transform itsTransform;
     
     void Start () {
         body = GetComponent<Rigidbody2D>();
         localCollider = GetComponent<CircleCollider2D>();
-        meatBox = GetComponent<OrbMeatContainer>();
         //Destroy(gameObject, 25);
         StartCoroutine("launchStage");
     }
@@ -86,16 +84,15 @@ public class OrbBehavior_Local : OrbBehavior_Base {
 // Else, the loop must have broken by proximity to a viable target.
             else {
 // If the target can accomidate the whole payload...
-                if (roomInTarget >= meatBox.meat) {
-                    itsTransform.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, meatBox.meat);
+                if (roomInTarget >= meat) {
+                    itsTransform.GetComponent<PhotonView>().RPC("addMeat", RpcTarget.All, meat);
                     PhotonNetwork.Destroy(gameObject);
                     yield return null;
                 }
                 else {
 // Else, this bulb will have to split.
-                    GameObject childOrb = PhotonNetwork.Instantiate("orb", transform.position, transform.rotation);
-                    childOrb.GetPhotonView().RPC("fill", RpcTarget.All, roomInTarget);
-                    photonView.RPC("fill", RpcTarget.All, (meatBox.meat - roomInTarget));
+                    GameObject childOrb = PhotonNetwork.Instantiate("orb", transform.position, transform.rotation, 0, new object[]{roomInTarget, -1});
+                    photonView.RPC("fill", RpcTarget.All, (meat - roomInTarget));
                     yield return new WaitForSeconds(0);
                     if (itsTransform != null){
                         childOrb.GetComponent<OrbBehavior_Local>().embark(itsTransform.gameObject);

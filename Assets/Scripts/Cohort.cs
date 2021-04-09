@@ -19,7 +19,7 @@ public class Cohort {
     Hashtable remainingToAccept = new Hashtable();
     List <Unit> remainingToPerish = new List<Unit>();
     int spawnLocationCycler = 0;
-    GameObject areaAttackSensor;
+    SensorBridge areaAttackSensor;
     
     public Cohort (List<Unit_local> recruits = null) {
         if (recruits != null) {
@@ -191,6 +191,7 @@ public class Cohort {
             if (attackWork.radius == 0) {
 // ProcessTargetingCandidate isn't necessary because that logic is implicit in the InputHandler's response to single unit being clicked on.
                 remainingToPerish.Add(attackWork.objectUnit);
+                Debug.Log("Added " + attackWork.objectUnit + ", supposed to be an individual.");
                 attackWork.objectUnit.cohortsAttackingThisUnit.Add(this);
             }
             else {
@@ -198,8 +199,9 @@ public class Cohort {
                 foreach (Collider2D contact in inTargetArea) {
                     ProcessTargetingCandidate(contact.gameObject);
                 }
-                areaAttackSensor = (GameObject) GameObject.Instantiate(Resources.Load("Sensor"), attackWork.center, Quaternion.identity);
-                areaAttackSensor.GetComponent<SensorBridge>().Setup(this, attackWork.radius);
+                GameObject newSensor = (GameObject) GameObject.Instantiate(Resources.Load("Sensor"), attackWork.center, Quaternion.identity);
+                areaAttackSensor = newSensor.GetComponent<SensorBridge>();
+                areaAttackSensor.Setup(this, attackWork.radius);
             }
             foreach (Unit_local attacker in members) {
                 if (remainingToPerish.Count <= 0) {
@@ -422,8 +424,11 @@ public class Cohort {
         (inTargetArea.GetPhotonView().Owner != PhotonNetwork.LocalPlayer
         || (inTargetArea.name.Contains("sheep") && inTargetArea.GetComponent<SheepBehavior_Base>().alliedFaction != PhotonNetwork.LocalPlayer.ActorNumber))) {
             Unit confirmedTarget = inTargetArea.GetComponent<Unit>();
-            remainingToPerish.Add(confirmedTarget);
-            confirmedTarget.cohortsAttackingThisUnit.Add(this);
+            if (remainingToPerish.Contains(confirmedTarget) == false) {
+                remainingToPerish.Add(confirmedTarget);
+                // Debug.Log("Added " + confirmedTarget + ".");
+                confirmedTarget.cohortsAttackingThisUnit.Add(this);
+            }
         }
     }
 
@@ -467,6 +472,9 @@ public class Cohort {
         foreach (Unit_local member in members) {
             member.Stop();
         }
+        if (areaAttackSensor != null) {
+            areaAttackSensor.TearDown();
+        }
         masterTask = null;
         assignments.Clear();
         remainingToAccept.Clear();
@@ -475,6 +483,7 @@ public class Cohort {
     }
 
     public void TargetDown (Unit slain) {
+        // Debug.Log("Targetdown: " + slain.gameObject);
         remainingToPerish.Remove(slain);
         List <Unit_local> reassignable = new List<Unit_local>();
         foreach (Task attackOrder in assignments) {

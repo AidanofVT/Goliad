@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 
-public class BeamLifeSpan : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback {
+public class BeamLifeSpan : MonoBehaviourPunCallbacks {
     SpriteRenderer line;
 
-    public void OnPhotonInstantiate (PhotonMessageInfo info) {
-        object[] instantiationData = info.photonView.InstantiationData;
+    public void Start () {
         line = gameObject.GetComponent<SpriteRenderer>();
-        line.size = new Vector2 ((float) instantiationData[0], 0.3f);        
     }
 
     [PunRPC]

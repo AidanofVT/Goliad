@@ -11,7 +11,7 @@ public class MobileUnit_local : Unit_local {
     protected override void dispenseOutranged() {
         if (task.nature == Task.actions.give || task.nature == Task.actions.take) {
             Transform toSeek = task.objectUnit.transform;
-            moveConductor.setDestination(toSeek.position, toSeek, 7);
+            Move(toSeek.position, toSeek.gameObject.GetPhotonView().ViewID, -1, 7);
         }      
     }
     
@@ -19,12 +19,11 @@ public class MobileUnit_local : Unit_local {
         StartForLocals();
         moveConductor = GetComponent<AidansMovementScript>();
         body = GetComponent<Rigidbody2D>();
-        StartCoroutine("allignRemotes");
+        // StartCoroutine("allignRemotes");
     }
 
-    [PunRPC]
-    public void Move (float toX, float toY, int leaderID = -1, float speed = -1, float arrivalThreshholdOverride = -1) {
-        Vector2 destination = new Vector2 (toX, toY);
+    public override void Move (Vector2 goTo, int leaderID = -1, float speed = -1, float arrivalThreshholdOverride = -1) {
+        photonView.RPC("Move", RpcTarget.Others, goTo.x, goTo.y, leaderID, moveConductor.speed, arrivalThreshholdOverride);
         Transform leader = null;
         if (leaderID != -1) {
             leader = PhotonNetwork.GetPhotonView(leaderID).transform;
@@ -36,7 +35,7 @@ public class MobileUnit_local : Unit_local {
         else {
             arrivalThreshhold = arrivalThreshholdOverride;
         }
-        moveConductor.setDestination(destination, leader, speed, arrivalThreshhold);            
+        moveConductor.setDestination(goTo, leader, speed, arrivalThreshhold);            
     }
 
     public virtual void PathEnded () {

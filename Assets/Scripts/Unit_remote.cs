@@ -22,9 +22,10 @@ public class Unit_remote : Unit {
     }
 
     [PunRPC]
-    public override void die() {
-        DeathNotice();
+    public override IEnumerator die() {
+        SendMessage("deathProtocal", null, SendMessageOptions.DontRequireReceiver);
         gameState.deadenUnit(gameObject);
+        yield return null;
     }
 
 }

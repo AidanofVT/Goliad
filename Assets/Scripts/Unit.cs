@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
@@ -21,6 +22,8 @@ public class Unit : MonoBehaviourPun {
     public float facing = 0;
     public int meat = 0;
     public int strikes = 3;
+    public bool deathThrows = false;
+
 
     void Awake () {
         string spriteName = gameObject.name;
@@ -95,12 +98,6 @@ public class Unit : MonoBehaviourPun {
         }
     }
 
-    protected void DeathNotice () {
-        foreach (Cohort aggressor in cohortsAttackingThisUnit) {
-            aggressor.TargetDown(this);
-        }
-    }
-
     [PunRPC]
     public bool deductMeat (int toDeduct) {
         if (meat - toDeduct >= 0) {
@@ -126,21 +123,33 @@ public class Unit : MonoBehaviourPun {
         }
     }
 
+    void deathProtocal () {
+        foreach (Cohort aggressor in cohortsAttackingThisUnit) {
+            aggressor.TargetDown(this);
+        }
+    }
+
     [PunRPC]
-    public void deductStrike () {
-        if (--strikes <= 0) {
-            die();
+    public void DeductStrikes (int numStrikes) {
+        for (int i = 0; i < numStrikes; ++i) {
+            if (--strikes <= 0) {
+                StartCoroutine("die");
+                break;
+            }
         }
         statusBar.displayStrikes();
     }
 
     [PunRPC]
-    public virtual void die () {             
-    }
+    public virtual IEnumerator die () {yield return null;}
 
     public virtual void Highlight() {
         contextCircle.SetActive(true);
         icon.sprite = highlightedIcon;
+    }
+
+    public virtual void Move (Vector2 goTo, int leaderID = -1, float speed = -1, float arrivalThreshholdOverride = -1) {
+        throw new InvalidOperationException("Tried to move an immobile unit.");
     }
 
     public int roomForMeat () {
@@ -158,8 +167,7 @@ public class Unit : MonoBehaviourPun {
     }
 
     [PunRPC]
-    public virtual void takeHit (int power) {  
-    }
+    public virtual void takeHit (int power) { }
 
     public virtual void Unhighlight () {
         contextCircle.SetActive(false);

@@ -4,13 +4,9 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 
-public class SheepBehavior_Local : SheepBehavior_Base
-{
-    GameObject Goliad;
-    GameState gameState;
-    AidansMovementScript legs;
-    public NeutralUnit thisSheep;
+public class SheepBehavior_Local : SheepBehavior_Base {
 
+    AidansMovementScript legs;
     List<GameObject> flock = new List<GameObject>();
     List<GameObject> farFlock = new List<GameObject>();
     float flockSizeFactor = 1;
@@ -26,19 +22,18 @@ public class SheepBehavior_Local : SheepBehavior_Base
     sheepBehaviors sheepState;
 
     void Awake() {
-        Goliad = GameObject.Find("Goliad");
-        gameState = Goliad.GetComponent<GameState>();
         legs = gameObject.GetComponent<AidansMovementScript>();
 //a positive z value sholud be used as an indicator that the targetPatch variable is inactive
         currentMostAppealingPatch = transform.position + new Vector3(0,0,1000);
         flock.Add(gameObject);
-        StartCoroutine("Start2");
     }
 
     IEnumerator Start2 () {
         yield return new WaitForSeconds(0.2f);
         thisSheep = GetComponent<NeutralUnit>();
         thisSheep.facing = Random.Range(-1, 1);
+// The trigger collider has to start off, so startup can complete before any contacts are registered.
+        GetComponents<Collider2D>()[1].enabled = true;
         InvokeRepeating("forgetFlockMates", 5, 5);
         StartCoroutine(idle(0));
     }
@@ -65,8 +60,9 @@ public class SheepBehavior_Local : SheepBehavior_Base
 
     void consume () {
         Vector2Int patchIndex = new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y));
-        if (Goliad.GetComponent<MapManager>().exploitPatch(patchIndex)) {
-            thisSheep.photonView.RPC("addMeat", RpcTarget.All, 1);
+        if (mapManager.exploitPatch(patchIndex) == true) {
+            thisSheep.photonView.RPC("Consume", RpcTarget.Others, patchIndex.x, patchIndex.y);
+            thisSheep.addMeat(1);
         }
         StartCoroutine(idle(0));
     }    
@@ -209,9 +205,10 @@ public class SheepBehavior_Local : SheepBehavior_Base
         }
         float toGo = safeSpotRelative.magnitude;
         float ETA = toGo / legs.speed;
-        // Debug.Log("running " + safeSpotRelative + "to safety. Expected to go " + toGo + " distance, at a speed of " + legs.speed);
         Vector2 safeSpotAbsolute = safeSpotRelative + (Vector2) transform.position;
-        photonView.RPC("Move", RpcTarget.AllViaServer, safeSpotAbsolute.x, safeSpotAbsolute.y, -1, Mathf.Clamp(2 + toGo * 0.1f, 2, 6), -1f);
+        // Debug.Log("running " + safeSpotRelative + "to safety. Expected to go " + toGo + " distance, at a speed of " + tempSpeed);
+        float tempSpeed = Mathf.Clamp(2 + toGo * 0.1f, 2, 6);
+        thisSheep.Move(safeSpotAbsolute, -1, tempSpeed, -1f);
         sheepState = sheepBehaviors.goingToSafety;
         yield return new WaitForSeconds (ETA * 2);
         StartCoroutine(idle());
@@ -248,7 +245,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
         sheepState = sheepBehaviors.idling;
         if (legs.isRunning) {
             // Debug.Log("stopping legs");
-            thisSheep.StopMoving();
+            ((NeutralUnit) thisSheep).StopMoving();
         }
         if (idleDuration > 0) {
             int roll = Random.Range(0, 11);
@@ -258,7 +255,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
                 runRise *= (idleDuration / thisSheep.stats.speed) * 0.7f;
                 Vector3 wayPoint = transform.position + (Vector3) runRise;
                 if (legs.isNavigable(wayPoint)) {
-                    photonView.RPC("Move", RpcTarget.AllViaServer, wayPoint.x, wayPoint.y, -1, -1f, -1f);
+                    thisSheep.Move(wayPoint, -1, -1f, -1f);
                 }
             }
             yield return new WaitForSeconds (idleDuration);
@@ -390,7 +387,7 @@ public class SheepBehavior_Local : SheepBehavior_Base
     }
 
     IEnumerator WalkToFood () {
-        photonView.RPC("Move", RpcTarget.AllViaServer, currentMostAppealingPatch.x, currentMostAppealingPatch.y, -1, -1f, -1f);
+        thisSheep.Move(currentMostAppealingPatch, -1, -1f, -1f);
         legs.roundToArrived = 0.15f;
         // Vector2Int hereInt;      
         // Vector2Int thereInt;

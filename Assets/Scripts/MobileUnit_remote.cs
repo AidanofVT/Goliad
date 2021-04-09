@@ -17,10 +17,10 @@ public class MobileUnit_remote : Unit_remote {
     public void Move (float toX, float toY, int leaderID = -1, float speed = -1, float arrivalThreshholdOverride = -1) {
         Vector2 destination = new Vector2 (toX, toY);
         Transform leader = null;
-        float cutoff = AstarPath.active.data.gridGraph.nodeSize * 10;
-        if (Vector2.Distance(destination, transform.position) > cutoff) {
-            destination = (Vector2) transform.position + (destination - (Vector2) transform.position).normalized * cutoff;
-        }
+        // float cutoff = AstarPath.active.data.gridGraph.nodeSize * 10;
+        // if (Vector2.Distance(destination, transform.position) > cutoff) {
+        //     destination = (Vector2) transform.position + (destination - (Vector2) transform.position).normalized * cutoff;
+        // }
         if (leaderID != -1) {
             leader = PhotonNetwork.GetPhotonView(leaderID).transform;
         }
@@ -44,7 +44,7 @@ public class MobileUnit_remote : Unit_remote {
             moveConductor.LightRecalculate(goTo);
         }
         else {
-            Move(toX, toY);
+            Move(toX, toY, -1, -1f, bodyCircle.radius);
         } 
     }
 
@@ -65,6 +65,13 @@ public class MobileUnit_remote : Unit_remote {
         Vector2 offset = (Vector2) transform.position - estimatedAuthorityPosition;
         if (offset.magnitude < 0.05f) {
             body.position = estimatedAuthorityPosition;
+        }
+        else if (offset.magnitude > 2) {
+            body.position = estimatedAuthorityPosition;
+            body.velocity = pastAuthorityVelocity;
+            if (moveConductor.isRunning) {
+                moveConductor.LightRecalculate(moveConductor.placetoGo);
+            }
         }
         else {
             Vector2 impulse = offset * -10;

@@ -15,4 +15,8 @@ public class SensorBridge : MonoBehaviour {
         watcher.ProcessTargetingCandidate(contact.gameObject);
     }
 
+    public void TearDown () {
+        Destroy(gameObject);
+    }
+
 }

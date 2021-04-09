@@ -62,7 +62,7 @@
      <Compile Include="Assets\Scripts\Cohort.cs" />
      <Compile Include="Assets\Scripts\CohortUIManager.cs" />
      <Compile Include="Assets\Scripts\DepotFunction.cs" />
-     <Compile Include="Assets\Scripts\Dog_Weapon.cs" />
+     <Compile Include="Assets\Scripts\Dog_Attack_Visualizer.cs" />
      <Compile Include="Assets\Scripts\GameState.cs" />
      <Compile Include="Assets\Scripts\hoplite_Weapon.cs" />
      <Compile Include="Assets\Scripts\IconManager.cs" />
@@ -92,6 +92,8 @@
      <Compile Include="Assets\Scripts\UnitRelativePositionSorter.cs" />
      <Compile Include="Assets\Scripts\ViewManager.cs" />
      <Compile Include="Assets\Scripts\Weapon.cs" />
+     <Compile Include="Assets\Scripts\Weapon_Remote.cs" />
+     <Compile Include="Assets\Scripts\WeaponVisualizer.cs" />
      <None Include="Assets\Photon\PhotonLibs\netstandard2.0\Photon3Unity3D.xml" />
      <None Include="Assets\Photon\PhotonLibs\changes-library.txt" />
      <None Include="Assets\Photon\PhotonUnityNetworking\link.xml" />

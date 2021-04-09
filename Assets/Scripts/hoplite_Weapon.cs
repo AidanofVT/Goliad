@@ -3,18 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 
-public class hoplite_Weapon : Weapon {
+public class hoplite_Weapon : WeaponVisualizer {
     
-    public override void doIt() {
+    public override void Show() {
         Vector2 from = transform.position;
-        Vector2 to = target.transform.position;
+        Vector2 to = thisWeapon.target.transform.position;
         Vector2 direction = from - to;
         float radAngle = Mathf.Atan2(direction.y, direction.x);
-        object[] lengthPerameter = new object[1];
-        lengthPerameter[0] = direction.magnitude;
-        GameObject beam = PhotonNetwork.Instantiate("beam", (transform.position + target.transform.position) / 2, Quaternion.AxisAngle(Vector3.forward, radAngle), 0, lengthPerameter);
+        GameObject beam = Instantiate((GameObject) Resources.Load("beam"), (transform.position + thisWeapon.target.transform.position) / 2, Quaternion.identity);
+        beam.GetComponent<SpriteRenderer>().size = new Vector2(direction.magnitude, 0.3f);
         beam.GetPhotonView().RPC("lerpBeam", RpcTarget.All);
-        target.GetComponent<PhotonView>().RPC("takeHit", RpcTarget.Others, power);
     }
 
 }

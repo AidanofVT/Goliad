@@ -52,7 +52,12 @@ public class GameState : MonoBehaviourPun {
             int howManyThisFrame = (int) (Random.value + dutyThisFrame);
             int endpoint = (index + howManyThisFrame) % alliedUnits.Count;
             for (; index != endpoint; index = (index + 1) % alliedUnits.Count) {
-                UpdateUnitRemotes(alliedUnits[index]);
+                try {
+                    UpdateUnitRemotes(alliedUnits[index]);
+                }
+                catch {
+                    Debug.Log("failed to access index " + index + " when there are " + alliedUnits.Count + "units in alliedUnits");
+                }
             }
             yield return new WaitForFixedUpdate();
         }
@@ -88,8 +93,8 @@ public class GameState : MonoBehaviourPun {
     public void deadenUnit (GameObject toRem) {
         //Debug.Log("Attempting to remove object from aliveUnits.");
         if (toRem.GetPhotonView().OwnerActorNr == playerNumber) {
-            alliedUnits.Remove(toRem);
             recentPositions.RemoveAt(alliedUnits.IndexOf(toRem));
+            alliedUnits.Remove(toRem);
             deactivateUnit(toRem.GetComponent<Unit_local>());
         }
         allIconTransforms.Remove(toRem.transform.GetChild(4));    

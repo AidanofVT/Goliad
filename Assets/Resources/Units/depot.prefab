@@ -785,6 +785,7 @@ MonoBehaviour:
   facing: 0
   meat: 150
   strikes: 3
+  deathThrows: 0
 --- !u!50 &2973622428731980580
 Rigidbody2D:
   serializedVersion: 4
