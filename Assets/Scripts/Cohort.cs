@@ -154,7 +154,7 @@ public class Cohort {
         foreach (Task movement in thisIsToSupressWarnings) {
             float toGo = Vector2.Distance(movement.subjectUnit.transform.position, movement.center);
             if (toGo < Mathf.Pow(members.Count, 0.5f)) {
-                movement.subjectUnit.StopMoving();
+                movement.subjectUnit.photonView.RPC("StopMoving", RpcTarget.All);
                 assignments.Remove(movement);
             }
         }
@@ -191,7 +191,6 @@ public class Cohort {
             if (attackWork.radius == 0) {
 // ProcessTargetingCandidate isn't necessary because that logic is implicit in the InputHandler's response to single unit being clicked on.
                 remainingToPerish.Add(attackWork.objectUnit);
-                Debug.Log("Added " + attackWork.objectUnit + ", supposed to be an individual.");
                 attackWork.objectUnit.cohortsAttackingThisUnit.Add(this);
             }
             else {

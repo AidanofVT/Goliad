@@ -245,7 +245,7 @@ public class SheepBehavior_Local : SheepBehavior_Base {
         sheepState = sheepBehaviors.idling;
         if (legs.isRunning) {
             // Debug.Log("stopping legs");
-            ((NeutralUnit) thisSheep).StopMoving();
+            thisSheep.photonView.RPC("StopMoving", RpcTarget.All);
         }
         if (idleDuration > 0) {
             int roll = Random.Range(0, 11);

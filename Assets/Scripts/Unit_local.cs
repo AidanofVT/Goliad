@@ -126,7 +126,7 @@ public class Unit_local : Unit {
                 StartCoroutine(passOrb(to, newOrb));
             }
             else {
-                StopMoving();
+                photonView.RPC("StopMoving", RpcTarget.All);
                 break;
             }
             yield return new WaitForSeconds(0.2f);
@@ -218,7 +218,7 @@ public class Unit_local : Unit {
             Destroy(circles[1]);
         }
         if (stats.isMobile) {
-            StopMoving();
+            photonView.RPC("StopMoving", RpcTarget.All);
         }
         if (stats.isArmed && task != null && task.nature == Task.actions.attack) {
             weapon.photonView.RPC("Disengage", RpcTarget.All);

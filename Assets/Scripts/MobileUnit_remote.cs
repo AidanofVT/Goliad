@@ -14,7 +14,10 @@ public class MobileUnit_remote : Unit_remote {
     }
 
     [PunRPC]
-    public void Move (float toX, float toY, int leaderID = -1, float speed = -1, float arrivalThreshholdOverride = -1) {
+    public void Move (double scheduledStartTime, float velX, float velY, float fromX, float fromY, float toX, float toY, int jerkSeed,
+                        int leaderID = -1, float speed = -1, float arrivalThreshholdOverride = -1) {
+        body.position = new Vector2(fromX, fromY);
+        body.velocity = new Vector2(velX, velX);
         Vector2 destination = new Vector2 (toX, toY);
         Transform leader = null;
         // float cutoff = AstarPath.active.data.gridGraph.nodeSize * 10;
@@ -31,33 +34,22 @@ public class MobileUnit_remote : Unit_remote {
         else {
             arrivalThreshhold = arrivalThreshholdOverride;
         }
-        moveConductor.setDestination(destination, leader, speed, arrivalThreshhold);            
+        moveConductor.Go(destination, scheduledStartTime, jerkSeed, leader, speed, arrivalThreshhold);            
     }
 
     public void PathEnded() {}
 
     [PunRPC]
-    void SmallMove (float toX, float toY) {
-        gameState.smallMoveCount += 1;
-        if (moveConductor.isRunning == true) {
-            Vector2 goTo = new Vector2(toX, toY);
-            moveConductor.LightRecalculate(goTo);
-        }
-        else {
-            Move(toX, toY, -1, -1f, bodyCircle.radius);
-        } 
-    }
-
-    [PunRPC]
     public virtual void StopMoving () {
-        Debug.Log("StopMoving.");
+        Debug.Log("Stopmoving recieved.");
 // This is unconditional, because we want the velocity to be zeroed regardless of whether the legs are moving or not.
-        moveConductor.terminatePathfinding(false, true);
+        moveConductor.terminatePathfinding(false);
     }
 
+// This method of synchronizing unit positions seems counter productive, but it may serve as an inspiration for something useful:
     [PunRPC]
-    public void AuthoritativeNudge (float posX, float posY, float velX, float velY, int timeSent) {
-        // Debug.Log("Recieved nudge for photonview #" + photonView.ViewID + ". Current velocity: " + body.velocity.magnitude);
+    public void AuthoritativeNudge (float posX, float posY, float velX, float velY, int timeSent, int navigationPoint) {
+        Debug.Log("Recieved nudge for photonview #" + photonView.ViewID + ". Current velocity: " + body.velocity.magnitude);
         float secondsTranspired = (float) (PhotonNetwork.ServerTimestamp - timeSent) / 1000;
         Vector2 pastAuthorityPosition = new Vector2(posX, posY);
         Vector2 pastAuthorityVelocity = new Vector2(velX, velY);
@@ -69,16 +61,14 @@ public class MobileUnit_remote : Unit_remote {
         else if (offset.magnitude > 2) {
             body.position = estimatedAuthorityPosition;
             body.velocity = pastAuthorityVelocity;
-            if (moveConductor.isRunning) {
-                moveConductor.LightRecalculate(moveConductor.placetoGo);
+            if (navigationPoint != -1) {
+                moveConductor.currentWaypoint = navigationPoint;
             }
         }
         else {
             Vector2 impulse = offset * -10;
             body.AddForce(impulse);
         }
-        // Debug.Log("added " + impulse.ToString() + " to " + gameObject.name + ", based on a time difference of "
-        //              + secondsTranspired + " and and estimated authority position " + Vector2.Distance(estimatedAuthorityPosition, transform.position) + " units away.");
     }
 
 }

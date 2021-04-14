@@ -17,7 +17,7 @@ public class NeutralUnit : MobileUnit_local {
     public override void ignition () {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
         moveConductor = GetComponent<AidansMovementScript>();
-        bodyCircle = GetComponent<CircleCollider2D>();
+        body = GetComponent<Rigidbody2D>();
     }
 
     public override void activate () {

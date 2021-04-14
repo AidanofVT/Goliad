@@ -687,7 +687,6 @@ GameObject:
   - component: {fileID: 6581195444482403786}
   - component: {fileID: 6581195444482403787}
   - component: {fileID: 6581195444482403788}
-  - component: {fileID: 6581195444482403789}
   - component: {fileID: 6581195444482403790}
   - component: {fileID: 6581195444482403791}
   m_Layer: 11
@@ -729,11 +728,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf46a0957e385e34b926cb1155cf2b2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameState: {fileID: 0}
+  bodyCircle: {fileID: 0}
   stats: {fileID: 0}
   weapon: {fileID: 0}
   facing: 0
   meat: 0
   strikes: 3
+  deathThrows: 0
 --- !u!114 &6581195444482403785
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -752,7 +754,7 @@ MonoBehaviour:
   speed: 3
   costToBuild: 80
   meatCapacity: 26
-  startingMeat: 26
+  startingMeat: 0
   toughness: 35
   weapon_power: 25
   weapon_range: 70
@@ -813,26 +815,10 @@ MonoBehaviour:
   observableSearch: 2
   Synchronization: 3
   OwnershipTransfer: 0
-  ObservedComponents:
-  - {fileID: 6581195444482403789}
+  ObservedComponents: []
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &6581195444482403789
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6581195444482403776}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
 --- !u!114 &6581195444482403790
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -845,6 +831,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2daa2c563d37b35468497f439a0a0311, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  placetoGo: {x: 0, y: 0, z: 0}
   isRunning: 0
   speed: 0
   changePointThreshhold: 0.5
@@ -887,7 +874,9 @@ GameObject:
   m_Component:
   - component: {fileID: 4571909378677257294}
   - component: {fileID: 4386576141808873650}
+  - component: {fileID: 7011945341558523464}
   - component: {fileID: 2493550025080961360}
+  - component: {fileID: 7794982573995869852}
   m_Layer: 0
   m_Name: Weapon
   m_TagString: Untagged
@@ -925,6 +914,28 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
+--- !u!114 &7011945341558523464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6915211750879536264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  observableSearch: 2
+  Synchronization: 3
+  OwnershipTransfer: 0
+  ObservedComponents: []
+  viewIdField: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!114 &2493550025080961360
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -938,6 +949,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 0}
+--- !u!114 &7794982573995869852
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6915211750879536264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f74b716c6c114042b5b59139d0b1d9c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  thisWeapon: {fileID: 0}
 --- !u!1 &7224678777253004062
 GameObject:
   m_ObjectHideFlags: 0
@@ -1428,22 +1452,22 @@ PrefabInstance:
       propertyPath: m_SortingLayer
       value: 12
       objectReference: {fileID: 0}
-    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 7037510048807398018, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayerID
       value: -926520923
       objectReference: {fileID: 0}
-    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 7037510048807398018, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayer
       value: 12
       objectReference: {fileID: 0}
-    - target: {fileID: 7037510048807398018, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayerID
       value: -926520923
       objectReference: {fileID: 0}
-    - target: {fileID: 7037510048807398018, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayer
       value: 12

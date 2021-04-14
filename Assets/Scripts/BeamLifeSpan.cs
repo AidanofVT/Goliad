@@ -1,16 +1,14 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 
-public class BeamLifeSpan : MonoBehaviourPunCallbacks {
+public class BeamLifeSpan : MonoBehaviour {
     SpriteRenderer line;
 
     public void Start () {
         line = gameObject.GetComponent<SpriteRenderer>();
+        StartCoroutine("lerpBeam");
     }
 
-    [PunRPC]
     public IEnumerator lerpBeam () {
         float fullWidth = line.size.y;
         float startTime = Time.time;

@@ -1303,7 +1303,6 @@ GameObject:
   - component: {fileID: 9182977958649021546}
   - component: {fileID: 9182977958649021547}
   - component: {fileID: 594526526140097972}
-  - component: {fileID: 5596007509335589738}
   m_Layer: 11
   m_Name: shepherd
   m_TagString: unit
@@ -1366,11 +1365,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf46a0957e385e34b926cb1155cf2b2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameState: {fileID: 0}
+  bodyCircle: {fileID: 0}
   stats: {fileID: 0}
   weapon: {fileID: 0}
   facing: 0
   meat: 10
   strikes: 3
+  deathThrows: 0
 --- !u!58 &9182977958649021551
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -1433,6 +1435,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2daa2c563d37b35468497f439a0a0311, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  placetoGo: {x: 0, y: 0, z: 0}
   isRunning: 0
   speed: 2
   changePointThreshhold: 0.5
@@ -1484,25 +1487,10 @@ MonoBehaviour:
   Synchronization: 3
   OwnershipTransfer: 0
   ObservedComponents:
-  - {fileID: 5596007509335589738}
+  - {fileID: 0}
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &5596007509335589738
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9182977958649021538}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
 --- !u!1001 &6014528910131316003
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -484,6 +484,7 @@ MonoBehaviour:
   speed: 0
   changePointThreshhold: 0.5
   roundToArrived: 0.1
+  currentWaypoint: 0
 --- !u!1 &1064180775222001033
 GameObject:
   m_ObjectHideFlags: 0
@@ -1452,17 +1453,17 @@ PrefabInstance:
       propertyPath: m_SortingLayer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 7330625356227100076, guid: 178d9eefee423f54780c7bb7694e10c3,
+        type: 3}
+      propertyPath: m_Layer
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 6824311193087415967, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_Layer
       value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6333273497692839683, guid: 178d9eefee423f54780c7bb7694e10c3,
-        type: 3}
-      propertyPath: m_Layer
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 7330625356227100076, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_Layer
       value: 5

@@ -5,8 +5,7 @@ using Photon.Pun;
 
 public class MobileUnit_local : Unit_local {
     public AidansMovementScript moveConductor;
-    Rigidbody2D body;
-    Vector2 pastPosition;
+    public Rigidbody2D body;
 
     protected override void dispenseOutranged() {
         if (task.nature == Task.actions.give || task.nature == Task.actions.take) {
@@ -19,11 +18,13 @@ public class MobileUnit_local : Unit_local {
         StartForLocals();
         moveConductor = GetComponent<AidansMovementScript>();
         body = GetComponent<Rigidbody2D>();
-        // StartCoroutine("allignRemotes");
+        StartCoroutine("AllignRemotes");
     }
 
     public override void Move (Vector2 goTo, int leaderID = -1, float speed = -1, float arrivalThreshholdOverride = -1) {
-        photonView.RPC("Move", RpcTarget.Others, goTo.x, goTo.y, leaderID, moveConductor.speed, arrivalThreshholdOverride);
+        Vector2 nowGoing = body.velocity;
+        Vector2 nowAt = transform.position;
+        double whenToStart = PhotonNetwork.Time + PhotonNetwork.GetPing() * 0.0015;
         Transform leader = null;
         if (leaderID != -1) {
             leader = PhotonNetwork.GetPhotonView(leaderID).transform;
@@ -35,7 +36,9 @@ public class MobileUnit_local : Unit_local {
         else {
             arrivalThreshhold = arrivalThreshholdOverride;
         }
-        moveConductor.setDestination(goTo, leader, speed, arrivalThreshhold);            
+        int noiseStartPoint = Random.Range(0, 100);
+        photonView.RPC("Move", RpcTarget.Others, whenToStart, nowGoing.x, nowGoing.y, nowAt.x, nowAt.y, goTo.x, goTo.y, noiseStartPoint, leaderID, moveConductor.speed, arrivalThreshholdOverride);
+        moveConductor.Go(goTo, whenToStart, noiseStartPoint, leader, speed, arrivalThreshhold); 
     }
 
     public virtual void PathEnded () {
@@ -67,19 +70,29 @@ public class MobileUnit_local : Unit_local {
         }
     }
 
+    [PunRPC]
     public override void StopMoving () {
         if (moveConductor.isRunning) {
             moveConductor.terminatePathfinding(false);
         }
     }
 
-    IEnumerator allignRemotes () {
+    IEnumerator AllignRemotes () {
+        Vector2 pastPosition;
+        float timeOfMostRecentMotion = 0;
         while (true) {
+            Debug.Log("a");
             pastPosition = transform.position;
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.5f);            
             float discrepancy = Vector2.Distance(pastPosition, transform.position);
             if (discrepancy != 0) {
-                photonView.RPC("AuthoritativeNudge", RpcTarget.Others, transform.position.x, transform.position.y, body.velocity.x, body.velocity.y, PhotonNetwork.ServerTimestamp);
+                Debug.Log("b");
+                timeOfMostRecentMotion = Time.time;
+            }
+            if (Time.time - timeOfMostRecentMotion <= 2.1f) {
+                Debug.Log("c");
+                // Debug.Log("Transmitting nudge to " + photonView.ViewID);
+                photonView.RPC("AuthoritativeNudge", RpcTarget.Others, transform.position.x, transform.position.y, body.velocity.x, body.velocity.y, PhotonNetwork.ServerTimestamp, moveConductor.currentWaypoint);
             }
         }
     }

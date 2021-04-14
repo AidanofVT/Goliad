@@ -64,7 +64,7 @@
      <Compile Include="Assets\Scripts\DepotFunction.cs" />
      <Compile Include="Assets\Scripts\Dog_Attack_Visualizer.cs" />
      <Compile Include="Assets\Scripts\GameState.cs" />
-     <Compile Include="Assets\Scripts\hoplite_Weapon.cs" />
+     <Compile Include="Assets\Scripts\Hoplite_Attack_Vizualizer.cs" />
      <Compile Include="Assets\Scripts\IconManager.cs" />
      <Compile Include="Assets\Scripts\IconMouseContactBridge.cs" />
      <Compile Include="Assets\Scripts\InputHandler.cs" />

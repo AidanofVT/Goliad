@@ -30,11 +30,7 @@ public class Weapon : MonoBehaviourPun {
             legs = GetComponentInParent<AidansMovementScript>();
         }
         rangeCircle = GetComponent<CircleCollider2D>();
-        string unitName = transform.parent.gameObject.name;
-        unitName = unitName.Remove(unitName.IndexOf("_"));
-        // unitName += "_Attack_Visualizer";
-        // Debug.Log(unitName);
-        visualizer = (WeaponVisualizer) gameObject.AddComponent(Type.GetType("Dog_Attack_Visualizer"));
+        visualizer = GetComponent<WeaponVisualizer>();
         visualizer.thisWeapon = this;
         StartCoroutine("Start2");
     }
@@ -61,12 +57,11 @@ public class Weapon : MonoBehaviourPun {
 
     [PunRPC]
     public virtual void Disengage () {
-        Debug.Log("Disengage.");
         CeaseFire();
         target = null;        
         rangeCircle.enabled = false;
         if (legs.isRunning) {
-            ((Unit_local) thisUnit).StopMoving();
+            thisUnit.photonView.RPC("StopMoving", RpcTarget.All);
         }
     }
 
@@ -77,15 +72,14 @@ public class Weapon : MonoBehaviourPun {
         target = PhotonNetwork.GetPhotonView(PhotonID).gameObject;
         rangeCircle.enabled = true;
 //this is needed because OnTriggerEnter() works based on movement, and both units might be stationary.
-        target.transform.Translate(0,0,1);
-        target.transform.Translate(0,0,-1);
+        target.GetComponent<Rigidbody2D>().WakeUp();
         if (photonView.IsMine && inRange() == false) {
             thisUnit.Move(target.transform.position, target.GetPhotonView().ViewID);
         }
     }
 
     public virtual IEnumerator Fire () {
-        Debug.Log("firing on " + target.GetPhotonView().ViewID);
+        // Debug.Log("firing on " + target.GetPhotonView().ViewID);
         while (target != null) {
             if (thisUnit.meat >= shotCost) {
                 visualizer.Show();
@@ -133,7 +127,7 @@ public class Weapon : MonoBehaviourPun {
         if (other.gameObject == target && other.isTrigger == false) {
             photonView.RPC("OpenFire", RpcTarget.All);
             if (treatAsMobile) {
-                ((Unit_local) thisUnit).StopMoving();
+                thisUnit.photonView.RPC("StopMoving", RpcTarget.All);
             }
         }
     }

@@ -88,14 +88,13 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5208871039481130616}
-  - component: {fileID: 2820673275344119241}
   - component: {fileID: 4114864677095662250}
+  - component: {fileID: 2820673275344119241}
   - component: {fileID: 6838625691491133293}
   - component: {fileID: 1997373112883984940}
   - component: {fileID: 2177271992439942899}
   - component: {fileID: 3741182500596549922}
   - component: {fileID: 301003998619073098}
-  - component: {fileID: 6117676408295909344}
   m_Layer: 11
   m_Name: courier
   m_TagString: unit
@@ -115,30 +114,13 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 3518146009571945018}
-  - {fileID: 2733738173587951172}
+  - {fileID: 640028665392964934}
   - {fileID: 2943896751230503068}
   - {fileID: 8958494630339979165}
   - {fileID: 286360895776828585}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2820673275344119241
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2700725203324829277}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf46a0957e385e34b926cb1155cf2b2b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stats: {fileID: 0}
-  weapon: {fileID: 0}
-  facing: 0
-  meat: 0
-  strikes: 3
 --- !u!114 &4114864677095662250
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -163,6 +145,26 @@ MonoBehaviour:
   weapon_range: 0
   weapon_reloadTime: 0
   weapon_shotCost: 0
+--- !u!114 &2820673275344119241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2700725203324829277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf46a0957e385e34b926cb1155cf2b2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameState: {fileID: 0}
+  bodyCircle: {fileID: 0}
+  stats: {fileID: 0}
+  weapon: {fileID: 0}
+  facing: 0
+  meat: 0
+  strikes: 3
+  deathThrows: 0
 --- !u!114 &6838625691491133293
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -175,6 +177,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2daa2c563d37b35468497f439a0a0311, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  placetoGo: {x: 0, y: 0, z: 0}
   isRunning: 0
   speed: 0
   changePointThreshhold: 0.5
@@ -262,26 +265,10 @@ MonoBehaviour:
   observableSearch: 2
   Synchronization: 3
   OwnershipTransfer: 0
-  ObservedComponents:
-  - {fileID: 6117676408295909344}
+  ObservedComponents: []
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &6117676408295909344
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2700725203324829277}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
 --- !u!1 &3344250338075485908
 GameObject:
   m_ObjectHideFlags: 0
@@ -1364,29 +1351,29 @@ PrefabInstance:
       propertyPath: m_SortingLayer
       value: 12
       objectReference: {fileID: 0}
-    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 7037510048807398018, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayerID
       value: -926520923
       objectReference: {fileID: 0}
-    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 7037510048807398018, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayer
       value: 12
       objectReference: {fileID: 0}
-    - target: {fileID: 7037510048807398018, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayerID
       value: -926520923
       objectReference: {fileID: 0}
-    - target: {fileID: 7037510048807398018, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayer
       value: 12
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 178d9eefee423f54780c7bb7694e10c3, type: 3}
---- !u!4 &2733738173587951172 stripped
+--- !u!4 &640028665392964934 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3247630572699396463, guid: 178d9eefee423f54780c7bb7694e10c3,
     type: 3}
