@@ -6,14 +6,15 @@ public class CameraPanner : MonoBehaviour
 {
     GameObject Goliad;
     ViewManager vManage;
-//changes to panMultiplier and zoomMultiplier change the magnitude of these inputs by a static, linear amount.
+//Changes to panMultiplier and zoomMultiplier change the magnitude of these inputs by a static, linear amount.
     public float panMultiplier = 0.05f;
-    public float followMouseMultiplier = 1f;
     public float zoomMultiplier = 9f;
-//zoomExponent determines how exponentially greater zoom inputs should become as camera size increases
-    public float zoomExponent = 1.1f;
-//zoomMultiplier simply compensates for camera size, allowing the movement of things across the screen to seem static regardless of zoom 
+//zoomMultiplier is changed with camera size to allow the movement of things across the screen to seem static regardless of zoom 
     float distanceMultiplier;
+//zoomExponent is a component of distanceMultiplier, determining how exponentially greater inputs should become as camera size increases
+    public float zoomExponent = 1.1f;
+//followMouseMultiplier determines how much the camera will move, based on mouse position, when it changes size.
+    public float followMouseMultiplier = 1f;
     int mapExtent;
     float screenRatio;
     float cameraBaseZ;
@@ -21,7 +22,7 @@ public class CameraPanner : MonoBehaviour
     float cameraZoom;
 
     private void Awake() {
-        distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, zoomExponent) / 5;
+        SetDistanceMultiplier();
         Goliad = GameObject.Find("Goliad");
         vManage = transform.parent.GetComponent<ViewManager>();
         mapExtent = Goliad.GetComponent<setup>().mapSize / 2;
@@ -36,10 +37,8 @@ public class CameraPanner : MonoBehaviour
             cameraPos = Camera.main.transform.position;
             if (zoom) {
                 obeyCameraZoomInputs();
-                //cameraZoom = Mathf.Clamp(cameraZoom * screenRatio, mapExtent * -1, mapExtent) / screenRatio;
-                cameraZoom = Mathf.Clamp(cameraZoom, 4, mapExtent);
-                Camera.main.orthographicSize = cameraZoom;
                 vManage.resizeIcons();
+                SetDistanceMultiplier();
             }
             if (pan) {
                 obeyCameraPanInputs();
@@ -49,7 +48,6 @@ public class CameraPanner : MonoBehaviour
                 Mathf.Clamp(cameraPos.y, mapExtent * -1, mapExtent),
                 cameraBaseZ);
             Camera.main.transform.position = cameraPos;
-            distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, zoomExponent) / 10;
         }
     }
 
@@ -73,7 +71,6 @@ public class CameraPanner : MonoBehaviour
 
     void obeyCameraZoomInputs () {
         float inputThisFrame = Input.GetAxis("zoom");
-        cameraZoom = Camera.main.orthographicSize - inputThisFrame * zoomMultiplier * distanceMultiplier;
         Vector2 mouseOffset = Input.mousePosition;
         Vector2 screenCartesian = new Vector2(Screen.width, Screen.height);
         mouseOffset -= screenCartesian / 2;
@@ -82,6 +79,13 @@ public class CameraPanner : MonoBehaviour
             mouseOffset *= -1;
         }
         cameraPos += (Vector3) mouseOffset * followMouseMultiplier * distanceMultiplier;
+        cameraZoom = Camera.main.orthographicSize - inputThisFrame * zoomMultiplier * distanceMultiplier;
+        cameraZoom = Mathf.Clamp(cameraZoom, 4, mapExtent);
+        Camera.main.orthographicSize = cameraZoom;
+    }
+
+    void SetDistanceMultiplier() {        
+        distanceMultiplier = Mathf.Pow(Camera.main.orthographicSize, zoomExponent) / 10;
     }
 
 }

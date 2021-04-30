@@ -479,12 +479,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2daa2c563d37b35468497f439a0a0311, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  placetoGo: {x: 0, y: 0, z: 0}
-  isRunning: 0
+  amRunning: 0
   speed: 0
-  changePointThreshhold: 0.5
-  roundToArrived: 0.1
-  currentWaypoint: 0
+  roundToArrived: 0.15
 --- !u!1 &1064180775222001033
 GameObject:
   m_ObjectHideFlags: 0

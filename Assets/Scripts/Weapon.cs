@@ -60,8 +60,8 @@ public class Weapon : MonoBehaviourPun {
         CeaseFire();
         target = null;        
         rangeCircle.enabled = false;
-        if (legs.isRunning) {
-            thisUnit.photonView.RPC("StopMoving", RpcTarget.All);
+        if (legs.getRunningState()) {
+            thisUnit.photonView.RPC("StopMoving", RpcTarget.All, false);
         }
     }
 
@@ -127,7 +127,7 @@ public class Weapon : MonoBehaviourPun {
         if (other.gameObject == target && other.isTrigger == false) {
             photonView.RPC("OpenFire", RpcTarget.All);
             if (treatAsMobile) {
-                thisUnit.photonView.RPC("StopMoving", RpcTarget.All);
+                thisUnit.photonView.RPC("StopMoving", RpcTarget.All, true);
             }
         }
     }

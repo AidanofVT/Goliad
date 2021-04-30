@@ -23,6 +23,7 @@ public class BarManager : MonoBehaviourPun {
         GetComponent<SpriteRenderer>().size = new Vector2(0.75f * (float) thisUnit.meat / (float) denominator, 0.08f);
     }
 
+// Note that this isn't set up to accomodate strike-gaining.
     [PunRPC]
     public void displayStrikes () {
         switch (thisUnit.strikes) { 

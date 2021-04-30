@@ -44,7 +44,7 @@ public class setup : MonoBehaviourPunCallbacks {
         Debug.Log("Joined room " + PhotonNetwork.CurrentRoom.Name + ". Player number " + PhotonNetwork.LocalPlayer.ActorNumber);
         int me = PhotonNetwork.LocalPlayer.ActorNumber;
         gameState.playerNumber = me;
-        int distanceFromCenter = (int) (0.05f * (float) mapSize);
+        int distanceFromCenter = (int) (0.21f * (float) mapSize);
         Vector3 startPlace = Vector3.zero;
         if (me == 1) {
             startPlace = new Vector3 (-distanceFromCenter, distanceFromCenter, -.2f);
@@ -52,7 +52,7 @@ public class setup : MonoBehaviourPunCallbacks {
         else if (me == 2) {
             startPlace = new Vector3 (distanceFromCenter, -distanceFromCenter, -.2f);
         }
-        // Camera.main.transform.position = startPlace + new Vector3(0, 0, -9.8f);
+        Camera.main.transform.position = startPlace + new Vector3(0, 0, -9.8f);
         StartCoroutine(step2(startPlace));
     }
 

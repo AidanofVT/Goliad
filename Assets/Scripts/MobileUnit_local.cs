@@ -18,7 +18,7 @@ public class MobileUnit_local : Unit_local {
         StartForLocals();
         moveConductor = GetComponent<AidansMovementScript>();
         body = GetComponent<Rigidbody2D>();
-        StartCoroutine("AllignRemotes");
+        // StartCoroutine("AllignRemotes");
     }
 
     public override void Move (Vector2 goTo, int leaderID = -1, float speed = -1, float arrivalThreshholdOverride = -1) {
@@ -37,7 +37,7 @@ public class MobileUnit_local : Unit_local {
             arrivalThreshhold = arrivalThreshholdOverride;
         }
         int noiseStartPoint = Random.Range(0, 100);
-        photonView.RPC("Move", RpcTarget.Others, whenToStart, nowGoing.x, nowGoing.y, nowAt.x, nowAt.y, goTo.x, goTo.y, noiseStartPoint, leaderID, moveConductor.speed, arrivalThreshholdOverride);
+        photonView.RPC("Move", RpcTarget.Others, whenToStart, nowGoing.x, nowGoing.y, nowAt.x, nowAt.y, goTo.x, goTo.y, noiseStartPoint, leaderID, moveConductor.GetSpeed(), arrivalThreshholdOverride);
         moveConductor.Go(goTo, whenToStart, noiseStartPoint, leader, speed, arrivalThreshhold); 
     }
 
@@ -71,29 +71,9 @@ public class MobileUnit_local : Unit_local {
     }
 
     [PunRPC]
-    public override void StopMoving () {
-        if (moveConductor.isRunning) {
-            moveConductor.terminatePathfinding(false);
-        }
-    }
-
-    IEnumerator AllignRemotes () {
-        Vector2 pastPosition;
-        float timeOfMostRecentMotion = 0;
-        while (true) {
-            Debug.Log("a");
-            pastPosition = transform.position;
-            yield return new WaitForSeconds(0.5f);            
-            float discrepancy = Vector2.Distance(pastPosition, transform.position);
-            if (discrepancy != 0) {
-                Debug.Log("b");
-                timeOfMostRecentMotion = Time.time;
-            }
-            if (Time.time - timeOfMostRecentMotion <= 2.1f) {
-                Debug.Log("c");
-                // Debug.Log("Transmitting nudge to " + photonView.ViewID);
-                photonView.RPC("AuthoritativeNudge", RpcTarget.Others, transform.position.x, transform.position.y, body.velocity.x, body.velocity.y, PhotonNetwork.ServerTimestamp, moveConductor.currentWaypoint);
-            }
+    public override void StopMoving (bool brakeStop) {
+        if (moveConductor.getRunningState() == true) {
+            moveConductor.terminatePathfinding(false, brakeStop);
         }
     }
 

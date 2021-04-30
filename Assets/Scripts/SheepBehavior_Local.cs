@@ -204,7 +204,7 @@ public class SheepBehavior_Local : SheepBehavior_Base {
             safeSpotRelative *= Mathf.Clamp((safeSpotRelative.magnitude - flockSizeFactor) / safeSpotRelative.magnitude, 0, 1);
         }
         float toGo = safeSpotRelative.magnitude;
-        float ETA = toGo / legs.speed;
+        float ETA = toGo / legs.GetSpeed();
         Vector2 safeSpotAbsolute = safeSpotRelative + (Vector2) transform.position;
         // Debug.Log("running " + safeSpotRelative + "to safety. Expected to go " + toGo + " distance, at a speed of " + tempSpeed);
         float tempSpeed = Mathf.Clamp(2 + toGo * 0.1f, 2, 6);
@@ -243,9 +243,9 @@ public class SheepBehavior_Local : SheepBehavior_Base {
     IEnumerator idle (float idleDuration = 0) {
         // Debug.Log("idle");
         sheepState = sheepBehaviors.idling;
-        if (legs.isRunning) {
+        if (legs.getRunningState()) {
             // Debug.Log("stopping legs");
-            thisSheep.photonView.RPC("StopMoving", RpcTarget.All);
+            thisSheep.photonView.RPC("StopMoving", RpcTarget.All, true);
         }
         if (idleDuration > 0) {
             int roll = Random.Range(0, 11);
@@ -388,7 +388,6 @@ public class SheepBehavior_Local : SheepBehavior_Base {
 
     IEnumerator WalkToFood () {
         thisSheep.Move(currentMostAppealingPatch, -1, -1f, -1f);
-        legs.roundToArrived = 0.15f;
         // Vector2Int hereInt;      
         // Vector2Int thereInt;
         int performantCycler = 0;
@@ -396,7 +395,7 @@ public class SheepBehavior_Local : SheepBehavior_Base {
         bool patchObstructedLastCycle = false;
         float startTime = Time.time;
         float distance = Vector2.Distance(transform.position, currentMostAppealingPatch);
-        float ETA = 1.5f + 2 * distance / legs.speed;
+        float ETA = 1.5f + 2 * distance / legs.GetSpeed();
         sheepState = sheepBehaviors.goingToFood;
         // Debug.Log("Target patch " + distance + " away. ETA: " + ETA);
         while (Time.time - startTime < ETA) {

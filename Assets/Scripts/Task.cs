@@ -11,15 +11,15 @@ public class Task {
     public actions nature;
     public int quantity;
     public Vector2 center;
-    public float radius;
+    public float dataA;
 
-    public Task (Unit_local doneBy, actions doWhat, Vector2 where, Unit doneTo = null, int howMuch = 0, float howWide = 0) {
+    public Task (Unit_local doneBy, actions doWhat, Vector2 where, Unit doneTo = null, int howMuch = 0, float extraData = 0) {
         subjectUnit = doneBy;
         nature = doWhat;
         center = where;
         objectUnit = doneTo;
         quantity = howMuch;
-        radius = howWide;
+        dataA = extraData;
     }
 
 }

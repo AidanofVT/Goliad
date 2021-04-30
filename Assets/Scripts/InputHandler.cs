@@ -26,6 +26,7 @@ public class InputHandler : MonoBehaviour {
     }
     
     public Cohort combineActiveUnits (Task.actions intent) {
+// It would be nice if this function would destroy any of the cohorts that are left with only one member, switching that one member to its' solocohort.
         if (activeUnits.Count <= 0) {
             return null;
         }
@@ -43,7 +44,7 @@ public class InputHandler : MonoBehaviour {
                     case Task.actions.attack:
                         unitIsEligible = individual.stats.isArmed;
                         break;
-    // Leaving unconditional because the cohort should remain unchanged as long as at least one unit is eligable for building.
+    // Leaving unconditional because the cohort should remain unchanged as long as at least one unit is eligable.
                     case Task.actions.take:
                     case Task.actions.give:
                     case Task.actions.build:
@@ -66,7 +67,7 @@ public class InputHandler : MonoBehaviour {
             if (eligibleUnits.Count != firstCohort.members.Count) {
                 newCohortNecessary = true;
             }
-    // We're going to all this trouble because if we create cohorts unnecessarily, stuff happens like unit spawn positions not appearing to increment.
+// We're going to all this trouble because if we create cohorts unnecessarily, stuff happens like unit spawn positions not appearing to increment.
             if (newCohortNecessary == true || firstCohort == activeUnits[0].soloCohort) {
                 Cohort newCohort = new Cohort();
                 foreach (Unit_local changing in eligibleUnits) {
@@ -97,22 +98,15 @@ public class InputHandler : MonoBehaviour {
             }
 
         }
-        // if (Input.GetKeyDown(KeyCode.Mouse1)) {
-        //     GameObject underMouse = Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition))[0].gameObject;
-        //     if (underMouse.tag == "unit" && underMouse.GetComponent<Unit_local>() != null) {
-        //         Cohort inQuestion = underMouse.GetComponent<Unit_local>().cohort;
-        //         if (inQuestion.members.Count > 1 || gameState.activeCohorts.Contains(inQuestion) == false) {
-        //             StartCoroutine(holdTarget(underMouse));
-        //         }
-        //     }
-        // }
-        if (Input.GetButtonUp("take") && !Input.GetButtonUp("give")) {
-            Cursor.SetCursor(cursorForTaking, Vector2.zero, CursorMode.Auto);
-            commandMode = commands.take;
-        }
-        if (Input.GetButtonUp("give") && !Input.GetButtonUp("take")) {
-            Cursor.SetCursor(cursorForGiving, Vector2.zero, CursorMode.Auto);
-            commandMode = commands.give;
+        if (activeUnits.Count > 0) {
+            if (Input.GetButtonUp("take") && !Input.GetButtonUp("give")) {
+                Cursor.SetCursor(cursorForTaking, Vector2.zero, CursorMode.Auto);
+                commandMode = commands.take;
+            }
+            if (Input.GetButtonUp("give") && !Input.GetButtonUp("take")) {
+                Cursor.SetCursor(cursorForGiving, Vector2.zero, CursorMode.Auto);
+                commandMode = commands.give;
+            }
         }
     }
 

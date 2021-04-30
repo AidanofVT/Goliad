@@ -10,13 +10,13 @@ public class BeamLifeSpan : MonoBehaviour {
     }
 
     public IEnumerator lerpBeam () {
-        float fullWidth = line.size.y;
+        Vector2 startValue = new Vector2(line.size.x, line.size.y);
+        Vector2 endValue = new Vector2(line.size.y, 0);
         float startTime = Time.time;
         float progress = 0;
-        line.enabled = true;
         while (progress < 0.4f) {
             progress = ((Time.time - startTime) / 0.4f);
-            line.size = new Vector2 (line.size.x, (1 - progress) * fullWidth);
+            line.size = Vector2.Lerp(startValue, endValue, progress);
             Color beamColor = line.material.color;
             beamColor.a = 1 - progress;
             line.color = beamColor;

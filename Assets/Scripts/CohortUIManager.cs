@@ -50,7 +50,7 @@ public class CohortUIManager : MonoBehaviour {
         List<Cohort> alreadyCalled = new List<Cohort>();
         foreach (Unit_local unit in units) {
             Cohort thisOnesCohort = unit.cohort;
-            thisOnesCohort.chime();
+            thisOnesCohort.chimeAll();
             if (alreadyCalled.Contains(thisOnesCohort)) {
                 break;
             }

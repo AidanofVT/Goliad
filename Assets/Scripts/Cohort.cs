@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,13 +6,12 @@ using Photon.Pun;
 
 public class Cohort {
 
-    GameState gameState = GameObject.Find("Goliad").GetComponent<GameState>();
     public List<Unit_local> members = new List<Unit_local>();
     public List<Unit_local> armedMembers = new List<Unit_local>();
     public List<Unit_local> mobileMembers = new List<Unit_local>();
     public List<Unit_local> depotMembers = new List<Unit_local>();
     public List<Unit_local> shepherdMembers = new List<Unit_local>();
-    Task masterTask;
+    public Task masterTask;
     public List<Task> assignments = new List<Task>();
     Hashtable remainingToProvide = new Hashtable();
     Hashtable remainingToAccept = new Hashtable();
@@ -25,7 +23,7 @@ public class Cohort {
         if (recruits != null) {
             foreach (Unit_local unit in recruits) {
                 unit.changeCohort(this);
-            }        
+            }
         }
         //Debug.Log("cohort created with " + members.Count + " members");
     }
@@ -36,6 +34,7 @@ public class Cohort {
         }
     }
 
+// This should not be called except by ChangeCohort() in Unit_local
     public void addMember (Unit_local recruit) {
         members.Add(recruit);
         if (recruit.stats.isArmed) {
@@ -53,57 +52,69 @@ public class Cohort {
         // Debug.Log("Added " + recruit.name + ". Now " + members.Count + " members.");
     }
 
-    public bool assignTransactionWork (Unit_local baseParty, bool assignByTarget = false) {
+    public bool assignTransactionWork (Unit_local needsCounterparty, bool assignByTarget = false) {
         // Debug.Log("AssignTransactionWork");
-        float bestDistance = 999999;
         Hashtable counterParties = null;
-        Unit_local otherOne = null;
+        Unit_local closestCounterparty = null;
+// We have to get a little weird with these, because closestCounterparty, which one of these two things will reference, can't be decided until we determine what the counterparties are,
+// which is done in the same IF statement that determines what the provider is. I know it's weird.
+        Func<Unit_local> provider;
+        Func<Unit_local> reciever;
         if (masterTask.nature == Task.actions.give ^ assignByTarget == true) {
-            counterParties = remainingToAccept;
+            counterParties = remainingToAccept;            
+            provider = () => needsCounterparty;
+            reciever = () => closestCounterparty;
         }
         else {
             counterParties = remainingToProvide;
+            provider = () => closestCounterparty;
+            reciever = () => needsCounterparty;
         }
-        foreach (Unit_local reciever in counterParties.Keys) {
-            Unit_local maybeThis = reciever;
-            float distanceTo = Vector2.Distance(maybeThis.transform.position, baseParty.transform.position);
+        float bestDistance = 999999;
+        foreach (Unit_local recieverCandidate in counterParties.Keys) {
+            float distanceTo = Vector2.Distance(recieverCandidate.transform.position, needsCounterparty.transform.position);
             if (distanceTo < bestDistance) {
-                otherOne = maybeThis;
+                closestCounterparty = recieverCandidate;
                 bestDistance = distanceTo;
             }
         }
-        Task newTask;
-        Unit_local actor = baseParty;
-        Unit_local target = otherOne;
-        if (assignByTarget == true) {
-            actor = otherOne;
-            target = baseParty;
-        }
-        if (masterTask.nature == Task.actions.give) {
-            if ((int) remainingToAccept[target] <= actor.meat) {
-                newTask = new Task(actor, Task.actions.give, Vector2.zero, target, (int) remainingToAccept[target]);
-                remainingToProvide[actor] = (int) remainingToProvide[actor] - (int) remainingToAccept[target];
-                remainingToAccept.Remove(target);
-            }
-            else{
-                newTask = new Task(actor, Task.actions.give, Vector2.zero, target, (int) remainingToProvide[actor]);
-                remainingToAccept[target] = (int) remainingToAccept[target] - (int) remainingToProvide[actor];                   
-                remainingToProvide.Remove(actor);
-            }
+        Hashtable leftoverFactor;
+        Hashtable exhaustedFactor;
+        Unit_local unitWithLeftovers;
+        Unit_local limitingUnit;
+        int quantityToPass = 0;
+        if (reciever().roomForMeat() == provider().meat) {
+            quantityToPass = provider().meat;
+            remainingToAccept.Remove(reciever);
+            remainingToProvide.Remove(provider());
         }
         else {
-            if ((int) remainingToAccept[actor] <= target.meat) {
-                newTask = new Task(actor, Task.actions.take, Vector2.zero, target, (int) remainingToAccept[actor]);
-                remainingToProvide[target] = (int) remainingToProvide[target] - (int) remainingToAccept[actor];
-                remainingToAccept.Remove(actor);
+            if (reciever().roomForMeat() < provider().meat) {
+                leftoverFactor = remainingToProvide;
+                exhaustedFactor = remainingToAccept;
+                limitingUnit = reciever();
+                unitWithLeftovers = provider();
+                quantityToPass = reciever().roomForMeat();
             }
-            else{
-                newTask = new Task(actor, Task.actions.take, Vector2.zero, target, (int) remainingToProvide[target]);
-                remainingToAccept[actor] = (int) remainingToAccept[actor] - (int) remainingToProvide[target];                   
-                remainingToProvide.Remove(target);
+            else {
+                leftoverFactor = remainingToAccept;
+                exhaustedFactor = remainingToProvide;
+                limitingUnit = provider();
+                unitWithLeftovers = reciever();
+                quantityToPass = provider().meat;
             }
+            leftoverFactor[unitWithLeftovers] = (int) leftoverFactor[unitWithLeftovers] - (int) exhaustedFactor[limitingUnit];
+            exhaustedFactor.Remove(limitingUnit);
         }
-        actor.work(newTask);
+        Task newTask;
+        if (assignByTarget == false) {
+            newTask = new Task(needsCounterparty, masterTask.nature, Vector2.zero, closestCounterparty, quantityToPass);
+            needsCounterparty.work(newTask);
+        }
+        else {
+            newTask = new Task(closestCounterparty, masterTask.nature, Vector2.zero, needsCounterparty, quantityToPass);
+            closestCounterparty.work(newTask);
+        }
         assignments.Add(newTask);
         return true;
     }
@@ -128,7 +139,7 @@ public class Cohort {
                 closestCourier = remainingToPerish[i];
             }
         }
-        Unit targetUnit = null;
+        Unit targetUnit;
         if (closestHoplite != null) {
             targetUnit = closestHoplite;
         }
@@ -154,7 +165,7 @@ public class Cohort {
         foreach (Task movement in thisIsToSupressWarnings) {
             float toGo = Vector2.Distance(movement.subjectUnit.transform.position, movement.center);
             if (toGo < Mathf.Pow(members.Count, 0.5f)) {
-                movement.subjectUnit.photonView.RPC("StopMoving", RpcTarget.All);
+                movement.subjectUnit.photonView.RPC("StopMoving", RpcTarget.All, true);
                 assignments.Remove(movement);
             }
         }
@@ -163,18 +174,18 @@ public class Cohort {
         }
     }
 
-    public void chime () {
+    public void chimeAll () {
         foreach (Unit member in shepherdMembers) {
             member.GetComponent<ShepherdFunction>().chime();
         }
     }
 
     public int collectiveMeat () {
-        int collection = 0;
+        int sum = 0;
         foreach (Unit meatHolder in members) {
-            collection += meatHolder.meat;
+            sum += meatHolder.meat;
         }
-        return collection;
+        return sum;
     }
 
     public void commenceAttack (Task attackWork) {
@@ -188,19 +199,19 @@ public class Cohort {
                         member.deactivate();
                 }
             }
-            if (attackWork.radius == 0) {
+            if (attackWork.dataA == 0) {
 // ProcessTargetingCandidate isn't necessary because that logic is implicit in the InputHandler's response to single unit being clicked on.
                 remainingToPerish.Add(attackWork.objectUnit);
                 attackWork.objectUnit.cohortsAttackingThisUnit.Add(this);
             }
             else {
-                Collider2D [] inTargetArea = Physics2D.OverlapCircleAll(attackWork.center, attackWork.radius);
+                Collider2D [] inTargetArea = Physics2D.OverlapCircleAll(attackWork.center, attackWork.dataA);
                 foreach (Collider2D contact in inTargetArea) {
                     ProcessTargetingCandidate(contact.gameObject);
                 }
                 GameObject newSensor = (GameObject) GameObject.Instantiate(Resources.Load("Sensor"), attackWork.center, Quaternion.identity);
                 areaAttackSensor = newSensor.GetComponent<SensorBridge>();
-                areaAttackSensor.Setup(this, attackWork.radius);
+                areaAttackSensor.Setup(this, attackWork.dataA);
             }
             foreach (Unit_local attacker in members) {
                 if (remainingToPerish.Count <= 0) {
@@ -231,31 +242,32 @@ public class Cohort {
             from = transaction.objectUnit.GetComponent<Unit>().cohort;
             to = this;
         }
-        List<Unit_local> validProviders = null;
-        List<Unit_local> validRecievers = null;
+        List<Unit_local> providerCandidates = null;
+        List<Unit_local> recieverCandidates = null;
         if (to == from) {
             Unit_local singledOut = (Unit_local) transaction.objectUnit;
-            if (transaction.nature == Task.actions.take && singledOut.meat > 0) {
-                validProviders = new List<Unit_local>(new Unit_local[] {singledOut});
-                validRecievers = new List<Unit_local>(members);
-                validRecievers.Remove(singledOut);
+            if (transaction.nature == Task.actions.take) {
+                providerCandidates = new List<Unit_local>(new Unit_local[] {singledOut});
+                recieverCandidates = new List<Unit_local>(members);
+                recieverCandidates.Remove(singledOut);
             }
-            else if (transaction.nature == Task.actions.give && singledOut.roomForMeat() > 0) {
-                validRecievers = new List<Unit_local>(new Unit_local[] {singledOut});
-                validProviders = new List<Unit_local>(members);
-                validProviders.Remove(singledOut);
+            else if (transaction.nature == Task.actions.give) {
+                recieverCandidates = new List<Unit_local>(new Unit_local[] {singledOut});
+                providerCandidates = new List<Unit_local>(members);
+                providerCandidates.Remove(singledOut);
             }
         }
         else {
-            validProviders = from.members;
-            validRecievers = to.members;
+            providerCandidates = from.members;
+            recieverCandidates = to.members;
         }
-        foreach (Unit_local giver in validProviders) {
-            if (giver.meat > 0 && remainingToAccept.ContainsKey(giver) == false) {
+        foreach (Unit_local giver in providerCandidates) {
+// Watch out for malfunctions: I can't remember why I had that second criteria, so I'm removing it to see what breaks. Make a note if you find out.
+            if (giver.meat > 0) { // && remainingToAccept.ContainsKey(giver) == false) {
                 remainingToProvide.Add(giver, giver.meat);
             }
         }
-        foreach (Unit_local recipient in validRecievers) {
+        foreach (Unit_local recipient in recieverCandidates) {
             if (recipient.roomForMeat() > 0) {
                 remainingToAccept.Add(recipient, recipient.roomForMeat());
             }
@@ -293,36 +305,33 @@ public class Cohort {
         }
     }
 
-    public IEnumerator makeUnit (string unitType, int batchSize = 1) {
+    public IEnumerator makeUnit (string unitType) {
         string unitAddress = "Units/" + unitType;
         int expense = ((GameObject)Resources.Load(unitAddress)).GetComponent<UnitBlueprint>().costToBuild;
         int purse = collectiveMeat();
+        int orderSize;
         if (Input.GetButton("modifier") == true) {
-            batchSize = Mathf.Clamp(purse / expense, 0, 6);
+            orderSize = 6;
         }
+        else {
+            orderSize = 1;
+        }
+        int batchSize = Mathf.Clamp(purse / expense, 0, orderSize);
         expense *= batchSize;
         int share = Mathf.CeilToInt(expense / members.Count);
         int covered = 0;
-        int loopBreaker = 0;
-        int loopItterator = 0;
-        while (covered < expense) {
+        for (int index = 0; covered < expense; index = ++index % members.Count) {
             int ask = Mathf.Clamp(expense - covered, 0, share);
-            if (members[loopItterator].meat >= ask) {                
-                members[loopItterator].photonView.RPC("deductMeat", RpcTarget.All, share);
+            if (members[index].meat >= ask) {                
+                members[index].photonView.RPC("deductMeat", RpcTarget.All, share);
                 covered += share;
             }
             else {
-                int scrapeBottom = members[loopItterator].meat;
-                members[loopItterator].deductMeat(scrapeBottom);
-                members[loopItterator].photonView.RPC("deductMeat", RpcTarget.All, scrapeBottom);
-                covered += scrapeBottom;
-            }
-            if (++loopItterator >= members.Count) {
-                loopItterator = 0;
-            }
-            if (++loopBreaker >= 1000) {
-                Debug.Log("PROBLEM: infinite loop in cohort.makeUnit. Loop broken.");               
-                break;
+                int scrapeBottom = members[index].meat;
+                if (scrapeBottom > 0) {
+                    members[index].photonView.RPC("deductMeat", RpcTarget.All, scrapeBottom);
+                    covered += scrapeBottom;
+                }
             }
         }
         Vector3 [] spots = spawnLocations(unitAddress);
@@ -333,10 +342,6 @@ public class Cohort {
             GameObject justCreated = PhotonNetwork.Instantiate(unitAddress, spots[i], Quaternion.identity);
             batch.Add(justCreated);
             spawnLocationCycler = (spawnLocationCycler + 1) % 6;
-            if (++loopBreaker >= 1000) {
-                Debug.Log("PROBLEM: infinite loop in cohort.makeUnit. Loop broken.");
-                yield return null;
-            }
         }
         yield return new WaitForSeconds(0);
         if (unitType != "sheep"){ 
@@ -348,9 +353,10 @@ public class Cohort {
                 cohortToJoin = this;
             }
             for (int i = 0; i < batchSize; ++i) {
-                batch[i].GetComponent<Unit_local>().changeCohort(cohortToJoin);
+                Unit_local justMade = batch[i].GetComponent<Unit_local>();
+                justMade.changeCohort(cohortToJoin);
+                justMade.activate();
             }
-            cohortToJoin.activate();
         }
         yield return null;
     }
@@ -362,7 +368,7 @@ public class Cohort {
         float weakLinkETA = 0;
         foreach (Unit_local toMove in thisIsToSupressWarnings) {
             if (toMove.stats.isMobile == false) {
-                throw new InvalidOperationException("Cannot move a cohort that includes immobile members.");
+                throw new InvalidOperationException("Cannot move a cohort that includes immobile members. Units should be sorted out in Gamestate.CombineActiveCohorts.");
             }
             else {
                 float thisMoversETA = Vector2.Distance(toMove.transform.position, goTo) / toMove.stats.speed;
@@ -374,26 +380,33 @@ public class Cohort {
         UnitRelativePositionSorter vsGoTo = new UnitRelativePositionSorter(goTo);
         vsGoTo.DirectionMode();
         List <Unit_local> unitsByDirection = new List<Unit_local>(members);
+// This is a list of units sorted by their compass-direction from the destination point.
         (unitsByDirection).Sort(vsGoTo);
         vsGoTo.DistanceMode();
         List <Unit_local> unitsByDistance = new List<Unit_local>(members);
         unitsByDistance.Sort(vsGoTo);
-        while (unitsByDirection.Count > 0 && unitsByDistance.Count > 0) {
+// Units are removed from unitsByDirection (and unitsByDistance) as they are assigned to groups, so this is a way of saying "while there are unassigned units."
+        while (unitsByDirection.Count > 0) {
+// We take the current closest unit to the distination... (previous cycles of grouping will have removed closer units)
             Unit_local sliceLeader = unitsByDistance[0];
             int leaderDirectionIndex = unitsByDirection.IndexOf(sliceLeader);
             float leaderDistanceFromDestination = vsGoTo.DistanceOf(sliceLeader);
             float leaderRadius = sliceLeader.bodyCircle.radius;
             int totalUnaccounted = unitsByDirection.Count;
             List<Unit_local> slice = new List<Unit_local> {sliceLeader};
+// That unit will be the group leader. We check the units clockwise and counter-clockwise from its' position on the imaginary circle of unit positions aronud the destination.
             for (int sign = -1; sign <= 1 && slice.Count < unitsByDirection.Count; sign = sign + 2) {
                 // this is a loop-breaker variable
                 for (int indexOffset = sign; indexOffset < 1000; indexOffset += sign) {
                     Unit_local inQuestion = unitsByDirection[(leaderDirectionIndex + indexOffset + totalUnaccounted) % totalUnaccounted];
+// These are all in radians...
                     float directionOfLeader = vsGoTo.DirectionOf(sliceLeader);
                     float directionInQuestion = vsGoTo.DirectionOf(inQuestion);
                     float circumferencialDistance = Mathf.Abs(directionOfLeader - directionInQuestion);
                     circumferencialDistance = Mathf.Min(circumferencialDistance, 2 * Mathf.PI - circumferencialDistance);
+// ...until here, when circumferentialDistance becomes a measure of real distance.
                     circumferencialDistance *= leaderDistanceFromDestination;
+// In both directions, we stop checking when the next-closest (by direction) unit doesn't fall within the shadow cast by the leader, if you imagine the destination as a light source.
                     if (circumferencialDistance < leaderRadius && inQuestion != sliceLeader) {
                         slice.Add(inQuestion);
                     }
@@ -403,13 +416,14 @@ public class Cohort {
                 }
             }
             slice.Sort(vsGoTo);
-            sliceLeader.work(new Task(sliceLeader, Task.actions.move, goTo, toFollow));
-// This line prevents faster units from running ahead.
-            ((MobileUnit_local) sliceLeader).moveConductor.speed = Vector2.Distance(sliceLeader.transform.position, goTo) / weakLinkETA;
+// This line makes it so that all groups arive at the same time.
+// PROBLEM: this will make fast units move slugishly for very short journeys.
+            float leaderSpeed = Mathf.Clamp(Vector2.Distance(sliceLeader.transform.position, goTo) / weakLinkETA, 0, sliceLeader.stats.speed);
+            sliceLeader.work(new Task(sliceLeader, Task.actions.move, goTo, toFollow, -1, leaderSpeed));
             for (int followerIndex = 1; followerIndex < slice.Count; ++followerIndex) {
-                slice[followerIndex].work(new Task(slice[followerIndex], Task.actions.move, goTo, slice[followerIndex - 1]));
+                slice[followerIndex].work(new Task(slice[followerIndex], Task.actions.move, goTo, sliceLeader));
             }
-            foreach (Unit_local sliceMember in slice) {
+            foreach (MobileUnit_local sliceMember in slice) {
                 assignments.Add(sliceMember.task);
                 unitsByDirection.Remove(sliceMember);
                 unitsByDistance.Remove(sliceMember);

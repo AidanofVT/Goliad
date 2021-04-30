@@ -5,22 +5,28 @@ using Pathfinding;
 using Photon.Pun;
 
 public class AidansMovementScript : MonoBehaviourPun {
+// WARNING: keep everything possible private because allowing any variable to be changed by means OTHER THAN a Go() RPC call will likely cause desynchronization.
     Seeker seeker;
     ABPath path = null;
-    public Vector3 placetoGo;
+    Vector3 placetoGo;
     Transform transToFollow = null;
     Rigidbody2D body;
-    CircleCollider2D selfToIgnore;
+    CircleCollider2D selfCollider;
     Unit thisUnit;
+// The purpose of scheduledStart is to add some delay embarking on all instances, so that they can all start at the same PhotonNetwork.Time time.
     double scheduledStart;
-//this boolean isn't used by this script, but it is needed for other scripts to register what's going on. toggling path to null and back doesn't work: a new path is spontaneously created for some reason
-    public bool isRunning = false;
+// This boolean isn't used by this script, but it is needed for other scripts to register what's going on. toggling path to null and back doesn't work: a new path is spontaneously created for some reason
+    [SerializeField]
+    bool amRunning = false;
     float baseSpeed;
-    float girth;
-    public float speed;
-    public float changePointThreshhold;
-    public float roundToArrived = 0.15f;
-    public int currentWaypoint = 0;
+    [SerializeField]
+    float speed;
+    [SerializeField]
+    float changePointThreshhold;
+    [SerializeField]
+    float roundToArrived = 0.15f;
+    float pushInterval = 0.1f;
+    int currentWaypoint = 0;
     int noisePoint;
 
     void Start() {
@@ -28,42 +34,67 @@ public class AidansMovementScript : MonoBehaviourPun {
         baseSpeed = GetComponent<UnitBlueprint>().speed;
         speed = baseSpeed;
         body = GetComponent<Rigidbody2D>();
-        selfToIgnore = GetComponent<CircleCollider2D>();
-        girth = selfToIgnore.radius;
+        selfCollider = GetComponent<CircleCollider2D>();
         thisUnit = GetComponent<Unit>();
-        changePointThreshhold = girth * 1.5f;
+        changePointThreshhold = baseSpeed * pushInterval * 3;
     }
-    
+
+    IEnumerator brake () {
+        body.drag = 10;
+        yield return new WaitForSeconds(0.5f);
+        body.drag = 0.5f;
+    }
+
+    float deviation () {
+        if (currentWaypoint <= 0) {
+            throw new System.Exception ("Tried to find deviation from path before starting on path.");
+        }
+        float sideALength = Vector2.Distance(path.vectorPath[currentWaypoint], path.vectorPath[currentWaypoint - 1]);
+        float sideBLength = Vector2.Distance(path.vectorPath[currentWaypoint], transform.position);
+        float sideCLength = Vector2.Distance(path.vectorPath[currentWaypoint - 1], transform.position);
+        float halfPerimeter = (sideALength + sideBLength + sideCLength) / 2;
+// This is called "Heron's formula."
+        float areaOfImaginaryTriangle = Mathf.Sqrt(halfPerimeter * (halfPerimeter - sideALength) * (halfPerimeter - sideBLength) * (halfPerimeter - sideCLength));
+// Imagine a rectangle with the same base as the triangle (the current leg of the path) and twice the area. It must have the same height as the triangle.
+// Divide by the length of the base to find the height.
+        float height = areaOfImaginaryTriangle * 2 / sideALength;
+        return height;
+    }
+
     public void Go (Vector2 destination, double startWhen, int noiseStart, Transform movingTransform = null, float giddyup = -1, float acceptableDistance = -1) {
         // Debug.Log("Moving from " + transform.position + " to " + (Vector2) destination + ". Scheduled to start at " + startWhen);
         scheduledStart = startWhen;
         noisePoint = noiseStart;
-        // Debug.Log("Should start at " + scheduledStart);
         placetoGo = new Vector3(destination.x, destination.y, transform.position.z);
         transToFollow = movingTransform;
         if (acceptableDistance != -1){
             roundToArrived = acceptableDistance;
         }
-        else if (transToFollow != null) {
-            roundToArrived = changePointThreshhold;
-        }
-        if  (isRunning == false) {
-            InvokeRepeating("SetRoute", 0, 2);
-        }
-        else {
-            SetRoute();
-        }
+        CancelInvoke("SetRoute");
+        SetRoute();
         if (giddyup != -1) {
             speed = giddyup;
         }
     }
 
-    public bool isNavigable (Vector3 where, bool ignoreMobileUnits = false) {        
-        Collider2D[] occupants = Physics2D.OverlapCircleAll(where, girth);
+    public float GetArrivalThreshold () {
+        return roundToArrived;
+    }
+
+    public bool getRunningState() {
+        return amRunning;
+    }
+
+    public float GetSpeed () {
+        return speed;
+    }
+
+    public bool isNavigable (Vector3 where, bool ignoreMobileUnits = false) {      
+        Collider2D[] occupants = Physics2D.OverlapCircleAll(where, selfCollider.radius);
         List<Collider2D> listFormat = new List<Collider2D>(occupants);
         foreach (Collider2D contact in listFormat) {
             if (contact.tag == "obstacle" || contact.tag == "out of bounds" || (ignoreMobileUnits == false && contact.tag == "unit")) {
-                if (contact != selfToIgnore) {
+                if (contact != selfCollider) {
                     //Debug.Log("Point obstructed by " + contact.name + ".");
                     return false;
                 }
@@ -72,66 +103,53 @@ public class AidansMovementScript : MonoBehaviourPun {
         return true;
     }
 
-// Only for use without a leading transform:
-    public void LightRecalculate (Vector2 destination) {
-        // Debug.Log("lightRecalculate");
-        transToFollow = null;
-        placetoGo = destination;
-        SetRoute();
-    }
-
     private IEnumerator MoveAlong() {
+// Similar to scheduledStart, these two values are used to ensure that all instances apply impulses with as much synchronicity as possible.
         int synchronicityItterator = 0;
         double nextMoveTime = scheduledStart;
-        yield return new WaitUntil(() => PhotonNetwork.Time >= nextMoveTime);
         while (true) {
-            ++synchronicityItterator;
-            // Debug.Log("Moving along at " + PhotonNetwork.Time + ". The ultimate goal is " + path.endPoint);
-            try {
-//if you are within a specified range of the next waypoint
-                if (Vector2.Distance(transform.position, path.vectorPath[currentWaypoint]) < changePointThreshhold) {
-    //and if the number of the next waypoint would not exceeed the number of waypoints in the path
-                    if (currentWaypoint + 1 <= path.vectorPath.Count - 1) {
-        //increment the currentWaypoint
-                        currentWaypoint++;                        
-                    }
+// This allows the script to itterate more than one waypoint per cycle if the unit is close enough to a later waypoint, smoothing movement in some cases.
+            for (int i = Mathf.Clamp(currentWaypoint + 2, 0, path.vectorPath.Count - 2); i >= currentWaypoint; --i) { 
+                if (Vector2.Distance(transform.position, path.vectorPath[i]) < changePointThreshhold) {                    
+                    currentWaypoint = i + 1;
+                    break;
                 }
             }
-            catch {
-                Debug.Log("CAUGHT IT. Tried to access index " + currentWaypoint + " when the size of the path is " + path.vectorPath.Count + " entries long.");
+            if (deviation() > Vector2.Distance(transform.position, path.vectorPath[currentWaypoint])) {
+                // Debug.Log("a");
+                SetRoute();
             }
+            else if (transToFollow != null && currentWaypoint == path.vectorPath.Count - 1) {
+                // Debug.Log("b");
+                SetRoute();
+            }
+            yield return new WaitUntil(() => PhotonNetwork.Time >= nextMoveTime);                   
             if (Vector2.Distance(transform.position, path.endPoint) > roundToArrived) {
-                if (Vector2.Distance(transform.position, path.endPoint) < speed && transToFollow == null) {
-                    body.drag = Mathf.Clamp(body.velocity.magnitude, 0.5f, 20);
+                float distanceToEnd = Vector2.Distance(transform.position, path.endPoint);
+                if (distanceToEnd < speed && transToFollow == null) {
+                    body.drag = Mathf.Clamp(speed - distanceToEnd, 0.5f, 100);
                 }
                 else {
                     body.drag = 0.5f;
                 }
                 if (body.velocity.magnitude <= speed) {
                     Vector2 idealCourse = ((Vector2)path.vectorPath[currentWaypoint] - (Vector2)transform.position).normalized * speed;
-                    Vector2 hit = idealCourse - body.velocity;
+                    Vector2 hit = (idealCourse - body.velocity) * 10;
                     // Debug.Log("hitting it with a " + hit + ".  Position is now " + body.position);
-                    body.AddForce(hit);
-                    
+                    body.AddForce(hit);                    
                 }
-                nextMoveTime = (scheduledStart + 0.1 * synchronicityItterator); //% 4294967.295;
-                yield return new WaitUntil(() => PhotonNetwork.Time >= nextMoveTime);
+                // Debug.Log("Velocity = " + body.velocity.magnitude);
             }
-            else if (transToFollow != null && transToFollow.GetComponent<AidansMovementScript>() != null && transToFollow.GetComponent<AidansMovementScript>().isRunning == true) {
+            else if (transToFollow != null && transToFollow.GetComponent<AidansMovementScript>() != null && transToFollow.GetComponent<AidansMovementScript>().amRunning == true) {
 // This is the case of a unit catching up to a followed unit that hasn't stopped yet.
-                // Debug.Log("Caught up.");
-                nextMoveTime = (scheduledStart + 0.3 * synchronicityItterator); // % 4294967.295;
-                yield return new WaitUntil(() => PhotonNetwork.Time >= nextMoveTime);
-                CancelInvoke("SetRoute");
-                InvokeRepeating("SetRoute", 0, 2);
+                synchronicityItterator += 2;
             }
             else {
                 break;
             }
+            nextMoveTime = (scheduledStart + pushInterval * ++synchronicityItterator); //% 4294967.295;
         }
-        body.drag = 10;
-        yield return new WaitForSeconds(0.5f);
-        terminatePathfinding(true);  
+        terminatePathfinding(true, true);  
         yield return null;
     }
 
@@ -139,78 +157,66 @@ public class AidansMovementScript : MonoBehaviourPun {
 //The intermediary function, in this case OnePathComplete, is put as a parameter for StartPath (see lines 33 and 36), and the resulting path gets passed here as a parameter.
     void OnPathComplete (Path finishedPath) {
         path = (ABPath) finishedPath;
-        // string debugOut = transform.position + ", ";
-        // foreach (Vector3 point in path.vectorPath) {
-        //     debugOut += point + ", ";
-        // }
-        // Debug.Log(debugOut);
-        currentWaypoint = 0;
-        StopCoroutine("MoveAlong");
-        StartCoroutine("MoveAlong");
-        if (isRunning == false) {
+        if (amRunning == false) {
+            currentWaypoint = 0;
             thisUnit.startTurning();
+            StopCoroutine("MoveAlong");
+            StartCoroutine("MoveAlong");
+            StopCoroutine("brake");
             StartCoroutine("stuckCheck");
-            isRunning = true;
+            amRunning = true;
+        }
+        else {
+            currentWaypoint = 1;
         }
     }
 
     void SetRoute () {
+        // Debug.Log("Calculating route...");
         if (transToFollow != null) {
-            seeker.StartPath(transform.position, transToFollow.position, OnPathComplete);
-            // Debug.Log("moving to follow " + transToFollow.position);
+            placetoGo = transToFollow.position;
+            Vector3 offset = placetoGo - transform.position;
+// This just accounts for the minimum proximity afforded by the two units' colliders.
+            placetoGo = transform.position + offset * ((offset.magnitude - transToFollow.GetComponent<CircleCollider2D>().radius - thisUnit.bodyCircle.radius) / offset.magnitude);
         }
-        else {
-            seeker.StartPath(transform.position, placetoGo, OnPathComplete);
-            // Debug.Log("moving to " + placetoGo);
-        }
+        seeker.StartPath(transform.position, placetoGo, OnPathComplete);
     }
 
     IEnumerator stuckCheck () {
         int synchronicityItterator = 0;
+// This reduces instances where units that were made together check and jerk at the same time, making for stickier traffic jams.
         double nextCheckTime = PhotonNetwork.Time + (Mathf.Abs(transform.position.x) % 10) / 5;
-// This reduces instances where units that were made together check and jerk at the same time, making for stickier traffic jams. The extra second is to allow the path to finish computing.
         while (true) {
             yield return new WaitUntil(() => PhotonNetwork.Time >= nextCheckTime);
-            // Debug.Log("Stuckchecking at " + PhotonNetwork.Time + ". Some time past the target of " + nextCheckTime);
             if (body.velocity.magnitude < 0.04f) {
-                try {
-                    Vector2 swayWay = new Vector2(Mathf.PerlinNoise(noisePoint + 0.5f, 1234), Mathf.PerlinNoise(noisePoint + 0.5f, 5678)) * (Mathf.PerlinNoise(1, noisePoint + 0.5f) - 0.5f) * 50; // = (path.vectorPath[currentWaypoint] - transform.position).normalized;
+                Vector2 swayWay = new Vector2(Mathf.PerlinNoise(noisePoint + 0.5f, 1234), Mathf.PerlinNoise(noisePoint + 0.5f, 5678)) * (Mathf.PerlinNoise(1, noisePoint + 0.5f) - 0.5f) * 50; // = (path.vectorPath[currentWaypoint] - transform.position).normalized;
                 // Debug.Log("Jerking " + swayWay + " because this unit has moved " + body.velocity.magnitude + " in the last second.");
-                    body.AddForce(swayWay);
-                    noisePoint += 1;
-                }
-                catch {
-                }
+                body.AddForce(swayWay);
+                noisePoint += 1;
             }
             ++synchronicityItterator;
             nextCheckTime = (scheduledStart + synchronicityItterator); // % 4294967.295;            
         }
     }
 
-    [PunRPC]
-    void syncNoise (int incomingSeed) {
-        noisePoint = incomingSeed;
-    }
-
-    public void terminatePathfinding (bool passUpward = true, bool hardStop = false) {
-        // Debug.Log("terminatePathfinding at " + transform.position);
+    public void terminatePathfinding (bool passUpward, bool brakeStop) {
+        // Debug.Log("unit " + photonView.ViewID + " terminatePathfinding at " + transform.position);
         StopCoroutine("MoveAlong");
         StopCoroutine("stuckCheck");
-        StopCoroutine("GuideRemotes");
         CancelInvoke("SetRoute");
         thisUnit.stopTurning();
-        if (hardStop == true) {
-            body.velocity = new Vector2(0, 0);
-        }
-        isRunning = false;
+        amRunning = false;
         roundToArrived = 0.15f;
         speed = baseSpeed;
         path = null;
         currentWaypoint = 0;
         transToFollow = null;
-        body.drag = 0.5f;
+// If movement is being stopped by logic outside of this script, the calling location should take care of everything related to stopping. Sending the "pathended" message might cause infinite loops.
         if (passUpward) {
             SendMessage("PathEnded");
+        }
+        if (brakeStop) {
+            StartCoroutine("brake");
         }
     }
 

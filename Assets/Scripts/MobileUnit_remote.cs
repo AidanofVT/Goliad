@@ -40,33 +40,28 @@ public class MobileUnit_remote : Unit_remote {
     public void PathEnded() {}
 
     [PunRPC]
-    public virtual void StopMoving () {
-        Debug.Log("Stopmoving recieved.");
-// This is unconditional, because we want the velocity to be zeroed regardless of whether the legs are moving or not.
-        moveConductor.terminatePathfinding(false);
+    public virtual void StopMoving (bool brakeStop) {
+// We don't care about whether the unit is under way or not, because we want the velocity to be zeroed regardless of whether the legs are moving or not.
+        moveConductor.terminatePathfinding(false, brakeStop);
     }
 
-// This method of synchronizing unit positions seems counter productive, but it may serve as an inspiration for something useful:
     [PunRPC]
-    public void AuthoritativeNudge (float posX, float posY, float velX, float velY, int timeSent, int navigationPoint) {
+    public void AuthoritativeNudge (float posX, float posY, float velX, float velY, int timeSent) {
         Debug.Log("Recieved nudge for photonview #" + photonView.ViewID + ". Current velocity: " + body.velocity.magnitude);
         float secondsTranspired = (float) (PhotonNetwork.ServerTimestamp - timeSent) / 1000;
         Vector2 pastAuthorityPosition = new Vector2(posX, posY);
         Vector2 pastAuthorityVelocity = new Vector2(velX, velY);
         Vector2 estimatedAuthorityPosition = pastAuthorityPosition + (pastAuthorityVelocity * secondsTranspired);
-        Vector2 offset = (Vector2) transform.position - estimatedAuthorityPosition;
+        Vector2 offset = estimatedAuthorityPosition - (Vector2) transform.position;
         if (offset.magnitude < 0.05f) {
             body.position = estimatedAuthorityPosition;
         }
         else if (offset.magnitude > 2) {
             body.position = estimatedAuthorityPosition;
             body.velocity = pastAuthorityVelocity;
-            if (navigationPoint != -1) {
-                moveConductor.currentWaypoint = navigationPoint;
-            }
         }
         else {
-            Vector2 impulse = offset * -10;
+            Vector2 impulse = offset * 8 * Mathf.Pow(offset.magnitude, 2.5f);
             body.AddForce(impulse);
         }
     }

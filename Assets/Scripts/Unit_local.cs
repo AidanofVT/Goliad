@@ -126,7 +126,7 @@ public class Unit_local : Unit {
                 StartCoroutine(passOrb(to, newOrb));
             }
             else {
-                photonView.RPC("StopMoving", RpcTarget.All);
+                photonView.RPC("StopMoving", RpcTarget.All, false);
                 break;
             }
             yield return new WaitForSeconds(0.2f);
@@ -218,7 +218,7 @@ public class Unit_local : Unit {
             Destroy(circles[1]);
         }
         if (stats.isMobile) {
-            photonView.RPC("StopMoving", RpcTarget.All);
+            photonView.RPC("StopMoving", RpcTarget.All, false);
         }
         if (stats.isArmed && task != null && task.nature == Task.actions.attack) {
             weapon.photonView.RPC("Disengage", RpcTarget.All);
@@ -227,8 +227,8 @@ public class Unit_local : Unit {
         task = null;
     }
 
-    public virtual void StopMoving () {        
-    }
+    [PunRPC]
+    public virtual void StopMoving (bool brakeStop) { }
 
     [PunRPC]
     public override void takeHit (int power) {
@@ -265,7 +265,15 @@ public class Unit_local : Unit {
             if (task.objectUnit != null) {
                 leaderID = task.objectUnit.photonView.ViewID;
             }
-            Move(newTask.center, leaderID, -1f, -1f);
+            float speed = -1;
+            if (newTask.dataA != 0) {
+                speed = newTask.dataA;
+            }
+            float arrivalThreshold = -1;
+            if (cohort.members.Count > 1 && cohort.masterTask.nature == Task.actions.move) {
+                arrivalThreshold = bodyCircle.radius;
+            }
+            Move(newTask.center, leaderID, speed, arrivalThreshold);
         }
     }
 }
