@@ -309,6 +309,7 @@ GameObject:
   - component: {fileID: 5565126818029317433}
   - component: {fileID: 6144199613834735664}
   - component: {fileID: 8612899524463834904}
+  - component: {fileID: 114186097596789736}
   m_Layer: 11
   m_Name: dog
   m_TagString: unit
@@ -328,7 +329,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2186315992651876298}
-  - {fileID: 2582071161501608121}
+  - {fileID: 1064180775448428840}
   - {fileID: 1319056809437317896}
   - {fileID: 5196304700398860185}
   - {fileID: 7139134664587815689}
@@ -398,7 +399,8 @@ MonoBehaviour:
   observableSearch: 2
   Synchronization: 3
   OwnershipTransfer: 0
-  ObservedComponents: []
+  ObservedComponents:
+  - {fileID: 114186097596789736}
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -481,7 +483,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   amRunning: 0
   speed: 0
+  changePointThreshhold: 0
   roundToArrived: 0.15
+--- !u!114 &114186097596789736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1064180774609560595}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e7cb724808c322458aa4d15f5035fa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SynchronizeVelocity: 1
+  m_SynchronizeAngularVelocity: 0
+  m_TeleportEnabled: 1
+  m_TeleportIfDistanceGreaterThan: 2
 --- !u!1 &1064180775222001033
 GameObject:
   m_ObjectHideFlags: 0
@@ -1497,7 +1516,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 178d9eefee423f54780c7bb7694e10c3, type: 3}
---- !u!4 &2582071161501608121 stripped
+--- !u!4 &1064180775448428840 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3247630572699396463, guid: 178d9eefee423f54780c7bb7694e10c3,
     type: 3}

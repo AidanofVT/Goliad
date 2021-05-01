@@ -77,7 +77,6 @@ public class Unit_local : Unit {
                 cohort.removeMember(this);
             }
             gameState.deadenUnit(gameObject);
-            Debug.Log("destroying " + gameObject.GetPhotonView().ViewID);
             PhotonNetwork.Destroy(gameObject);
         }
     }
@@ -143,6 +142,7 @@ public class Unit_local : Unit {
     }
 
     protected virtual void dispenseOutranged () {
+// Note that this is for use by stationary units. The functionality for targets coming into range is different for mobile units, done by OnPathComplete.
         CircleCollider2D newCollider = gameObject.AddComponent<CircleCollider2D>();
         newCollider.isTrigger = true;
         newCollider.radius = 10;
@@ -156,6 +156,7 @@ public class Unit_local : Unit {
     }
 
     void OnTriggerEnter2D(Collider2D contact) {
+// Note that this is for use by stationary units. The functionality for targets coming into range is different for mobile units, done by OnPathComplete.
         if (contact.isTrigger == false && task != null) {
             if (task.nature == Task.actions.give || task.nature == Task.actions.take) {
                 if (contact.gameObject == task.objectUnit) {

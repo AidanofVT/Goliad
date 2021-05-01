@@ -20,7 +20,7 @@ public class GameState : MonoBehaviourPun {
         int mapSize = GetComponent<setup>().mapSize;
         map = new byte [mapSize,mapSize];
         mapOffset = map.GetLength(0) / 2;
-        StartCoroutine("AllignRemotes");       
+        // StartCoroutine("AllignRemotes");       
     }
 
     public void activateUnit (Unit_local toAdd) {

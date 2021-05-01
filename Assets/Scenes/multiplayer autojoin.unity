@@ -1088,9 +1088,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   panMultiplier: 0.3
-  followMouseMultiplier: 2
   zoomMultiplier: 9
   zoomExponent: 1.1
+  followMouseMultiplier: 2
 --- !u!1 &791365313
 GameObject:
   m_ObjectHideFlags: 0
@@ -2557,6 +2557,7 @@ MonoBehaviour:
   mapOffset: 0
   playerNumber: 0
   activeUnitsChangedFlag: 0
+  smallMoveCount: 0
 --- !u!114 &1416085387
 MonoBehaviour:
   m_ObjectHideFlags: 0

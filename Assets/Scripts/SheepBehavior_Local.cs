@@ -34,7 +34,7 @@ public class SheepBehavior_Local : SheepBehavior_Base {
         thisSheep.facing = Random.Range(-1, 1);
 // The trigger collider has to start off, so startup can complete before any contacts are registered.
         GetComponents<Collider2D>()[1].enabled = true;
-        InvokeRepeating("forgetFlockMates", 5, 5);
+        InvokeRepeating("ForgetFlockMates", 5, 5);
         StartCoroutine(idle(0));
     }
 
@@ -125,8 +125,9 @@ public class SheepBehavior_Local : SheepBehavior_Base {
         yield return null;
     }
 
-    void forgetFlockMates () {
+    void ForgetFlockMates () {
         foreach (GameObject flockMate in farFlock.ToArray()) {
+// Removal of destroyed sheep is done in UpdateFlockCenter().
             if (Random.Range(1, 100) <= 7 && flockMate != gameObject) {
                 farFlock.Remove(flockMate);
                 flock.Remove(flockMate);
@@ -288,6 +289,7 @@ public class SheepBehavior_Local : SheepBehavior_Base {
 
     void OnTriggerExit2D(Collider2D thing) {
         if (thing.isTrigger == false && flock.Contains(thing.gameObject) == true) {
+// Removal of destroyed sheep is done in UpdateFlockCenter().
             farFlock.Add(thing.gameObject);
         }
         else if (thing.isTrigger == false && dogs.Contains(thing.transform)) {
@@ -365,11 +367,12 @@ public class SheepBehavior_Local : SheepBehavior_Base {
 
     Vector2 updateFlockCenter () {
         Vector2 there = new Vector2(0,0);
-        for (int i = 0; i < flock.Count; ++i) {
+        for (int i = flock.Count - 1; i >= 0; --i) {
             GameObject inQuestion = flock[i];
             if (inQuestion == null || inQuestion.activeInHierarchy == false) {
                 farFlock.Remove(flock[i]);
                 flock.RemoveAt(i);
+                RecalculateFlockSizeFactor();
             }
             else {
                 there += (Vector2) flock[i].transform.position;
@@ -380,6 +383,7 @@ public class SheepBehavior_Local : SheepBehavior_Base {
             flockCenter = new Vector2 (there.x / (flock.Count + shepherdMultiplier) + Random.Range(-3, 3), there.y / (flock.Count + shepherdMultiplier) + Random.Range(-3, 3));
         }
         else {
+            Debug.Log(there + " divided by " + flock.Count);
             flockCenter = new Vector2 (there.x / (flock.Count), there.y / (flock.Count));
         }
         // Debug.Log("Flockcenter updated. Now " + ((Vector2) transform.position - flockCenter) + " away. Flock size: " + flock.Count + ". Farflock size: " + farFlock.Count + ". Shepherd power: " + shepherdMultiplier);

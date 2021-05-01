@@ -4,6 +4,9 @@ using UnityEngine;
 using Pathfinding;
 using Photon.Pun;
 
+// NOTICE: Much of the functionality herein is designed to facilitate a future move to synchronized simulations using deterministic physics. It may seem unusual or unwieldy, but it's
+// working fine with photontransformviews, so let's keep it like this.
+
 public class AidansMovementScript : MonoBehaviourPun {
 // WARNING: keep everything possible private because allowing any variable to be changed by means OTHER THAN a Go() RPC call will likely cause desynchronization.
     Seeker seeker;
@@ -71,6 +74,7 @@ public class AidansMovementScript : MonoBehaviourPun {
             roundToArrived = acceptableDistance;
         }
         CancelInvoke("SetRoute");
+        body.angularDrag = 1000;
         SetRoute();
         if (giddyup != -1) {
             speed = giddyup;
@@ -115,12 +119,7 @@ public class AidansMovementScript : MonoBehaviourPun {
                     break;
                 }
             }
-            if (deviation() > Vector2.Distance(transform.position, path.vectorPath[currentWaypoint])) {
-                // Debug.Log("a");
-                SetRoute();
-            }
-            else if (transToFollow != null && currentWaypoint == path.vectorPath.Count - 1) {
-                // Debug.Log("b");
+            if (deviation() > Vector2.Distance(transform.position, path.vectorPath[currentWaypoint]) || (transToFollow != null && currentWaypoint == path.vectorPath.Count - 1)) {
                 SetRoute();
             }
             yield return new WaitUntil(() => PhotonNetwork.Time >= nextMoveTime);                   

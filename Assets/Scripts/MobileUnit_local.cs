@@ -30,14 +30,14 @@ public class MobileUnit_local : Unit_local {
             leader = PhotonNetwork.GetPhotonView(leaderID).transform;
         }
         float arrivalThreshhold;
-        if (arrivalThreshholdOverride != -1) {
+        if (arrivalThreshholdOverride == -1) {
             arrivalThreshhold = bodyCircle.radius;
         }
         else {
             arrivalThreshhold = arrivalThreshholdOverride;
         }
         int noiseStartPoint = Random.Range(0, 100);
-        photonView.RPC("Move", RpcTarget.Others, whenToStart, nowGoing.x, nowGoing.y, nowAt.x, nowAt.y, goTo.x, goTo.y, noiseStartPoint, leaderID, moveConductor.GetSpeed(), arrivalThreshholdOverride);
+        // photonView.RPC("Move", RpcTarget.Others, whenToStart, nowGoing.x, nowGoing.y, nowAt.x, nowAt.y, goTo.x, goTo.y, noiseStartPoint, leaderID, moveConductor.GetSpeed(), arrivalThreshholdOverride);
         moveConductor.Go(goTo, whenToStart, noiseStartPoint, leader, speed, arrivalThreshhold); 
     }
 

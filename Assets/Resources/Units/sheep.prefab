@@ -673,6 +673,7 @@ GameObject:
   - component: {fileID: 3906374602848986031}
   - component: {fileID: 3906374602848986025}
   - component: {fileID: 3906374602848986026}
+  - component: {fileID: 114896227282402684}
   m_Layer: 11
   m_Name: sheep
   m_TagString: unit
@@ -692,7 +693,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4832182810722654600}
-  - {fileID: 1866539595519751217}
+  - {fileID: 1866539595519751219}
   - {fileID: 1388203593573168658}
   - {fileID: 5485212550683745432}
   - {fileID: 4404070012132328309}
@@ -741,7 +742,8 @@ MonoBehaviour:
   observableSearch: 2
   Synchronization: 3
   OwnershipTransfer: 0
-  ObservedComponents: []
+  ObservedComponents:
+  - {fileID: 114896227282402684}
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -779,12 +781,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2daa2c563d37b35468497f439a0a0311, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  placetoGo: {x: 0, y: 0, z: 0}
-  isRunning: 0
+  amRunning: 0
   speed: 2
   changePointThreshhold: 0.5
   roundToArrived: 0.2
-  currentWaypoint: 0
 --- !u!114 &686911080133548533
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -879,6 +879,22 @@ MonoBehaviour:
   tagPenalties: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   graphMask:
     value: -1
+--- !u!114 &114896227282402684
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3906374602848986027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e7cb724808c322458aa4d15f5035fa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SynchronizeVelocity: 1
+  m_SynchronizeAngularVelocity: 0
+  m_TeleportEnabled: 1
+  m_TeleportIfDistanceGreaterThan: 2
 --- !u!1 &4446771931500693887
 GameObject:
   m_ObjectHideFlags: 0
@@ -1352,6 +1368,16 @@ PrefabInstance:
       propertyPath: m_SortingLayer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 4468847616019998242, guid: 178d9eefee423f54780c7bb7694e10c3,
+        type: 3}
+      propertyPath: m_SortingLayerID
+      value: -926520923
+      objectReference: {fileID: 0}
+    - target: {fileID: 4468847616019998242, guid: 178d9eefee423f54780c7bb7694e10c3,
+        type: 3}
+      propertyPath: m_SortingLayer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayerID
@@ -1368,23 +1394,13 @@ PrefabInstance:
       value: -926520923
       objectReference: {fileID: 0}
     - target: {fileID: 7037510048807398018, guid: 178d9eefee423f54780c7bb7694e10c3,
-        type: 3}
-      propertyPath: m_SortingLayer
-      value: 12
-      objectReference: {fileID: 0}
-    - target: {fileID: 4468847616019998242, guid: 178d9eefee423f54780c7bb7694e10c3,
-        type: 3}
-      propertyPath: m_SortingLayerID
-      value: -926520923
-      objectReference: {fileID: 0}
-    - target: {fileID: 4468847616019998242, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayer
       value: 12
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 178d9eefee423f54780c7bb7694e10c3, type: 3}
---- !u!4 &1866539595519751217 stripped
+--- !u!4 &1866539595519751219 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3247630572699396463, guid: 178d9eefee423f54780c7bb7694e10c3,
     type: 3}

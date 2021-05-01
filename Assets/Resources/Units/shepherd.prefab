@@ -1303,6 +1303,7 @@ GameObject:
   - component: {fileID: 9182977958649021546}
   - component: {fileID: 9182977958649021547}
   - component: {fileID: 594526526140097972}
+  - component: {fileID: 114290664745495268}
   m_Layer: 11
   m_Name: shepherd
   m_TagString: unit
@@ -1322,7 +1323,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2023152517993392130}
-  - {fileID: 6014528910131316189}
+  - {fileID: 6014528910131316191}
   - {fileID: 3969976559878580050}
   - {fileID: 1954967156267801890}
   - {fileID: 2809386918807925771}
@@ -1435,12 +1436,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2daa2c563d37b35468497f439a0a0311, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  placetoGo: {x: 0, y: 0, z: 0}
-  isRunning: 0
+  amRunning: 0
   speed: 2
   changePointThreshhold: 0.5
   roundToArrived: 0.1
-  currentWaypoint: 0
 --- !u!114 &9182977958649021547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1488,10 +1487,26 @@ MonoBehaviour:
   Synchronization: 3
   OwnershipTransfer: 0
   ObservedComponents:
-  - {fileID: 0}
+  - {fileID: 114290664745495268}
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!114 &114290664745495268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9182977958649021538}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e7cb724808c322458aa4d15f5035fa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SynchronizeVelocity: 1
+  m_SynchronizeAngularVelocity: 0
+  m_TeleportEnabled: 1
+  m_TeleportIfDistanceGreaterThan: 2
 --- !u!1001 &6014528910131316003
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1584,6 +1599,16 @@ PrefabInstance:
       propertyPath: m_SortingLayer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 4468847616019998242, guid: 178d9eefee423f54780c7bb7694e10c3,
+        type: 3}
+      propertyPath: m_SortingLayerID
+      value: -926520923
+      objectReference: {fileID: 0}
+    - target: {fileID: 4468847616019998242, guid: 178d9eefee423f54780c7bb7694e10c3,
+        type: 3}
+      propertyPath: m_SortingLayer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayerID
@@ -1600,23 +1625,13 @@ PrefabInstance:
       value: -926520923
       objectReference: {fileID: 0}
     - target: {fileID: 7037510048807398018, guid: 178d9eefee423f54780c7bb7694e10c3,
-        type: 3}
-      propertyPath: m_SortingLayer
-      value: 12
-      objectReference: {fileID: 0}
-    - target: {fileID: 4468847616019998242, guid: 178d9eefee423f54780c7bb7694e10c3,
-        type: 3}
-      propertyPath: m_SortingLayerID
-      value: -926520923
-      objectReference: {fileID: 0}
-    - target: {fileID: 4468847616019998242, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayer
       value: 12
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 178d9eefee423f54780c7bb7694e10c3, type: 3}
---- !u!4 &6014528910131316189 stripped
+--- !u!4 &6014528910131316191 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3247630572699396463, guid: 178d9eefee423f54780c7bb7694e10c3,
     type: 3}
