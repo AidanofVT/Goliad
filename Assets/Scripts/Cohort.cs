@@ -318,21 +318,30 @@ public class Cohort {
         }
         int batchSize = Mathf.Clamp(purse / expense, 0, orderSize);
         expense *= batchSize;
-        int share = Mathf.CeilToInt(expense / members.Count);
+        int share = Mathf.CeilToInt(expense / (float) members.Count);
+        Debug.Log(share);
         int covered = 0;
-        for (int index = 0; covered < expense; index = ++index % members.Count) {
+        int loopBreaker = 0;
+        List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(members);
+        for (int index = 0; covered < expense; index = index % thisIsToSupressWarnings.Count) {
             int ask = Mathf.Clamp(expense - covered, 0, share);
-            if (members[index].meat >= ask) {                
-                members[index].photonView.RPC("deductMeat", RpcTarget.All, share);
+            if (thisIsToSupressWarnings[index].meat > ask) {                
+                thisIsToSupressWarnings[index].photonView.RPC("deductMeat", RpcTarget.All, share);
                 covered += share;
+                // Debug.Log("Covering " + share + " out of " + expense);
+                ++index;
             }
             else {
-                int scrapeBottom = members[index].meat;
+                int scrapeBottom = thisIsToSupressWarnings[index].meat;
                 if (scrapeBottom > 0) {
-                    members[index].photonView.RPC("deductMeat", RpcTarget.All, scrapeBottom);
+                    thisIsToSupressWarnings[index].photonView.RPC("deductMeat", RpcTarget.All, scrapeBottom);
                     covered += scrapeBottom;
                 }
+                thisIsToSupressWarnings.RemoveAt(index);
             }
+            if (++loopBreaker > 1000) {
+                throw new System.Exception("Loop broken with " + thisIsToSupressWarnings.Count + " in the list.");
+            }            
         }
         Vector3 [] spots = spawnLocations(unitAddress);
         List<GameObject> batch = new List<GameObject>();
@@ -341,7 +350,10 @@ public class Cohort {
 //which will be false as long as the space is obstructed, and then have the ordering method handle the subsiquent calls and the moving of units.
             GameObject justCreated = PhotonNetwork.Instantiate(unitAddress, spots[i], Quaternion.identity);
             batch.Add(justCreated);
-            spawnLocationCycler = (spawnLocationCycler + 1) % 6;
+            spawnLocationCycler = (spawnLocationCycler + 1) % 6;            
+            if (++loopBreaker > 1000) {
+                throw new System.Exception("Loop broken.");
+            }
         }
         yield return new WaitForSeconds(0);
         if (unitType != "sheep"){ 
@@ -355,7 +367,10 @@ public class Cohort {
             for (int i = 0; i < batchSize; ++i) {
                 Unit_local justMade = batch[i].GetComponent<Unit_local>();
                 justMade.changeCohort(cohortToJoin);
-                justMade.activate();
+                justMade.activate();                
+                if (++loopBreaker > 1000) {
+                    throw new System.Exception("Loop broken.");
+                }
             }
         }
         yield return null;

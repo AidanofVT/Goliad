@@ -74,7 +74,7 @@ public class AidansMovementScript : MonoBehaviourPun {
             roundToArrived = acceptableDistance;
         }
         CancelInvoke("SetRoute");
-        body.angularDrag = 1000;
+        body.drag = 1000;
         SetRoute();
         if (giddyup != -1) {
             speed = giddyup;

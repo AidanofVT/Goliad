@@ -383,7 +383,6 @@ public class SheepBehavior_Local : SheepBehavior_Base {
             flockCenter = new Vector2 (there.x / (flock.Count + shepherdMultiplier) + Random.Range(-3, 3), there.y / (flock.Count + shepherdMultiplier) + Random.Range(-3, 3));
         }
         else {
-            Debug.Log(there + " divided by " + flock.Count);
             flockCenter = new Vector2 (there.x / (flock.Count), there.y / (flock.Count));
         }
         // Debug.Log("Flockcenter updated. Now " + ((Vector2) transform.position - flockCenter) + " away. Flock size: " + flock.Count + ". Farflock size: " + farFlock.Count + ". Shepherd power: " + shepherdMultiplier);
