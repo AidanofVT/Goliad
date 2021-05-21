@@ -38,15 +38,11 @@ public class Weapon : MonoBehaviourPun {
     protected virtual IEnumerator Start2 () {
         yield return new WaitForEndOfFrame();
         thisUnit = GetComponentInParent<Unit>();
-        Start3(thisUnit);
-    }
-
-    protected void Start3 (Unit unit) {
-        unit.weapon = this;
-        power = unit.stats.weapon_power;
-        range = unit.stats.weapon_range;
-        shotCost = unit.stats.weapon_shotCost;
-        reloadTime = unit.stats.weapon_reloadTime;
+        thisUnit.weapon = this;
+        power = thisUnit.stats.weapon_power;
+        range = thisUnit.stats.weapon_range;
+        shotCost = thisUnit.stats.weapon_shotCost;
+        reloadTime = thisUnit.stats.weapon_reloadTime;
         rangeCircle.radius = range;
     }
 
@@ -60,8 +56,8 @@ public class Weapon : MonoBehaviourPun {
         CeaseFire();
         target = null;        
         rangeCircle.enabled = false;
-        if (legs.getRunningState()) {
-            thisUnit.photonView.RPC("StopMoving", RpcTarget.All, false);
+        if (legs.GetRunningState()) {
+            thisUnit.StopMoving(false); //.photonView.RPC("StopMoving", RpcTarget.All, false);
         }
     }
 
@@ -73,7 +69,7 @@ public class Weapon : MonoBehaviourPun {
         rangeCircle.enabled = true;
 //this is needed because OnTriggerEnter() works based on movement, and both units might be stationary.
         target.GetComponent<Rigidbody2D>().WakeUp();
-        if (photonView.IsMine && inRange() == false) {
+        if (treatAsMobile == true && InRange() == false) {
             thisUnit.Move(target.transform.position, target.GetPhotonView().ViewID);
         }
     }
@@ -90,6 +86,7 @@ public class Weapon : MonoBehaviourPun {
                 Unit_local provider = null;
                 int halfAdjusted = 0;                
                 foreach (Unit_local comrade in thisUnit.cohort.armedMembers) {
+// TO DO: there should be a sort-by-distance done here. 
                     halfAdjusted = (comrade.meat - (comrade.meat % shotCost)) / 2;
                     if (comrade.task.nature == Task.actions.attack
                         && Vector2.Distance(transform.position, comrade.transform.position) < 10
@@ -100,7 +97,7 @@ public class Weapon : MonoBehaviourPun {
                 }
                 if (provider != null) {
                     ((Unit_local) thisUnit).temporaryOverrideTask = new Task(((Unit_local) thisUnit), Task.actions.take, Vector2.zero, provider, halfAdjusted);
-                    Coroutine dispenseRoutine = thisUnit.StartCoroutine("dispense");
+                    Coroutine dispenseRoutine = thisUnit.StartCoroutine("Dispense");
                     float mark = Time.time;
                     while (Time.time - mark < 8 && thisUnit.meat < shotCost) {
                         yield return new WaitForSeconds(0.1f);
@@ -115,19 +112,26 @@ public class Weapon : MonoBehaviourPun {
                 yield return null;
             }
         }
+// This isn't an RPC because the remote instance actually should be aware of the target's destruction before the owner's instance is.
         Disengage();
         yield return null;
     }
 
-    public bool inRange () {
+    public bool InRange () {
         return Vector2.Distance(transform.position, target.transform.position) <= range;
+    }
+
+    [PunRPC]
+    protected void OpenFire () {
+// Photon is able to start coroutines, but not stop them. Since we need a CeaseFire function, this function is provided for consistency.
+        StartCoroutine("Fire");
     }
 
     protected virtual void OnTriggerEnter2D(Collider2D other) {
         if (other.gameObject == target && other.isTrigger == false) {
             photonView.RPC("OpenFire", RpcTarget.All);
             if (treatAsMobile) {
-                thisUnit.photonView.RPC("StopMoving", RpcTarget.All, true);
+                thisUnit.StopMoving(true); //.photonView.RPC("StopMoving", RpcTarget.All, true);
             }
         }
     }
@@ -141,8 +145,4 @@ public class Weapon : MonoBehaviourPun {
         }
     }
 
-    [PunRPC]
-    protected virtual void OpenFire () {
-        StartCoroutine("Fire");
-    }
 }

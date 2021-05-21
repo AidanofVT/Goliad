@@ -25,7 +25,7 @@ public class CameraPanner : MonoBehaviour
         SetDistanceMultiplier();
         Goliad = GameObject.Find("Goliad");
         vManage = transform.parent.GetComponent<ViewManager>();
-        mapExtent = Goliad.GetComponent<setup>().mapSize / 2;
+        mapExtent = Goliad.GetComponent<Setup>().mapSize / 2;
         screenRatio = (float) Screen.width / (float) Screen.height;
         cameraBaseZ = Camera.main.transform.position.z;
     }
@@ -36,12 +36,12 @@ public class CameraPanner : MonoBehaviour
         if (pan || zoom) {
             cameraPos = Camera.main.transform.position;
             if (zoom) {
-                obeyCameraZoomInputs();
-                vManage.resizeIcons();
+                ObeyCameraZoomInputs();
+                vManage.ResizeIcons();
                 SetDistanceMultiplier();
             }
             if (pan) {
-                obeyCameraPanInputs();
+                ObeyCameraPanInputs();
             }
             cameraPos = new Vector3(
                 Mathf.Clamp(cameraPos.x, mapExtent * -1, mapExtent),
@@ -51,7 +51,7 @@ public class CameraPanner : MonoBehaviour
         }
     }
 
-    void obeyCameraPanInputs () {
+    void ObeyCameraPanInputs () {
         float deltaX = 0;
         float deltaY = 0;
         if (Input.GetButton("panRight") == true) {
@@ -69,7 +69,7 @@ public class CameraPanner : MonoBehaviour
         cameraPos += new Vector3 (deltaX, deltaY, 0);     
     }
 
-    void obeyCameraZoomInputs () {
+    void ObeyCameraZoomInputs () {
         float inputThisFrame = Input.GetAxis("zoom");
         Vector2 mouseOffset = Input.mousePosition;
         Vector2 screenCartesian = new Vector2(Screen.width, Screen.height);

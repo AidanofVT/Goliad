@@ -7,11 +7,14 @@ public class SelectionCircleManager : MonoBehaviour {
     InputHandler inputHandler;
     List<Unit_local> activeUnits;
     LineRenderer lineRenderer;
-    Camera camera;
+    Camera mainCamera;
     int fidelity;
     Vector3 [] points;
+// SelectionCircleManager should be in an object subordinate to a canvas. These variables all refer to pixels, not world-space:
     public float radius;
     Vector2 placeOnScreen;
+    float xCenterAdjusted;
+    float yCenterAdjusted;
 
     float mouseDown = 1000000;
 
@@ -19,28 +22,25 @@ public class SelectionCircleManager : MonoBehaviour {
         GameObject goliad = GameObject.Find("Goliad");
         inputHandler = goliad.GetComponent<InputHandler>();
         activeUnits = goliad.GetComponent<GameState>().activeUnits;
-        camera = Camera.main;
+        mainCamera = Camera.main;
         lineRenderer = GetComponent<LineRenderer>();
         lineRenderer.startWidth = 2f;
         lineRenderer.endWidth = 2f;
         radius = 10;
-        // string debugOut = "";
-        // foreach (Vector3 point in points) {
-        //     debugOut += (Vector2) point + ", ";
-        // }
-        // Debug.Log(debugOut);
     }
 
     void ComposePoints () {
+        radius = Mathf.Clamp(Vector2.Distance(Input.mousePosition, placeOnScreen), 1, Mathf.Infinity);
+        fidelity = (int) Mathf.Clamp(radius / 6, 20, Mathf.Infinity);
         points = new Vector3[fidelity + 1];
         float itterativeAngle;
-        float xCenterAdjusted = placeOnScreen.x - Screen.width / 2;
-        float yCenterAdjusted = placeOnScreen.y - Screen.height / 2;
+        float xOfPoint;
+        float yOfPoint;
         for (int i = 0; i < fidelity + 1; ++i) {
             itterativeAngle = (Mathf.PI * 2 / fidelity * i) - Mathf.PI;
-            float xInWorld = Mathf.Sin(itterativeAngle) * radius + xCenterAdjusted;
-            float yInWorld = Mathf.Cos(itterativeAngle) * radius + yCenterAdjusted;
-            points[i] = new Vector3(xInWorld, yInWorld, 0);
+            xOfPoint = Mathf.Sin(itterativeAngle) * radius + xCenterAdjusted;
+            yOfPoint = Mathf.Cos(itterativeAngle) * radius + yCenterAdjusted;
+            points[i] = new Vector3(xOfPoint, yOfPoint, 0);
         }
     }
 
@@ -48,21 +48,23 @@ public class SelectionCircleManager : MonoBehaviour {
         if (Input.GetKeyDown(KeyCode.Mouse1)) {
             mouseDown = Time.time;
             placeOnScreen = Input.mousePosition;
+            xCenterAdjusted = placeOnScreen.x - Screen.width / 2;
+            yCenterAdjusted = placeOnScreen.y - Screen.height / 2;
         }
         else if (Input.GetKeyUp(KeyCode.Mouse1)) {
             if (lineRenderer.enabled == true && activeUnits.Count > 0) {
-                Cohort attackers = inputHandler.combineActiveUnits(Task.actions.attack);
-                float adjustedRadius = radius * ((camera.orthographicSize * 2) / Screen.height);
-                attackers.commenceAttack(new Task(null, Task.actions.attack, camera.ScreenToWorldPoint(placeOnScreen), null, 0, adjustedRadius));
+                Cohort attackers = inputHandler.CombineActiveUnits(Task.actions.attack);
+                if (attackers != null) {
+                    float worldSpaceRadius = radius * ((mainCamera.orthographicSize * 2) / Screen.height);
+                    attackers.CommenceAttack(new Task(null, Task.actions.attack, mainCamera.ScreenToWorldPoint(placeOnScreen), null, 0, worldSpaceRadius));
+                }
             }
             mouseDown = 1000000;
             lineRenderer.enabled = false;
         }
-        else if (Time.time - mouseDown >= 0.22f) {
-            radius = Mathf.Clamp(Mathf.Abs(Vector2.Distance(Input.mousePosition, placeOnScreen)), 1, Mathf.Infinity);
-            fidelity = (int) Mathf.Clamp(radius / 6, 20, Mathf.Infinity);
-            lineRenderer.positionCount = fidelity + 1;
+        else if (Time.time - mouseDown >= 0.22f) {            
             ComposePoints();
+            lineRenderer.positionCount = fidelity + 1;
             lineRenderer.SetPositions(points);
             lineRenderer.enabled = true;
         }

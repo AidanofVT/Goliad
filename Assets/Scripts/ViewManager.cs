@@ -7,17 +7,17 @@ public class ViewManager : MonoBehaviour {
 
     Unit_local unitUnderMouse;
     SelectionRectManager rectManager;
-    List <Transform> transforms = new List<Transform>();
+    List <GameObject> icons = new List<GameObject>();
     Camera mainCamera;
-    bool power = false;
+    bool iconsEnabled = false;
 
     void Start () {
-        transforms = GameObject.Find("Goliad").GetComponent<GameState>().allIconTransforms;
+        icons = GameObject.Find("Goliad").GetComponent<GameState>().allIcons;
         rectManager = transform.GetChild(1).GetComponent<SelectionRectManager>();
         mainCamera = Camera.main;
     }
 
-    public void addToPalette (Unit_local underMouse) {
+    public void AttendTo (Unit_local underMouse) {
         unitUnderMouse = underMouse;
         if (rectManager.rectOn == false) {
             if (Input.GetButton("modifier") == false) {
@@ -29,14 +29,42 @@ public class ViewManager : MonoBehaviour {
         }
     }
 
-    public void removeFromPalette (Unit_local toRem) {
+    public void Disregard () {
         if (rectManager.rectOn == false) {
             unitUnderMouse.cohort.HighlightOff();
         }
         unitUnderMouse = null;
     }
 
+    public void ResizeIcons (GameObject singleIcon = null) {
+        if (mainCamera.orthographicSize < 40 && iconsEnabled == true) {
+            foreach (GameObject key in icons) {
+                key.SetActive(false);
+            }
+            iconsEnabled = false;
+        }
+        else {
+            Vector3 neutralScaleVector = new Vector3 (1, 1, 1); 
+            if (singleIcon != null) {
+                singleIcon.transform.localScale = neutralScaleVector * mainCamera.orthographicSize / 30;
+                singleIcon.SetActive(true);
+            }
+            else {
+                if (iconsEnabled == false) {
+                    foreach (GameObject key in icons) {
+                        key.SetActive(true);
+                    }
+                    iconsEnabled = true;
+                }
+                foreach (GameObject key in icons) {    
+                    key.transform.localScale = neutralScaleVector * mainCamera.orthographicSize / 30;
+                }
+            }
+        }
+    }
+
     void Update () {
+// This is necessary because highlighting otherwise requires OnMouseEnter().
         if (unitUnderMouse != null) {
             if (Input.GetButtonDown("modifier") && rectManager.rectOn == false) {
                 unitUnderMouse.cohort.HighlightOff();
@@ -48,32 +76,4 @@ public class ViewManager : MonoBehaviour {
         }
     }
 
-    public void resizeIcons (GameObject singleIcon = null) {
-        if (mainCamera.orthographicSize < 40) {
-            if (power == true) {
-                foreach (Transform key in transforms) {
-                    key.gameObject.SetActive(false);
-                }
-                power = false;
-            }
-        }
-        else {
-            Vector3 neutralScaleVector = new Vector3 (1, 1, 1); 
-            if (singleIcon != null) {
-                singleIcon.transform.localScale = neutralScaleVector * mainCamera.orthographicSize / 30;
-                singleIcon.SetActive(true);
-            }
-            else {
-                if (power == false) {
-                    foreach (Transform key in transforms) {
-                        key.gameObject.SetActive(true);
-                    }
-                    power = true;
-                }
-                foreach (Transform key in transforms) {    
-                    key.localScale = neutralScaleVector * mainCamera.orthographicSize / 30;
-                }
-            }
-        }
-    }
 }

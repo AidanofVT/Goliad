@@ -77,6 +77,17 @@ MonoBehaviour:
   - Engage
   - Disengage
   - syncNoise
+  - AddMeat
+  - DeductMeat
+  - Die
+  - Fill
+  - ReducePatch
+  - SeekStage
+  - SetAvailable
+  - SetUnavailable
+  - TakeHit
+  - ChangeFaction
+  - HearChime
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

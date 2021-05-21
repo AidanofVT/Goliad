@@ -5,21 +5,20 @@ using Photon.Realtime;
 
 public class SheepBehavior_Base : MonoBehaviourPun {
     
-    protected GameObject Goliad;
     protected GameState gameState;
     protected MapManager mapManager;
     protected Unit thisSheep;
-    public int alliedFaction = 0;
 
     void Start() {
-        changeFaction(photonView.OwnerActorNr);
+        ChangeFaction(photonView.OwnerActorNr);
         if (photonView.IsMine && this.GetType() == typeof(SheepBehavior_Base)) {
+// Meat bars shouldn't be visible on sheep, even if they're local:
             transform.GetChild(1).gameObject.GetComponent<SpriteRenderer>().sprite = null;
             gameObject.AddComponent<SheepBehavior_Local>();
             DestroyImmediate(this);
         }
         else {
-            Goliad = GameObject.Find("Goliad");
+            GameObject Goliad = GameObject.Find("Goliad");
             gameState = Goliad.GetComponent<GameState>();
             mapManager = Goliad.GetComponent<MapManager>();
             StartCoroutine("Start2");
@@ -29,12 +28,11 @@ public class SheepBehavior_Base : MonoBehaviourPun {
     IEnumerator Start2 () {
         yield return new WaitForSeconds(0.2f);
         thisSheep = GetComponent<Unit>();
-
     }
 
     [PunRPC]
-    public virtual void changeFaction (int factionNumber) {
-        alliedFaction = factionNumber;
+    public virtual void ChangeFaction (int factionNumber) {
+        thisSheep.stats.factionNumber = factionNumber;
         if (factionNumber == 1) {
             transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/sheep_white");
             transform.GetChild(4).gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/sheep_white_icon");
@@ -47,14 +45,9 @@ public class SheepBehavior_Base : MonoBehaviourPun {
 
     [PunRPC]
     void Consume (int patchIndexX, int patchIndexY) {
-        if (mapManager.exploitPatch(new Vector2Int(patchIndexX, patchIndexY)) == true)  {
-            thisSheep.addMeat(1);
+        if (mapManager.ExploitPatch(new Vector2Int(patchIndexX, patchIndexY)) == true)  {
+            thisSheep.AddMeat(1);
         }
-    }
-
-    [PunRPC]
-    public virtual void hearChime (int chimerPhotonID) {
-
     }
 
 }

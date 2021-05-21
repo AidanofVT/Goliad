@@ -14,6 +14,7 @@ public class Unit : MonoBehaviourPun {
     protected GameObject contextCircle;
     protected GameObject blueCircle;
     public CircleCollider2D bodyCircle;
+    public Rigidbody2D body;
     public UnitBlueprint stats;
     public Weapon weapon;
     public Cohort soloCohort;
@@ -22,6 +23,7 @@ public class Unit : MonoBehaviourPun {
     public float facing = 0;
     public int meat = 0;
     public int strikes = 3;
+// deathThrows is a flag that gets set as soon as the unit's last strike is deducted. This is mainly to prevent incoming damage/death-related RPCs from making a mess.
     public bool deathThrows = false;
 
 
@@ -49,47 +51,48 @@ public class Unit : MonoBehaviourPun {
         }
     }
 
-// remember that Awake() is overridden in children, so any value assignments for the script, rather than the gameobject and it's children, must go here.
+// Remember that Awake() is overridden in children, so any value assignments for the script, rather than the gameobject and it's children, must go here.
     public virtual void Start () {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
-        gameState.enlivenUnit(gameObject);
+        gameState.EnlivenUnit(gameObject);
         string spriteAddress = "Sprites/" + gameObject.name;
         defaultIcon = Resources.Load<Sprite>(spriteAddress + "_icon");
         highlightedIcon = Resources.Load<Sprite>(spriteAddress + "_icon" + " (highlighted)");
         icon = transform.GetChild(4).gameObject.GetComponent<SpriteRenderer>();
         icon.sprite = defaultIcon;
-        gameState.allIconTransforms.Add(icon.transform);
         viewManager = GameObject.Find("Player Perspective").GetComponent<ViewManager>();
-        viewManager.resizeIcons(icon.gameObject);
+        viewManager.ResizeIcons(icon.gameObject);
         bodyCircle = GetComponent<CircleCollider2D>();
+        body = GetComponent<Rigidbody2D>();
         contextCircle = transform.GetChild(2).GetChild(0).gameObject;
         blueCircle = transform.GetChild(3).gameObject;
         statusBar = transform.GetChild(1).GetComponent<BarManager>();
         statusBar.gameObject.SetActive(true);
-//this needs to be here, rather than in Awake, so that if there's starting meat then the BarManager sees the right abount of meat when it wakes up
-        addMeat(stats.startingMeat);
-        ignition();
+// This needs to be here, rather than in Awake, so that if there's starting meat then the BarManager sees the right abount of meat when it wakes up
+        Ignition();
     }
 
-    public virtual void ignition () {
-    }
+    public virtual void Ignition () { }
 
     [PunRPC]
-    public bool addMeat (int toAdd) {
+    public bool AddMeat (int toAdd) {
         if (meat + toAdd <= stats.meatCapacity) {
             meat += toAdd;
-            statusBar.updateBar();
-            if (weapon != null) {
-                if(weapon.target != null && meat - toAdd < stats.weapon_shotCost && weapon.inRange()) {
-                    weapon.StartCoroutine("fire"); 
-                } 
-            }
-            if (photonView.IsMine == true && blueCircle.activeInHierarchy == true) {
-                gameState.activeUnitsChangedFlag = true;
-            }
+            statusBar.UpdateBar();
             if (name.Contains("sheep")) {
                 float finalMagnitude = transform.localScale.x * Mathf.Pow(1.02f, toAdd);
                 transform.localScale = new Vector3(finalMagnitude, finalMagnitude, 1);
+            }
+            else {
+                NotifyCohortOfMeatChange(toAdd);          
+                if (weapon != null) {
+                    if(weapon.target != null && meat - toAdd < stats.weapon_shotCost && weapon.InRange()) {
+                        weapon.StartCoroutine("fire"); 
+                    } 
+                }
+                if (photonView.IsMine == true && blueCircle.activeInHierarchy == true) {
+                    gameState.activeUnitsChangedFlag = true;
+                }
             }
             return true;
         }
@@ -99,12 +102,12 @@ public class Unit : MonoBehaviourPun {
     }
 
     [PunRPC]
-    public bool deductMeat (int toDeduct) {
+    public bool DeductMeat (int toDeduct) {
         if (meat - toDeduct >= 0) {
             meat -= toDeduct;
-            statusBar.updateBar();
+            statusBar.UpdateBar();
             gameState.activeUnitsChangedFlag = true;
-// This is here because otherwise orbs would not seek nearby units which became full while in the orbs' search radius. 
+// This is here because otherwise orbs would not seek units which became not-full while in the orbs' search radius. 
             if (meat + toDeduct >= stats.meatCapacity) {
                 Physics2D.queriesHitTriggers = true;
                 Collider2D [] contacts = Physics2D.OverlapPointAll(transform.position);
@@ -116,6 +119,7 @@ public class Unit : MonoBehaviourPun {
                     }
                 }
             }
+            NotifyCohortOfMeatChange(toDeduct * -1);
             return true;
         }
         else {
@@ -123,7 +127,7 @@ public class Unit : MonoBehaviourPun {
         }
     }
 
-    void deathProtocal () {
+    void DeathProtocal () {
         foreach (Cohort aggressor in cohortsAttackingThisUnit) {
             aggressor.TargetDown(this);
         }
@@ -133,15 +137,15 @@ public class Unit : MonoBehaviourPun {
     public void DeductStrikes (int numStrikes) {
         for (int i = 0; i < numStrikes; ++i) {
             if (--strikes <= 0) {
-                StartCoroutine("die");
+                StartCoroutine("Die");
                 break;
             }
         }
-        statusBar.displayStrikes();
+        statusBar.DisplayStrikes();
     }
 
     [PunRPC]
-    public virtual IEnumerator die () {yield return null;}
+    public virtual IEnumerator Die () {yield return null;}
 
     public virtual void Highlight() {
         contextCircle.SetActive(true);
@@ -152,42 +156,33 @@ public class Unit : MonoBehaviourPun {
         throw new InvalidOperationException("Tried to move an immobile unit.");
     }
 
-    public int roomForMeat () {
+    protected virtual void NotifyCohortOfMeatChange (int difference) { }
+
+    public int RoomForMeat () {
         return stats.meatCapacity - meat;
     }
 
     [PunRPC]
-    public void startTurning () {
-        StartCoroutine("updateFacing");
-    }
+    public virtual void StopMoving (bool brakeStop) { }
 
-    [PunRPC]
-    public void stopTurning () {
-        StopCoroutine("updateFacing");
-    }
-
-    [PunRPC]
-    public virtual void takeHit (int power) { }
+    public virtual void TakeHit (int power) { }
 
     public virtual void Unhighlight () {
         contextCircle.SetActive(false);
         if (blueCircle.activeInHierarchy == false) {
             icon.sprite = defaultIcon;
-        }      
+        }
     }
 
-    [PunRPC]
-    public IEnumerator updateFacing () {
-        Vector2 previousPosition = transform.position;
+    public IEnumerator UpdateFacing () {
+// Without this seperate delay for the first cycle, there would be a .1 second delay between movement starting and the rotation updating.
         yield return new WaitForSeconds(0);
         while (true) {
-            Vector2 velocityNow = ((Vector2) transform.position - previousPosition) / Time.deltaTime;
+            Vector2 velocityNow = body.velocity;
             if (velocityNow != Vector2.zero) {
-                velocityNow.Normalize();
                 facing = Mathf.Atan2(velocityNow.x, velocityNow.y);
                 transform.GetChild(0).rotation = Quaternion.AxisAngle(Vector3.forward, facing * -1 - Mathf.PI);
             }
-            previousPosition = transform.position;
             yield return new WaitForSeconds(0.1f);
         }        
     }

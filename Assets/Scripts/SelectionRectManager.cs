@@ -4,18 +4,15 @@ using UnityEngine;
 
 public class SelectionRectManager : MonoBehaviour {
     GameState gameState;
-    ViewManager vManage;
     SpriteRenderer thisRenderer;
     BoxCollider2D thisCollider;
     List <Unit_local> candidates = new List<Unit_local>();
     float downTime = 1000000;
-    Vector2 mousePosLastFrame;
     Vector2 mouseDownLocation;
     public bool rectOn = false;
 
     void Awake() {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
-        vManage = transform.parent.GetComponent<ViewManager>();
         thisRenderer = GetComponent<SpriteRenderer>();
         thisCollider = GetComponent<BoxCollider2D>();
     }
@@ -27,7 +24,7 @@ public class SelectionRectManager : MonoBehaviour {
         }
         if (Input.GetKeyUp(KeyCode.Mouse0)) {
             if (rectOn == true) {
-                activateRegion();
+                ActivateRegion();
                 candidates.Clear();
             }
             downTime = 1000000;
@@ -36,7 +33,7 @@ public class SelectionRectManager : MonoBehaviour {
         }
         else if (Time.time - downTime >= 0.22) {
             if (rectOn == false) {
-                on();
+                On();
                 // transform.position = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition);
             }
             Vector2 farCornerLocation = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -45,8 +42,7 @@ public class SelectionRectManager : MonoBehaviour {
             thisRenderer.size = rectSize;
             thisCollider.size = rectSize;
             transform.position = (farCornerLocation - mouseDownLocation) / 2 + mouseDownLocation;
-            transform.position  += new Vector3(0, 0, 8);
-            mousePosLastFrame = Input.mousePosition;
+            transform.position += new Vector3(0, 0, 8);
             if (Input.GetButtonDown("modifier")) {
                 List<Cohort> alreadyOff = new List<Cohort>();
                 foreach (Unit_local goSolo in candidates) {
@@ -69,39 +65,39 @@ public class SelectionRectManager : MonoBehaviour {
                 }
             }
         }
-        else {
-            rectOn = false;
-        }
     }
 
-    void activateRegion () {
-        Cohort aCohort;
-        gameState.clearActive();
+    void ActivateRegion () {
+        gameState.ClearActive();
         if (Input.GetButton("modifier") == false) {
+            List<Cohort> candidatesCohorts = new List<Cohort>();
             foreach (Unit_local aboutToBeActivated in candidates) {
-                aboutToBeActivated.cohort.activate();
+                if (candidatesCohorts.Contains(aboutToBeActivated.cohort) == false) {
+                    candidatesCohorts.Add(aboutToBeActivated.cohort);
+                }
+            }
+            foreach (Cohort toActivate in candidatesCohorts) {
+                toActivate.Activate();
             }
         }
         else {
             foreach (Unit_local aboutToBeActivated in candidates) {
-                aboutToBeActivated.soloCohort.activate();
+                aboutToBeActivated.soloCohort.Activate();
             }
         }     
-        return;
     }
 
-    void off () {
+    void Off () {
         thisCollider.enabled = false;
         thisRenderer.enabled = false;
         rectOn = false;
     }
 
-    void on () {
+    void On () {
         thisCollider.enabled = true;
         thisRenderer.enabled = true;
         rectOn = true;
     }
-
 
     void OnTriggerEnter2D(Collider2D other) {
         if (other.isTrigger == false) {
@@ -109,13 +105,13 @@ public class SelectionRectManager : MonoBehaviour {
             if (touchedUnit != null && other.name.Contains("sheep") == false) {
                 if (Input.GetButton("modifier") == false) {
                     Cohort maybeOn = touchedUnit.cohort;
-                    bool lightsOn = true;
+                    bool hitTheLights = true;
                     foreach (Unit_local inQuestion in candidates) {
                         if (inQuestion.cohort.Equals(maybeOn)) {
-                            lightsOn = false;
+                            hitTheLights = false;
                         }
                     }
-                    if (lightsOn == true) {
+                    if (hitTheLights == true) {
                         maybeOn.Highlight();
                     }
                 }
@@ -134,13 +130,13 @@ public class SelectionRectManager : MonoBehaviour {
                 candidates.Remove(departedUnit);
                 if (Input.GetButton("modifier") == false) {
                     Cohort maybeExtingiush = departedUnit.cohort;         
-                    bool lightsOut = true;
+                    bool hitTheLights = true;
                     foreach (Unit_local inQuestion in candidates) {
                         if (inQuestion.cohort.Equals(maybeExtingiush)) {
-                            lightsOut = false;
+                            hitTheLights = false;
                         }
                     }
-                    if (lightsOut == true) {
+                    if (hitTheLights == true) {
                         maybeExtingiush.HighlightOff();
                     }
                 }

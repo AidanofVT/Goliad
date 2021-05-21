@@ -1,6 +1,7 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 
-
+// THE PERFORMANCE OF THIS WAS MUCH BETTER THAN THE PERFORMANCE OF THE CURRENT IMPLEMENTATION, BUT IT COULDN'T HANDLE MORE THAN FOUR SPRITES.
+// If this can be fixed, that would be great. Seek an expert; I spent quite a while on it and did ask forums.
 
 RWStructuredBuffer<uint> bugger;
 RWStructuredBuffer<float> imageLibrary;

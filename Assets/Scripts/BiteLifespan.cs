@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class BiteLifespan : MonoBehaviour {
     void Start() {
-        StartCoroutine("lerpDrumstick");
+        StartCoroutine("LerpDrumstick");
     }
 
-    IEnumerator lerpDrumstick () {        
+    IEnumerator LerpDrumstick () {        
         Vector3 startValue = transform.localScale;
         Vector3 endValue = new Vector3(2, 2, 1);
         float startTime = Time.time;

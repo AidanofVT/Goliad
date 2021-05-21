@@ -3,16 +3,17 @@ using UnityEngine.UI;
 using UnityEngine;
 
 /*
+Some comments here were added long after the fact. Don't read them uncritically.
+
 WHAT HAS BEEN LEARNED:
 1. The easiest way to mess up is to enter an incorrect buffer size and/or stride. Really think about what's being passed.
-    1a. If the buffer type is "raw", the count variable in the ComputeBuffer constructor is in words, but in the shader itself, the count output
-        of GetDimensions is in bytes. The stride parameter of the constructor appears to have no effect.
-    1b. If the buffer type is "default", the count variable in the ComputeBuffer constructor is in bytes. The count output of GetDimensions is the number
-        of bytes in the type specified in the buffer declaration in the shader. The stride parameter of the constructor has no effect on it.
+    1a. If the buffer type is "raw", the count variable in the ComputeBuffer constructor is in words, but in the shader itself, the output
+        of {buffer}.GetDimensions() is in bytes. The stride parameter of the constructor appears to have no effect.
+    1b. If the buffer type is "default", the count variable in the ComputeBuffer constructor is in bytes. The stride parameter of the constructor (also in bytes) has no effect on it.
+        In the shader, the output of {buffer}.GetDimensions() is the number of bytes in the buffer.
 2. Only "blittable" data types can be passed, meaning simple numbers, but in practice some complex types, like
     Color32, get passed successfully because they are just lists of numbers.
 3. In the shader, scope works differently. A kernel can access any buffer declared anywhere above it in the script.
-
 */
 
 public class ShaderHandler : MonoBehaviour {
@@ -33,7 +34,7 @@ public class ShaderHandler : MonoBehaviour {
     public Texture2D fourteenth;
     public Texture2D fifteenth;
     public Texture2D sixteenth;
-    Texture2D myTexture;
+    Texture2D liveTexture;
     Texture2D [] tileLibrary;
     public int spriteSize = 128;
     public byte[,] mapData;
@@ -53,26 +54,7 @@ public class ShaderHandler : MonoBehaviour {
     ComputeBuffer outputBuffer;
     ComputeBuffer bugBuffer;
 
-    // void Start () {
-    //     On();
-    // }
-    
-    public void On () {
-        mapData = GameObject.Find("Goliad").GetComponent<GameState>().map;  
-        //GenerateExampleMap(100, 100);
-        tileLibrary = new Texture2D [] {first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth, eleventh, twelvth, thirteenth, fourteenth, fifteenth, sixteenth};
-        pixelsWide = (int) transform.parent.GetComponent<RectTransform>().sizeDelta.x;
-        pixelsTall = (int) transform.parent.GetComponent<RectTransform>().sizeDelta.y;
-        aspectRatio = (float) pixelsWide / (float) pixelsTall;
-        pixelsOut = new Color32[pixelsWide * pixelsTall]; 
-        myTexture = new Texture2D(pixelsWide, pixelsTall);
-        rawImageComponent = GetComponent<RawImage>();
-        rawImageComponent.texture = myTexture;
-        ShaderStart();
-        UnleashShaderPower();
-    }
-
-    float[] cameraPosAsArray () {
+    float[] CameraPosAsArray () {
         float [] toreturn = new float [2];
         Vector2 where = Camera.main.transform.position;
         toreturn[0] = where.x;
@@ -80,14 +62,7 @@ public class ShaderHandler : MonoBehaviour {
         return toreturn;
     }
 
-    Color32 [] libraryToArray () {
-        Color32[] toReturn = new Color32 [tileLibrary.Length * 128 * 128];
-        for (int i = 0; i < tileLibrary.Length; ++i) {
-            tileLibrary[i].GetPixels32().CopyTo(toReturn, i * 128 * 128);
-        }
-        return toReturn;
-    }
-
+// This is useful if you need a very clear, simple map to check the correctness of the render.
     void GenerateExampleMap (int width, int height) {
         mapData = new byte[width, height];
         for (int i = 0; i < height / 2; ++i) {
@@ -112,23 +87,48 @@ public class ShaderHandler : MonoBehaviour {
         }
     }
 
+// (This is for mapshader_Old)
+    Color32 [] LibraryToArray () {
+        Color32[] toReturn = new Color32 [tileLibrary.Length * spriteSize * spriteSize];
+        for (int i = 0; i < tileLibrary.Length; ++i) {
+            tileLibrary[i].GetPixels32().CopyTo(toReturn, i * spriteSize * spriteSize);
+        }
+        return toReturn;
+    }
+    
+    public void On () {
+        mapData = GameObject.Find("Goliad").GetComponent<GameState>().map;  
+        //GenerateExampleMap(100, 100);
+        tileLibrary = new Texture2D [] {first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth, eleventh, twelvth, thirteenth, fourteenth, fifteenth, sixteenth};
+        pixelsWide = (int) transform.parent.GetComponent<RectTransform>().sizeDelta.x;
+        pixelsTall = (int) transform.parent.GetComponent<RectTransform>().sizeDelta.y;
+        aspectRatio = (float) pixelsWide / (float) pixelsTall;
+        pixelsOut = new Color32[pixelsWide * pixelsTall]; 
+        liveTexture = new Texture2D(pixelsWide, pixelsTall);
+        rawImageComponent = GetComponent<RawImage>();
+        rawImageComponent.texture = liveTexture;
+        ShaderStart();
+    }
+
     void ShaderStart () {
         kernelNumber = myShader.FindKernel("action");
-        libraryBuffer = new ComputeBuffer(spriteSize * spriteSize * tileLibrary.Length, 4, ComputeBufferType.Default);
-            myShader.SetBuffer(kernelNumber, "imageLibrary", libraryBuffer);
-            libraryBuffer.SetData(libraryToArray());
-        worldBuffer = new ComputeBuffer(mapData.GetLength(0) * mapData.GetLength(1) / 4, sizeof(int));
+// (This is for mapshader_Old)
+        // libraryBuffer = new ComputeBuffer(spriteSize * spriteSize * tileLibrary.Length, 4, ComputeBufferType.Default);
+        //     myShader.SetBuffer(kernelNumber, "imageLibrary", libraryBuffer);
+        //     libraryBuffer.SetData(libraryToArray());
+// Why declare it this way instead of 4x as many bytes? Because the interval this declaration has to match the interval in the buffer declaration in the shader, which can't deal with bytes.
+        worldBuffer = new ComputeBuffer(mapData.GetLength(0) * mapData.GetLength(1) / 4, 4);
             myShader.SetBuffer(kernelNumber, "world", worldBuffer);
         widthHeight = new ComputeBuffer(1, sizeof(float) * 2);
             myShader.SetBuffer(kernelNumber, "cameraDimensions", widthHeight);
             widthHeight.SetData(new float[] {pixelsWide, pixelsTall});
         cameraSpot = new ComputeBuffer(1, sizeof(float) * 2);
-            myShader.SetBuffer(kernelNumber, "hereNow", cameraSpot);            
+            myShader.SetBuffer(kernelNumber, "screenCenterWorldPoint", cameraSpot);            
         scaleBuffer = new ComputeBuffer(1, sizeof(float) * 2);
             myShader.SetBuffer(kernelNumber, "scale", scaleBuffer);            
-        outputBuffer = new ComputeBuffer(pixelsWide * pixelsTall, 4, ComputeBufferType.Default);
+        outputBuffer = new ComputeBuffer(pixelsWide * pixelsTall, 4);
             myShader.SetBuffer(kernelNumber, "output", outputBuffer);
-        bugBuffer = new ComputeBuffer(pixelsWide * pixelsTall, sizeof(int));
+        bugBuffer = new ComputeBuffer(pixelsWide * pixelsTall, 4);
             myShader.SetBuffer(kernelNumber, "bugger", bugBuffer);
         myShader.SetTexture(kernelNumber, Shader.PropertyToID("textureOne"), first);
         myShader.SetTexture(kernelNumber, Shader.PropertyToID("textureTwo"), second);
@@ -148,15 +148,15 @@ public class ShaderHandler : MonoBehaviour {
         myShader.SetTexture(kernelNumber, Shader.PropertyToID("textureSixteen"), sixteenth);
     }
 
-    void UnleashShaderPower () {
+    void Update () {
         worldBuffer.SetData(mapData);        
-        cameraSpot.SetData(cameraPosAsArray());
+        cameraSpot.SetData(CameraPosAsArray());
         float scale = Camera.main.orthographicSize;
         scaleBuffer.SetData(new float[] {scale * aspectRatio, scale});
         myShader.Dispatch(kernelNumber, 4, 4, 1);
         outputBuffer.GetData(pixelsOut);
-        myTexture.SetPixels32(pixelsOut);
-        myTexture.Apply();
+        liveTexture.SetPixels32(pixelsOut);
+        liveTexture.Apply();
         rawImageComponent.SetNativeSize();
         // bugBuffer.GetData(bugger);
         // string debugOut = "Done: ";
@@ -165,11 +165,6 @@ public class ShaderHandler : MonoBehaviour {
         //     //debugOut += Convert.ToString((uint) bugger[i], 2) + ", "; 
         // }
         // Debug.Log(debugOut);
-    }
-
-    void Update () {
-        //Debug.Log("Frame time: " + Time.deltaTime);
-        UnleashShaderPower();
     }
 
 }

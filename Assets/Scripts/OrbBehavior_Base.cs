@@ -7,7 +7,6 @@ public class OrbBehavior_Base : MonoBehaviourPun {
 
     public int meat;
     protected Rigidbody2D body;
-    protected CircleCollider2D localCollider;
     public bool available = false;
 
     void Awake () {
@@ -17,41 +16,32 @@ public class OrbBehavior_Base : MonoBehaviourPun {
         }
         else {
             body = GetComponent<Rigidbody2D>();
-            localCollider = GetComponent<CircleCollider2D>();
-            fill((int) photonView.InstantiationData[0]);
-            int spawnerID = (int) photonView.InstantiationData[1];
-            if (spawnerID != -1) {
-                PhotonNetwork.GetPhotonView(spawnerID).GetComponent<Unit>().deductMeat(meat);
-            }
+            Fill((int) photonView.InstantiationData[0]);
         }
     }
 
-// note that fill() can also be used to shrink a bulb
+// Note that fill() can also be used to shrink a bulb.
     [PunRPC]
-    public void fill (int howMuchMeat) {
-        float orbScale = Mathf.PI * howMuchMeat; 
-        orbScale = Mathf.Sqrt(orbScale / Mathf.PI);
+    public void Fill (int howMuchMeat) {
+        float orbScale = Mathf.Sqrt(howMuchMeat);
         transform.localScale = new Vector3(orbScale, orbScale, 1);
         meat = howMuchMeat;
     }
 
     [PunRPC]
-    protected void seekStage () {
-        StopCoroutine("launchStage");
-        if (body != null) {
-            Destroy(body);
-        }
+    protected void SeekStage () {
+        CircleCollider2D localCollider  = GetComponent<CircleCollider2D>();
         localCollider.isTrigger = true;
         localCollider.radius = 10;
     }
 
     [PunRPC]
-    public void setAvailable () {
+    public void SetAvailable () {
         available = true;
     }
 
     [PunRPC]
-    public void setUnavailable () {
+    public void SetUnavailable () {
         available = false;
     }
 

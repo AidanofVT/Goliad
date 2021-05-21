@@ -5,10 +5,10 @@ using Photon.Pun;
 
 public class DepotFunction : MonoBehaviour {
 
-    public void slaughterSheep () {
+    public void SlaughterSheep () {
         foreach (Collider2D contact in Physics2D.OverlapCircleAll(transform.position, 10)) {
             if (contact.gameObject.name.Contains("sheep")) {
-                contact.gameObject.GetPhotonView().RPC("die", RpcTarget.All);
+                contact.gameObject.GetPhotonView().RPC("Die", RpcTarget.All);
             }
         }
     }

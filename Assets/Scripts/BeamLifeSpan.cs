@@ -6,10 +6,10 @@ public class BeamLifeSpan : MonoBehaviour {
 
     public void Start () {
         line = gameObject.GetComponent<SpriteRenderer>();
-        StartCoroutine("lerpBeam");
+        StartCoroutine("LerpBeam");
     }
 
-    public IEnumerator lerpBeam () {
+    public IEnumerator LerpBeam () {
         Vector2 startValue = new Vector2(line.size.x, line.size.y);
         Vector2 endValue = new Vector2(line.size.y, 0);
         float startTime = Time.time;

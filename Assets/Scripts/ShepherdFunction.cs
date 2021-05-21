@@ -11,22 +11,22 @@ public class ShepherdFunction : MonoBehaviourPun {
         }
     }
 
-    public void chime () {
+    public void Chime () {
         foreach (Collider2D contact in Physics2D.OverlapCircleAll(transform.position, 20)) {
-            if (contact.gameObject.GetComponent<SheepBehavior_Base>() != null) {
-                if (flock.Contains(contact.gameObject) == false) {
-                    flock.Add(contact.gameObject);
-                }             
+            if (contact.name.Contains("sheep") == true && flock.Contains(contact.gameObject) == false) {
+                flock.Add(contact.gameObject);
             }
         }
         foreach (GameObject ward in flock) {
-            ward.GetPhotonView().RPC("hearChime", RpcTarget.All, photonView.ViewID);
+            PhotonView inQuestion = ward.GetPhotonView();
+            inQuestion.RPC("HearChime", inQuestion.Owner, photonView.ViewID);
         }
     }
 
-    void deathProtocal () {
+    void DeathProtocal () {
         foreach (GameObject ward in flock) {
-                ward.GetComponent<SheepBehavior_Local>().shepherd = null;
+            PhotonView inQuestion = ward.GetPhotonView();
+            inQuestion.RPC("ShepherdDied", inQuestion.Owner);
         }
     }
 

@@ -74,12 +74,11 @@
      <Compile Include="Assets\Scripts\NeutralUnit.cs" />
      <Compile Include="Assets\Scripts\OrbBehavior_Base.cs" />
      <Compile Include="Assets\Scripts\OrbBehavior_Local.cs" />
-     <Compile Include="Assets\Scripts\OrbMeatContainer.cs" />
      <Compile Include="Assets\Scripts\ProductionButtonBridge.cs" />
      <Compile Include="Assets\Scripts\SelectionCircleManager.cs" />
      <Compile Include="Assets\Scripts\SelectionRectManager.cs" />
      <Compile Include="Assets\Scripts\SensorBridge.cs" />
-     <Compile Include="Assets\Scripts\setup.cs" />
+     <Compile Include="Assets\Scripts\Setup.cs" />
      <Compile Include="Assets\Scripts\ShaderHandler.cs" />
      <Compile Include="Assets\Scripts\SheepBehavior_Base.cs" />
      <Compile Include="Assets\Scripts\SheepBehavior_Local.cs" />

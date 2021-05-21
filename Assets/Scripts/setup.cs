@@ -4,12 +4,10 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 
-public class setup : MonoBehaviourPunCallbacks {
-    public GameState gameState;
+public class Setup : MonoBehaviourPunCallbacks {
     public int mapSize = 100;
 
     void Awake() {
-        gameState = gameObject.GetComponent<GameState>();
 //10 = ground, 5 = UI, 8 = obstacles, 11 = units
         Physics2D.IgnoreLayerCollision(10, 11);
         Physics2D.IgnoreLayerCollision(10, 8);
@@ -40,44 +38,39 @@ public class setup : MonoBehaviourPunCallbacks {
         Debug.Log("PUN connection failure. CAUSE: " + cause);
     }
 
+    public override void OnJoinRandomFailed(short returnCode, string message) {
+        Debug.Log("Randomly connecting to a room failed. MESSAGE: " + message);
+    }
+
     public override void OnJoinedRoom() {
         Debug.Log("Joined room " + PhotonNetwork.CurrentRoom.Name + ". Player number " + PhotonNetwork.LocalPlayer.ActorNumber);
         int me = PhotonNetwork.LocalPlayer.ActorNumber;
-        gameState.playerNumber = me;
-        int distanceFromCenter = (int) (0.21f * (float) mapSize);
+        gameObject.GetComponent<GameState>().playerNumber = me;
+        int originOffset = (int) (0.21f * (float) mapSize);
         Vector3 startPlace = Vector3.zero;
         if (me == 1) {
-            startPlace = new Vector3 (-distanceFromCenter, distanceFromCenter, -.2f);
+            startPlace = new Vector3 (-originOffset, originOffset, -.2f);
         }
         else if (me == 2) {
-            startPlace = new Vector3 (distanceFromCenter, -distanceFromCenter, -.2f);
+            startPlace = new Vector3 (originOffset, -originOffset, -.2f);
         }
         Camera.main.transform.position = startPlace + new Vector3(0, 0, -9.8f);
-        StartCoroutine(step2(startPlace));
+        StartCoroutine(Step2(startPlace));
     }
 
-    IEnumerator step2 (Vector3 startPlace) {
+    private void OnPlayerConnected() { }
+
+    IEnumerator Step2 (Vector3 startPlace) {
         GameObject home = PhotonNetwork.Instantiate("Units/depot", startPlace, Quaternion.identity);
         yield return new WaitForSeconds(0);
-        home.GetComponent<Unit>().addMeat(270); //(270);
+        home.GetComponent<Unit>().AddMeat(270); //(270);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Vector3 spot = startPlace * -1 + new Vector3(4, 0, -0.4f);
-        // GameObject enemy = PhotonNetwork.Instantiate("Units/dog", spot, Quaternion.identity);
-        // while (true) {
-        //     if (enemy == null || enemy.activeInHierarchy == false) {
-        //         enemy = PhotonNetwork.Instantiate("Units/dog", spot, Quaternion.identity);
-        //     }
-        //     yield return new WaitForSeconds(0.5f);
-        // }
-    }
-
-    private void OnPlayerConnected() {
-        Debug.Log("Someone joined.");
-    }
-
-    public override void OnJoinRandomFailed(short returnCode, string message) {
-        Debug.Log("Randomly connecting to a room failed. MESSAGE: " + message);
+        // Vector3 spot = startPlace + new Vector3(4, 0, -0.4f);
+        // GameObject ally = PhotonNetwork.Instantiate("Units/dog", spot, Quaternion.identity);
+        // yield return new WaitForSeconds(1.5f);
+        // ally.GetComponent<Unit>().AddMeat(10);
+        // home.GetComponent<Unit>().StartCoroutine("Die");
     }
 
     void Update () {

@@ -4,7 +4,7 @@ using UnityEngine;
 using Pathfinding;
 using Photon.Pun;
 
-// NOTICE: Much of the functionality herein is designed to facilitate a future move to synchronized simulations using deterministic physics. It may seem unusual or unwieldy, but it's
+// NOTICE: Much of the functionality herein is designed to facilitate a future change to synchronized simulations using deterministic physics. It may seem unusual or unwieldy, but it's
 // working fine with photontransformviews, so let's keep it like this.
 
 public class AidansMovementScript : MonoBehaviourPun {
@@ -42,7 +42,7 @@ public class AidansMovementScript : MonoBehaviourPun {
         changePointThreshhold = baseSpeed * pushInterval * 3;
     }
 
-    IEnumerator brake () {
+    IEnumerator Brake () {
         body.drag = 10;
         yield return new WaitForSeconds(0.5f);
         body.drag = 0.5f;
@@ -64,12 +64,14 @@ public class AidansMovementScript : MonoBehaviourPun {
         return height;
     }
 
-    public void Go (Vector2 destination, double startWhen, int noiseStart, Transform movingTransform = null, float giddyup = -1, float acceptableDistance = -1) {
+    public void Go (Vector2 destination, double startWhen, int noiseStart, int destinationTransformPID, float giddyup = -1, float acceptableDistance = -1) {
         // Debug.Log("Moving from " + transform.position + " to " + (Vector2) destination + ". Scheduled to start at " + startWhen);
         scheduledStart = startWhen;
         noisePoint = noiseStart;
         placetoGo = new Vector3(destination.x, destination.y, transform.position.z);
-        transToFollow = movingTransform;
+        if (destinationTransformPID != -1) {
+            transToFollow = PhotonNetwork.GetPhotonView(destinationTransformPID).transform;
+        }
         if (acceptableDistance != -1){
             roundToArrived = acceptableDistance;
         }
@@ -85,7 +87,7 @@ public class AidansMovementScript : MonoBehaviourPun {
         return roundToArrived;
     }
 
-    public bool getRunningState() {
+    public bool GetRunningState() {
         return amRunning;
     }
 
@@ -93,7 +95,7 @@ public class AidansMovementScript : MonoBehaviourPun {
         return speed;
     }
 
-    public bool isNavigable (Vector3 where, bool ignoreMobileUnits = false) {      
+    public bool IsNavigable (Vector3 where, bool ignoreMobileUnits = false) {      
         Collider2D[] occupants = Physics2D.OverlapCircleAll(where, selfCollider.radius);
         List<Collider2D> listFormat = new List<Collider2D>(occupants);
         foreach (Collider2D contact in listFormat) {
@@ -148,7 +150,7 @@ public class AidansMovementScript : MonoBehaviourPun {
             }
             nextMoveTime = (scheduledStart + pushInterval * ++synchronicityItterator); //% 4294967.295;
         }
-        terminatePathfinding(true, true);  
+        TerminatePathfinding(true, true);  
         yield return null;
     }
 
@@ -158,11 +160,11 @@ public class AidansMovementScript : MonoBehaviourPun {
         path = (ABPath) finishedPath;
         if (amRunning == false) {
             currentWaypoint = 0;
-            thisUnit.startTurning();
+            thisUnit.StartCoroutine("UpdateFacing");
             StopCoroutine("MoveAlong");
             StartCoroutine("MoveAlong");
-            StopCoroutine("brake");
-            StartCoroutine("stuckCheck");
+            StopCoroutine("Brake");
+            StartCoroutine("StuckCheck");
             amRunning = true;
         }
         else {
@@ -181,7 +183,7 @@ public class AidansMovementScript : MonoBehaviourPun {
         seeker.StartPath(transform.position, placetoGo, OnPathComplete);
     }
 
-    IEnumerator stuckCheck () {
+    IEnumerator StuckCheck () {
         int synchronicityItterator = 0;
 // This reduces instances where units that were made together check and jerk at the same time, making for stickier traffic jams.
         double nextCheckTime = PhotonNetwork.Time + (Mathf.Abs(transform.position.x) % 10) / 5;
@@ -198,12 +200,12 @@ public class AidansMovementScript : MonoBehaviourPun {
         }
     }
 
-    public void terminatePathfinding (bool passUpward, bool brakeStop) {
+    public void TerminatePathfinding (bool passUpward, bool brakeStop) {
         // Debug.Log("unit " + photonView.ViewID + " terminatePathfinding at " + transform.position);
         StopCoroutine("MoveAlong");
-        StopCoroutine("stuckCheck");
+        StopCoroutine("StuckCheck");
         CancelInvoke("SetRoute");
-        thisUnit.stopTurning();
+        thisUnit.StopCoroutine("UpdateFacing");
         amRunning = false;
         roundToArrived = 0.15f;
         speed = baseSpeed;
@@ -215,7 +217,7 @@ public class AidansMovementScript : MonoBehaviourPun {
             SendMessage("PathEnded");
         }
         if (brakeStop) {
-            StartCoroutine("brake");
+            StartCoroutine("Brake");
         }
     }
 

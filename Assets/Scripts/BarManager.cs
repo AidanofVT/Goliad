@@ -16,16 +16,15 @@ public class BarManager : MonoBehaviourPun {
         thisUnit = transform.parent.gameObject.GetComponent<Unit>();
         unitName = thisUnit.GetType().ToString();
         denominator = GetComponentInParent<UnitBlueprint>().meatCapacity;
-        updateBar();
+        UpdateBar();
     }
 
-    public void updateBar () {
+    public void UpdateBar () {
         GetComponent<SpriteRenderer>().size = new Vector2(0.75f * (float) thisUnit.meat / (float) denominator, 0.08f);
     }
 
 // Note that this isn't set up to accomodate strike-gaining.
-    [PunRPC]
-    public void displayStrikes () {
+    public void DisplayStrikes () {
         switch (thisUnit.strikes) { 
             case 2:
                 middleBlock.SetActive(false);

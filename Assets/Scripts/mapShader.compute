@@ -18,41 +18,45 @@ Texture2D textureSixteen;
 
 RWStructuredBuffer<int> bugger;
 RWStructuredBuffer<uint> world;
+// cameraDimensions is in pixels.
 RWStructuredBuffer<float2> cameraDimensions;
-RWStructuredBuffer<float2> hereNow;
+RWStructuredBuffer<float2> screenCenterWorldPoint;
+// scale is in world units.
 RWStructuredBuffer<float2> scale;
 RWStructuredBuffer<uint> output;
 
-uint floatFour2Color32 (float4 input) {
-    uint x = (int) input.x << 24;
-    uint y = (int) input.y << 16;
-    uint z = (int) input.z << 8;
-    return x + y + z + (int) input.w;
-}
 
 #pragma kernel action
 [numthreads(8,8,1)]
 void action (uint3 group : SV_GroupID, uint3 thread : SV_GroupThreadID) {
-    uint members, stride;
     uint totalWidth = cameraDimensions[0].x;
     float halfWidth = totalWidth / 2;
     uint totalHeight = cameraDimensions[0].y;
     float halfHeight = totalHeight / 2;
     uint offset, nevermind;
     world.GetDimensions(offset, nevermind);
+// "world" is made up of uints, each one of which is four concatenated byte-representations of tiles on the map. So, there are four times as many tiles as there are entries in "world".
     offset = sqrt(offset * 4) / 2;
+// Thread-group responsibilities are defined as "sectors"; portions of the screen-space.
     uint sectorLength = totalWidth / 4 + totalWidth % 4; //THE DIVISOR CHANGES IF THE THREAD-GROUP COUNT IS CHANGED
     uint sectorHeight = totalHeight / 4 + totalHeight % 4; //THE DIVISOR CHANGES IF THE THREAD-GROUP COUNT IS CHANGED
+// Thread responsibilities are defined as "subsectors".
     uint subsectorLength = sectorLength / 8 + sectorLength % 8; //THE DIVISOR CHANGES IF THE THREAD COUNT IS CHANGED
     uint subsectorHeight = sectorHeight / 8 + sectorHeight % 8; //THE DIVISOR CHANGES IF THE THREAD COUNT IS CHANGED
     uint xStart = group.x * sectorLength + thread.x * subsectorLength;
     uint yStart = group.y * sectorHeight + thread.y * subsectorHeight;
     Texture2D targetTexture;
-    int k = 0;
-    for (uint i = 0; i < subsectorHeight; ++i) {
-        for (uint j = 0; j < subsectorLength && j + xStart <= totalWidth; ++j) {
-            float worldX = hereNow[0].x + ((float)(xStart - halfWidth) + (float) j) * scale[0].x / halfWidth;
-            float worldY = hereNow[0].y + ((float)(yStart - halfHeight) + (float) i) * scale[0].y / halfHeight;
+    // int buggerIndex = 0;
+/*  
+    In English: every thread determines pixels from the the left border of its subsector to the right side, from the bottom of its subsector to the top.
+    For each pixel, we determine exactly what spot in world-space that pixel represents, then find the sprite that occupies that space, then find 
+    exactly where in that sprite the point in world-space is. We take that pixel value from the sprite and, after some byte-rearrangement, put it in the
+    appropriate place in the output buffer. 
+*/
+    for (uint pixelsUpward = 0; pixelsUpward < subsectorHeight; ++pixelsUpward) {
+        for (uint pixelsRightward = 0; pixelsRightward < subsectorLength && pixelsRightward + xStart <= totalWidth; ++pixelsRightward) {
+            float worldX = screenCenterWorldPoint[0].x + ((float)(xStart - halfWidth) + (float) pixelsRightward) * scale[0].x / halfWidth;
+            float worldY = screenCenterWorldPoint[0].y + ((float)(yStart - halfHeight) + (float) pixelsUpward) * scale[0].y / halfHeight;
             int xInSquare = floor(worldX);
             int yInSquare = floor(worldY);
             int index = ((xInSquare + offset) * offset * 2 + (yInSquare + offset));
@@ -62,7 +66,7 @@ void action (uint3 group : SV_GroupID, uint3 thread : SV_GroupThreadID) {
             tileType = tileType >> (byteInFloat * 8);
             tileType = tileType & 0x000000ff;            
             uint3 fromPixel = int3((float)(worldX - xInSquare) * 128, (float)(worldY - yInSquare) * 128, 0);
-            int2 toPixel = int2 (j + xStart, i + yStart);
+            int2 toPixel = int2 (pixelsRightward + xStart, pixelsUpward + yStart);
             float4 fourFloats;
             [forcecase] switch (tileType) {
                 case 0: 
@@ -116,14 +120,15 @@ void action (uint3 group : SV_GroupID, uint3 thread : SV_GroupThreadID) {
                 default:
                     break;
             }
+// Disappointingly, texture2d.Load does not return color data in the same format as Color32. Some rearrangement is needed:
             uint alpha = ((uint) (fourFloats.x * 255));
             uint red = ((uint) (fourFloats.y * 255)) << 8;
             uint green = ((uint) (fourFloats.z * 255)) << 16;
             uint blue = ((uint) (fourFloats.w * 255)) << 24;
             uint result = red + green + blue + alpha;
             // if (thread.x == 0 && thread.y == 0 && group.x == 0 && group.y == 0) {
-            //     bugger[k] = sectorHeight;
-            //     ++k;
+            //     bugger[buggerIndex] = sectorHeight;
+            //     ++buggerIndex;
             // }            
             output[cameraDimensions[0].x * toPixel.y + toPixel.x] = result;
         }

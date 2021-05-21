@@ -6,9 +6,9 @@ using UnityEngine;
 public class CohortUIManager : MonoBehaviour {
     GameState gameState;
     InputHandler inputHandler;
-    public List<Unit_local> units = new List<Unit_local>();
+    public List<Unit_local> activeAllies = new List<Unit_local>();
     GameObject bar;
-    GameObject buttonsGroup;
+    GameObject productionButtonsParent;
     Hashtable buttonsAndCosts = new Hashtable();
     Button buttonUnderMouse = null;
     GameObject slaughterButton;
@@ -25,15 +25,15 @@ public class CohortUIManager : MonoBehaviour {
         GameObject goliad = GameObject.Find("Goliad");
         gameState = goliad.GetComponent<GameState>();
         inputHandler = goliad.GetComponent<InputHandler>();
-        units = gameState.activeUnits;
+        activeAllies = gameState.activeUnits;
         bar = transform.GetChild(0).GetChild(0).gameObject;
         greyBar = transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<SpriteRenderer>();
         yellowBar = transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<SpriteRenderer>();
         fadedBar = transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<SpriteRenderer>();
-        Color barColor = fadedBar.color;
-        barColor.a = 0.5f;
-        fadedBar.color = barColor;
-        buttonsGroup = transform.GetChild(0).GetChild(1).gameObject;        
+        Color fadedColor = fadedBar.color;
+        fadedColor.a = 0.5f;
+        fadedBar.color = fadedColor;
+        productionButtonsParent = transform.GetChild(0).GetChild(1).gameObject;        
         for (int i = 0; i < 6; ++i) {
             Button button = transform.GetChild(0).GetChild(1).GetChild(i).GetComponent<Button>();
             string associatedUnit = button.name.Remove(button.name.IndexOf(" "));
@@ -42,44 +42,52 @@ public class CohortUIManager : MonoBehaviour {
         }
         slaughterButton = transform.GetChild(1).GetChild(0).gameObject;
         chimeButton = transform.GetChild(1).GetChild(1).gameObject;
-        maxHeight = (int) transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().size.y;
-        maxWidth = (int) transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().size.x;
+        maxHeight = (int) greyBar.size.y;
+        maxWidth = (int) greyBar.size.x;
     }
 
-    public void ChimeAllChimers () {
+    public void AllChimersChime () {
         List<Cohort> alreadyCalled = new List<Cohort>();
-        foreach (Unit_local unit in units) {
+        foreach (Unit_local unit in activeAllies) {
             Cohort thisOnesCohort = unit.cohort;
-            thisOnesCohort.chimeAll();
-            if (alreadyCalled.Contains(thisOnesCohort)) {
-                break;
-            }
-            else {
+            if (alreadyCalled.Contains(thisOnesCohort) == false) {
                 alreadyCalled.Add(thisOnesCohort);
+                thisOnesCohort.ChimeAll();
+            }
+        }
+    }
+    
+    public void AllDepotsSlaughter () {
+        List<Cohort> alreadyCalled = new List<Cohort>();
+        foreach (Unit_local unit in activeAllies) {
+            Cohort thisOnesCohort = unit.cohort;
+            if (alreadyCalled.Contains(thisOnesCohort) == false) {
+                alreadyCalled.Add(thisOnesCohort);
+                thisOnesCohort.Slaughter();
             }
         }
     }
 
-    public void focusButton (Button newButton) {
+    public void FocusButton (Button newButton) {
         buttonUnderMouse = newButton;
         ShowCost();
     }
 
-    void updateInterface () {
+    void UpdateInterface () {
         bool cohortsContainDepot = false;
         bool cohortsContainShepherd = false;
-        if (units.Count <= 0) {
+        if (activeAllies.Count <= 0) {
             bar.SetActive(false);
-            buttonsGroup.SetActive(false);
+            productionButtonsParent.SetActive(false);
         }
         else {        
             if (bar.activeInHierarchy == false) {
                 bar.SetActive(true);
-                buttonsGroup.SetActive(true);
+                productionButtonsParent.SetActive(true);
             }
             heldSum = 0;
             capacitySum = 0;
-            foreach (Unit_local unit in units) {
+            foreach (Unit_local unit in activeAllies) {
                 if (unit.name.Contains("depot")) {
                     cohortsContainDepot = true;
                 }
@@ -114,7 +122,7 @@ public class CohortUIManager : MonoBehaviour {
 
     void Update() {
         if (Input.GetButtonDown("modifier") == true || Input.GetButtonUp("modifier") == true || gameState.activeUnitsChangedFlag == true) {
-            updateInterface();
+            UpdateInterface();
             ShowCost();            
         }  
     }
@@ -144,15 +152,17 @@ public class CohortUIManager : MonoBehaviour {
     }
 
     public void OrderThing(string whatThing) {
-        Cohort newCohort = inputHandler.combineActiveUnits(Task.actions.build);
-        StartCoroutine(newCohort.makeUnit(whatThing));
-        updateInterface();
-        ShowCost();
+        Cohort newCohort = inputHandler.CombineActiveUnits(Task.actions.build);
+        if (newCohort != null) {
+            StartCoroutine(newCohort.MakeUnit(whatThing));
+            UpdateInterface();
+            ShowCost();
+        }
     }
 
     public void ShowCost () {
         if (buttonUnderMouse != null) {
-            int underMouseCost = buttonUnderMouse.GetComponent<ProductionButtonBridge>().productionCost;
+            int underMouseCost = (int) buttonsAndCosts[buttonUnderMouse];
             if (Input.GetButton("modifier") == true) {
                 underMouseCost *= 5;
             }
@@ -166,18 +176,5 @@ public class CohortUIManager : MonoBehaviour {
             fadedBar.enabled = false;
         }
     }
-    
-    public void Slaughter () {
-        List<Cohort> alreadyCalled = new List<Cohort>();
-        foreach (Unit_local unit in units) {
-            Cohort thisOnesCohort = unit.cohort;
-            thisOnesCohort.Slaughter();
-            if (alreadyCalled.Contains(thisOnesCohort)) {
-                break;
-            }
-            else {
-                alreadyCalled.Add(thisOnesCohort);
-            }
-        }
-    }
+
 }

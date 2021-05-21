@@ -18,33 +18,32 @@ public class Unit_local : Unit {
         }
     }
 
-    protected virtual void StartForLocals () {
-        List<Unit_local> listOfOne = new List<Unit_local>();
-        listOfOne.Add(this);
-        soloCohort = new Cohort(listOfOne);
-        cohort = soloCohort;
-        icon.gameObject.AddComponent<IconMouseContactBridge>();
-    }
-
-    public override void ignition () {
+    public override void Ignition () {
         StartForLocals();
         int radius = Mathf.CeilToInt(bodyCircle.radius);
+// Remember, if something here isn't being overridden in a MobileUnit script, it's for stationary units:
         AstarPath.active.UpdateGraphs(new Bounds(transform.position, new Vector3 (radius, radius, 1)));
     }
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    public virtual void activate () {
-// This should only be called by the unit's cohort.
+    protected virtual void StartForLocals () {
+        soloCohort = new Cohort(new List<Unit_local>{this});
+        cohort = soloCohort;
+        AddMeat(stats.startingMeat);
+    }
+
+
+    public virtual void Activate () {
+// This should only ever be called by the unit's cohort:
         if (blueCircle.activeInHierarchy == false) {
-            gameState.activateUnit(this);
+            gameState.ActivateUnit(this);
             blueCircle.SetActive(true);
             icon.sprite = highlightedIcon;
         }
     }
 
-    public void changeCohort (Cohort newCohort = null) {
+    public void ChangeCohort (Cohort newCohort = null) {
         if (cohort != soloCohort) {
-            cohort.removeMember(this);
+            cohort.RemoveMember(this);
             if (task != null && (task.nature == Task.actions.give || task.nature == Task.actions.take)) {
                 cohort.TaskAbandoned(task, dispensed);
             }
@@ -54,34 +53,31 @@ public class Unit_local : Unit {
             newCohort = soloCohort;
         }
         else {
-            newCohort.addMember(this);
+            newCohort.AddMember(this);
         }
         cohort = newCohort;
     }
  
-    public virtual void deactivate () {
-// This should only be called by the unit's cohort.
+    public virtual void Deactivate () {
+// This should only ever be called by the unit's cohort:
         blueCircle.SetActive(false);
-// if there were ever a case where the unit were deactivated but needed to remain highlighted, like for targeting, this could be a problem 
         icon.sprite = defaultIcon;
-        gameState.deactivateUnit(this);
+        gameState.DeactivateUnit(this);
     }
 
     [PunRPC]
-    public override IEnumerator die () {
+    public override IEnumerator Die () {
         if (deathThrows == false) {
             deathThrows = true;
-            SendMessage("deathProtocal", null, SendMessageOptions.DontRequireReceiver);
+            SendMessage("DeathProtocal", null, SendMessageOptions.DontRequireReceiver);
             yield return StartCoroutine(Spindown());
-            if (cohort != soloCohort) {
-                cohort.removeMember(this);
-            }
-            gameState.deadenUnit(gameObject);
+            cohort.RemoveMember(this);
+            gameState.DeadenUnit(gameObject);
             PhotonNetwork.Destroy(gameObject);
         }
     }
 
-    public virtual IEnumerator dispense () {
+    public virtual IEnumerator Dispense () {
         GameObject to;
         GameObject from;
         Task transaction = null;
@@ -92,7 +88,7 @@ public class Unit_local : Unit {
             transaction = task;
         }
         else {
-            yield return null;
+            throw new System.Exception("Problem: called Dispense() on a unit without its task or its temporaryOVerRideTask being a transaction.");
         }
         if (transaction.nature == Task.actions.give) {
             to = transaction.objectUnit.gameObject;
@@ -102,65 +98,69 @@ public class Unit_local : Unit {
             to = transaction.subjectUnit.gameObject;
             from = transaction.objectUnit.gameObject;
         }
+        Transform toTrans = to.transform;
+        Transform fromTrans = from.transform;
         while (true) {
-            if (from.GetComponent<Unit>().meat > 0 && dispensed < transaction.quantity && to.GetComponent<Unit>().roomForMeat() > 0) {
+            if (dispensed < transaction.quantity && from.GetComponent<Unit>().meat > 0 && to.GetComponent<Unit>().RoomForMeat() > 0) {
                 if (Vector2.Distance(transform.position, transaction.objectUnit.transform.position) > 10) {
                     if (transaction != temporaryOverrideTask) {
                         task.quantity -= dispensed;
-                        dispenseOutranged();
-                        StopCoroutine("dispense");
-                        yield return null;
+                        DispenseOutranged();
+                        StopCoroutine("Dispense");
                     }
                     else {
+// For now, temporaryOverrideTask is only used to represent a ranged unit giving bulbs to an allied ranged unit attacking the same target. We don't want the giver to interupt its
+// attack just to move closer to the reciever, so in the case of either hoplite moving out of range, we'll just quit the transaction.
                         temporaryOverrideTask = null;
-                        break;
                     }
+                    yield return null;
                 }
-                Transform toTrans = to.transform;
-                Transform fromTrans = from.transform;
                 Vector3 startOut = (Vector3) ((Vector2) toTrans.position - (Vector2) fromTrans.position).normalized * (from.GetComponent<CircleCollider2D>().radius + 0.5f) + fromTrans.position;
                 int leftToDispense = transaction.quantity - dispensed;
-                GameObject newOrb = spawnOrb(startOut, leftToDispense, from.GetComponent<Unit_local>());
-                dispensed += newOrb.GetComponent<OrbBehavior_Base>().meat;
-                StartCoroutine(passOrb(to, newOrb));
+// Meat deduction and "dispensed" incrementation are done in SpawnOrb().
+                GameObject newOrb = SpawnOrb(startOut, leftToDispense, from.GetComponent<Unit_local>());
+                StartCoroutine(PassOrb(to, newOrb));
             }
             else {
-                photonView.RPC("StopMoving", RpcTarget.All, false);
+                StopMoving(false); // photonView.RPC("StopMoving", RpcTarget.All, false);
                 break;
             }
             yield return new WaitForSeconds(0.2f);
         }
-//this condition is here because dispense can be called from places other than the cohort, like when an attacking raged unit refills itself.
+// This condition is here because dispense can be called from places other than the cohort, like when an attacking ranged unit refills itself.
         if (transaction == task) {
-//this has to be this way because if the taskcompleted call comes before the null assignment, then task will be set to null while the next dispense coroutine is working on it.
+// This has to be this way because if the taskCompleted() call comes before the null assignment, then task will be set to null while the next dispense coroutine is working on it.
             Task taskRecord = task;
             task = null;
-            cohort.taskCompleted(taskRecord);
+            cohort.TaskCompleted(taskRecord);
             dispensed = 0;
         }
         yield return null;
     }
 
-    protected virtual void dispenseOutranged () {
-// Note that this is for use by stationary units. The functionality for targets coming into range is different for mobile units, done by OnPathComplete.
+    protected virtual void DispenseOutranged () {
+// Note that this is for use by stationary units. Mobile units use a different mechanism to determine when a target has reentered range: PathEnded().
         CircleCollider2D newCollider = gameObject.AddComponent<CircleCollider2D>();
         newCollider.isTrigger = true;
         newCollider.radius = 10;
     }
   
-    public IEnumerator passOrb (GameObject to, GameObject newOrb) {
+    protected override void NotifyCohortOfMeatChange(int difference) {
+        cohort.orbs += difference;
+    }
+
+    public IEnumerator PassOrb (GameObject to, GameObject newOrb) {
         yield return new WaitForSeconds(0);
-        OrbBehavior_Local inQuestion = newOrb.GetComponent<OrbBehavior_Local>();
-        inQuestion.embark(to);
+        newOrb.GetComponent<OrbBehavior_Local>().Embark(to);
         yield return null;
     }
 
     void OnTriggerEnter2D(Collider2D contact) {
-// Note that this is for use by stationary units. The functionality for targets coming into range is different for mobile units, done by OnPathComplete.
+// Note that this is for use by stationary units. Mobile units use a different mechanism to determine when a target has reentered range: PathEnded().
         if (contact.isTrigger == false && task != null) {
             if (task.nature == Task.actions.give || task.nature == Task.actions.take) {
                 if (contact.gameObject == task.objectUnit) {
-                    StartCoroutine("dispense");
+                    StartCoroutine("Dispense");
                     Destroy(gameObject.GetComponents<CircleCollider2D>()[1]);
                 }
             }
@@ -168,14 +168,14 @@ public class Unit_local : Unit {
     }
 
     public void OnMouseEnter() {
-        viewManager.addToPalette(this);
+        viewManager.AttendTo(this);
     }
 
     public void OnMouseExit() {
-        viewManager.removeFromPalette(this);
+        viewManager.Disregard();
     }
 
-    GameObject spawnOrb (Vector3 where, int poolSize, Unit_local pullFrom) {
+    GameObject SpawnOrb (Vector3 where, int poolSize, Unit_local pullFrom) {
         int payload;
         if (poolSize >= 70) {
             payload = Random.Range(5, 8);
@@ -189,22 +189,25 @@ public class Unit_local : Unit {
         else {
             payload = poolSize;
         }
-// Meat deduction is done in the Orb's Awake function.
-        GameObject newOrb = PhotonNetwork.Instantiate("Orb", where, Quaternion.identity, 0, new object[]{payload, pullFrom.photonView.ViewID});
+        GameObject newOrb = PhotonNetwork.Instantiate("Orb", where, Quaternion.identity, 0, new object[]{payload});
+        DeductMeat(payload);
+        dispensed += payload;
         return newOrb;
     }
   
     IEnumerator Spindown () {
-        int drop = meat + (int) (stats.costToBuild * Random.Range(0.2f, 0.6f));
-        float quantityMultiplier = (float) (drop / 15) + 1;
-// This is to spread it out over two physics computation cycles.
-        int dropsPerFrame = drop / 2;
+        int remainingToDrop = meat + (int) (stats.costToBuild * Random.Range(0.2f, 0.6f));
+        float quantityFactor = (float) (remainingToDrop / 70f) + 1;
+// This is to spread it out over two physics computation cycles, reducing frame-time spikes and making a nicer explosion.
+        int dropsPerFrame = remainingToDrop / 2;
         for (int i = 1; i > 0; --i){
-            while (drop > dropsPerFrame * i) {
-                Vector3 place = new Vector3(transform.position.x + Random.Range(-.5f, 0.5f) * quantityMultiplier, transform.position.y + Random.Range(-.5f, 0.5f) * quantityMultiplier, -.2f);
-                GameObject lastOrb = spawnOrb(place, drop, this);
-                lastOrb.GetComponent<Rigidbody2D>().AddForce((lastOrb.transform.position - transform.position).normalized * Random.Range(0, 2) * quantityMultiplier);
-                drop -= lastOrb.GetComponent<OrbBehavior_Base>().meat;
+            while (remainingToDrop > dropsPerFrame * i) {
+                Vector3 place = new Vector3(transform.position.x + Random.Range(-.5f, 0.5f) * quantityFactor, transform.position.y + Random.Range(-.5f, 0.5f) * quantityFactor, -.2f);
+                GameObject lastOrb = SpawnOrb(place, remainingToDrop, this);
+                Vector2 explosiveForce = (lastOrb.transform.position - transform.position).normalized * Random.value * quantityFactor * 3;
+                Debug.Log(explosiveForce);
+                lastOrb.GetComponent<Rigidbody2D>().AddForce(explosiveForce);
+                remainingToDrop -= lastOrb.GetComponent<OrbBehavior_Base>().meat;
             }
             yield return new WaitForEndOfFrame();
         }
@@ -212,15 +215,12 @@ public class Unit_local : Unit {
     }
 
     public void Stop () {
-        StopCoroutine("dispense");
         StopAllCoroutines();
         CircleCollider2D[] circles = gameObject.GetComponents<CircleCollider2D>();
         if (circles.Length > 1) {
             Destroy(circles[1]);
         }
-        if (stats.isMobile) {
-            photonView.RPC("StopMoving", RpcTarget.All, false);
-        }
+        StopMoving(false); //photonView.RPC("StopMoving", RpcTarget.All, false);
         if (stats.isArmed && task != null && task.nature == Task.actions.attack) {
             weapon.photonView.RPC("Disengage", RpcTarget.All);
         }
@@ -229,10 +229,7 @@ public class Unit_local : Unit {
     }
 
     [PunRPC]
-    public virtual void StopMoving (bool brakeStop) { }
-
-    [PunRPC]
-    public override void takeHit (int power) {
+    public override void TakeHit (int power) {
         if (deathThrows == false) {
             int landedStrikes = 0;
             while (power > 0) {
@@ -246,16 +243,15 @@ public class Unit_local : Unit {
         }
     }
 
-    public virtual void work (Task newTask) {
+    public virtual void Work (Task newTask) {
         Stop();
         task = newTask;
         if (task.nature == Task.actions.give || task.nature == Task.actions.take) {
-            dispensed = 0;
             if (Vector2.Distance(transform.position, task.objectUnit.transform.position) < 10) {
-                StartCoroutine("dispense");
+                StartCoroutine("Dispense");
             }
             else {
-                dispenseOutranged();
+                DispenseOutranged();
             }
         }
         else if (task.nature == Task.actions.attack) {

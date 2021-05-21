@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+// I wonder if this could be overhauled to work with any component or gameobject, not just Units.
+
 public class UnitRelativePositionSorter : IComparer <Unit> {
 
     enum comparables {compassDirection, distance};
@@ -12,19 +14,10 @@ public class UnitRelativePositionSorter : IComparer <Unit> {
         referencePosition = pointToReference;
     }
 
-    public float DirectionOf (Unit inQuestion) {
-        Vector2 runRise = (Vector2) inQuestion.transform.position - referencePosition;
-        return Mathf.Atan2(runRise.y, runRise.x);
-    }
-
-    public float DistanceOf (Unit inQuestion) {
-        return Vector2.Distance(inQuestion.transform.position, referencePosition);
-    }
-
     public int Compare (Unit a, Unit b) {
         int result = 0;
         if (mode == comparables.compassDirection) {
-// positions are sorted into counter-clockwise order
+// Positions are sorted into counter-clockwise order
             Vector2 runRiseA = (Vector2) a.gameObject.transform.position - referencePosition;
             float angleA = Mathf.Atan2(runRiseA.y, runRiseA.x);
             Vector2 runRiseB = (Vector2) b.gameObject.transform.position - referencePosition;
@@ -61,9 +54,18 @@ public class UnitRelativePositionSorter : IComparer <Unit> {
     public void DirectionMode() {
         mode = comparables.compassDirection;
     }
+    
+    public float DirectionOf (Unit inQuestion) {
+        Vector2 runRise = (Vector2) inQuestion.transform.position - referencePosition;
+        return Mathf.Atan2(runRise.y, runRise.x);
+    }
 
     public void DistanceMode() {
         mode = comparables.distance;
+    }
+
+    public float DistanceOf (Unit inQuestion) {
+        return Vector2.Distance(inQuestion.transform.position, referencePosition);
     }
 
     public void SetReferencePoint (Vector2 pointToReference) {

@@ -7,7 +7,7 @@ public class Task {
 
     public Unit_local subjectUnit;
     public Unit objectUnit;
-    public enum actions {give, take, move, attack, help, build};
+    public enum actions {give, take, move, attack, help, build, undefined};
     public actions nature;
     public int quantity;
     public Vector2 center;

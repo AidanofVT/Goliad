@@ -14,34 +14,9 @@ public class NeutralUnit : MobileUnit_local {
         }
     }
 
-    public override void ignition () {
+    public override void Ignition () {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
         moveConductor = GetComponent<AidansMovementScript>();
-        body = GetComponent<Rigidbody2D>();
-    }
-
-    public override void activate () {
-
-    }
-
-    public override void deactivate () {
-
-    }
-
-    public void OnMouseEnter () {
-
-    }
-
-    public void OnMouseExit () {
-        
-    }
-
-    public void OnTriggerEnter2D(Collider2D other) {
-        
-    }
-
-    public override void PathEnded () {
-
     }
 
 }
