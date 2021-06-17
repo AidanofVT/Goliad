@@ -46,7 +46,7 @@ public class CohortUIManager : MonoBehaviour {
         maxWidth = (int) greyBar.size.x;
     }
 
-    public void AllChimersChime () {
+    public void AllShepherdsChime () {
         List<Cohort> alreadyCalled = new List<Cohort>();
         foreach (Unit_local unit in activeAllies) {
             Cohort thisOnesCohort = unit.cohort;

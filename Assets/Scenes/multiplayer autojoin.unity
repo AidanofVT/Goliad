@@ -563,7 +563,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91623c7cc33299f429945a4d7a7ce5fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  units: []
+  activeAllies: []
 --- !u!1 &402771521
 GameObject:
   m_ObjectHideFlags: 0
@@ -645,7 +645,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 287786333}
-        m_MethodName: ChimeAllChimers
+        m_MethodName: AllShepherdsChime
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1304,7 +1304,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 384d2a917bc0bf445bd487ab315e08e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  productionCost: 0
 --- !u!1 &914758341
 GameObject:
   m_ObjectHideFlags: 0
@@ -1518,7 +1517,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 384d2a917bc0bf445bd487ab315e08e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  productionCost: 0
 --- !u!1 &915152634
 GameObject:
   m_ObjectHideFlags: 0
@@ -2163,7 +2161,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 384d2a917bc0bf445bd487ab315e08e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  productionCost: 0
 --- !u!1 &1194126386
 GameObject:
   m_ObjectHideFlags: 0
@@ -2377,7 +2374,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 384d2a917bc0bf445bd487ab315e08e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  productionCost: 0
 --- !u!1 &1326773617
 GameObject:
   m_ObjectHideFlags: 0
@@ -2516,7 +2512,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d4b9661ea6701d46a2eca90149b7199, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameState: {fileID: 0}
   mapSize: 500
 --- !u!114 &1416085385
 MonoBehaviour:
@@ -2553,7 +2548,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   activeUnits: []
-  allIconTransforms: []
+  allIcons: []
   mapOffset: 0
   playerNumber: 0
   activeUnitsChangedFlag: 0
@@ -3146,7 +3141,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 384d2a917bc0bf445bd487ab315e08e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  productionCost: 0
 --- !u!1 &1897452155
 GameObject:
   m_ObjectHideFlags: 0
@@ -3228,7 +3222,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 287786333}
-        m_MethodName: Slaughter
+        m_MethodName: AllDepotsSlaughter
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3512,7 +3506,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 384d2a917bc0bf445bd487ab315e08e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  productionCost: 0
 --- !u!1 &2090121992
 GameObject:
   m_ObjectHideFlags: 0

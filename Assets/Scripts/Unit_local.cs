@@ -71,7 +71,9 @@ public class Unit_local : Unit {
             deathThrows = true;
             SendMessage("DeathProtocal", null, SendMessageOptions.DontRequireReceiver);
             yield return StartCoroutine(Spindown());
-            cohort.RemoveMember(this);
+            if (this.GetType() != typeof(NeutralUnit)) {
+                cohort.RemoveMember(this);
+            }
             gameState.DeadenUnit(gameObject);
             PhotonNetwork.Destroy(gameObject);
         }
@@ -167,11 +169,11 @@ public class Unit_local : Unit {
         } 
     }
 
-    public void OnMouseEnter() {
+    public virtual void OnMouseEnter() {
         viewManager.AttendTo(this);
     }
 
-    public void OnMouseExit() {
+    public virtual void OnMouseExit() {
         viewManager.Disregard();
     }
 
@@ -190,7 +192,7 @@ public class Unit_local : Unit {
             payload = poolSize;
         }
         GameObject newOrb = PhotonNetwork.Instantiate("Orb", where, Quaternion.identity, 0, new object[]{payload});
-        DeductMeat(payload);
+        pullFrom.DeductMeat(payload);
         dispensed += payload;
         return newOrb;
     }
@@ -205,7 +207,6 @@ public class Unit_local : Unit {
                 Vector3 place = new Vector3(transform.position.x + Random.Range(-.5f, 0.5f) * quantityFactor, transform.position.y + Random.Range(-.5f, 0.5f) * quantityFactor, -.2f);
                 GameObject lastOrb = SpawnOrb(place, remainingToDrop, this);
                 Vector2 explosiveForce = (lastOrb.transform.position - transform.position).normalized * Random.value * quantityFactor * 3;
-                Debug.Log(explosiveForce);
                 lastOrb.GetComponent<Rigidbody2D>().AddForce(explosiveForce);
                 remainingToDrop -= lastOrb.GetComponent<OrbBehavior_Base>().meat;
             }

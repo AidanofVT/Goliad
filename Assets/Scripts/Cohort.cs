@@ -39,6 +39,7 @@ public class Cohort {
 // This should not be called except by ChangeCohort() in Unit_local
     public void AddMember (Unit_local recruit) {
         members.Add(recruit);
+        orbs += recruit.meat;
         orbCapacity += recruit.stats.meatCapacity;
         if (recruit.stats.isArmed) {
             armedMembers.Add(recruit);
@@ -60,7 +61,7 @@ public class Cohort {
         Hashtable counterParties = null;
         Unit_local closestCounterparty = null;
 // We have to get a little weird with these, because closestCounterparty, which one of these two things will reference, can't be decided until we determine what the counterparties are,
-// which is done in the same IF statement that determines what the provider is. I know it's weird.
+// which is done in the same IF statement that determines what the provider is.
         Func<Unit_local> provider;
         Func<Unit_local> reciever;
         if (masterTask.nature == Task.actions.give ^ assignByTarget == true) {
@@ -316,7 +317,6 @@ public class Cohort {
     public IEnumerator MakeUnit (string unitType) {
         string unitAddress = "Units/" + unitType;
         int expense = ((GameObject)Resources.Load(unitAddress)).GetComponent<UnitBlueprint>().costToBuild;
-        int purse = CollectiveMeat();
         int orderSize;
         if (Input.GetButton("modifier") == true) {
             orderSize = 6;
@@ -324,12 +324,14 @@ public class Cohort {
         else {
             orderSize = 1;
         }
-        int batchSize = Mathf.Clamp(purse / expense, 0, orderSize);
+        int batchSize = Mathf.Clamp(CollectiveMeat() / expense, 0, orderSize);
         expense *= batchSize;
         int share = Mathf.CeilToInt(expense / (float) members.Count);
         int covered = 0;
         List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(members);
-        for (int index = 0; covered < expense; index = index % thisIsToSupressWarnings.Count) {
+        Debug.Log(thisIsToSupressWarnings.Count + ", " + members.Count);
+        for (int index = 0; covered < expense;) {
+            index = index % thisIsToSupressWarnings.Count;
             int ask = Mathf.Clamp(expense - covered, 0, share);
             if (thisIsToSupressWarnings[index].meat > ask) {                
                 thisIsToSupressWarnings[index].photonView.RPC("DeductMeat", RpcTarget.All, share);
@@ -343,7 +345,7 @@ public class Cohort {
                     covered += scrapeBottom;
                 }
                 thisIsToSupressWarnings.RemoveAt(index);
-            }         
+            }
         }
         Vector3 [] spots = SpawnLocations(unitAddress);
         List<GameObject> batch = new List<GameObject>();
@@ -530,7 +532,7 @@ public class Cohort {
         Unit_local worker = completedTask.subjectUnit;
         switch (completedTask.nature) {
             case Task.actions.give:
-                if (worker.meat > 0 && remainingToAccept.Count > 0) {
+                if (worker.meat > 0 && remainingToAccept.Count > 0 && remainingToProvide.Count > 0) {
                     if (remainingToProvide.Contains(worker) == false) {
                         remainingToProvide.Add(worker, worker.meat);
                     }
@@ -538,7 +540,7 @@ public class Cohort {
                 }
                 break;
             case Task.actions.take:
-                if (worker.RoomForMeat() > 0 && remainingToProvide.Count > 0) {
+                if (worker.RoomForMeat() > 0 && remainingToProvide.Count > 0 && remainingToAccept.Count > 0) {
                     if (remainingToAccept.Contains(worker) == false) {
                         remainingToAccept.Add(worker, worker.RoomForMeat());
                     }

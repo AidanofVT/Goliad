@@ -24,7 +24,7 @@ public class Unit_remote : Unit {
     }
 
     [PunRPC]
-    public override IEnumerator Die() {
+    public override IEnumerator Die () {
         SendMessage("DeathProtocal", null, SendMessageOptions.DontRequireReceiver);
         gameState.DeadenUnit(gameObject);
         yield return null;

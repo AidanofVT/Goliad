@@ -115,7 +115,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 3518146009571945018}
-  - {fileID: 640028665392964934}
+  - {fileID: 2733738173587950800}
   - {fileID: 2943896751230503068}
   - {fileID: 8958494630339979165}
   - {fileID: 286360895776828585}
@@ -140,7 +140,7 @@ MonoBehaviour:
   speed: 7
   costToBuild: 30
   meatCapacity: 60
-  startingMeat: 0
+  startingMeat: 60
   toughness: 50
   weapon_power: 0
   weapon_range: 0
@@ -160,6 +160,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameState: {fileID: 0}
   bodyCircle: {fileID: 0}
+  body: {fileID: 0}
   stats: {fileID: 0}
   weapon: {fileID: 0}
   facing: 0
@@ -243,7 +244,7 @@ Rigidbody2D:
   m_AngularDrag: 0.05
   m_GravityScale: 1
   m_Material: {fileID: 6200000, guid: 9987dd1b4c512d8459fa52fecdcc8e01, type: 2}
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
@@ -1358,12 +1359,12 @@ PrefabInstance:
       propertyPath: m_SortingLayer
       value: 13
       objectReference: {fileID: 0}
-    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 4468847616019998242, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayerID
       value: -926520923
       objectReference: {fileID: 0}
-    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 4468847616019998242, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayer
       value: 12
@@ -1378,19 +1379,19 @@ PrefabInstance:
       propertyPath: m_SortingLayer
       value: 12
       objectReference: {fileID: 0}
-    - target: {fileID: 4468847616019998242, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayerID
       value: -926520923
       objectReference: {fileID: 0}
-    - target: {fileID: 4468847616019998242, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayer
       value: 12
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 178d9eefee423f54780c7bb7694e10c3, type: 3}
---- !u!4 &640028665392964934 stripped
+--- !u!4 &2733738173587950800 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3247630572699396463, guid: 178d9eefee423f54780c7bb7694e10c3,
     type: 3}

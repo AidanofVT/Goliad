@@ -56,6 +56,7 @@ public class MobileUnit_local : Unit_local {
     [PunRPC]
     public override void StopMoving (bool brakeStop) {
         if (moveConductor.GetRunningState() == true) {
+            // Debug.Log(photonView.ViewID + " will stop moving");
             moveConductor.TerminatePathfinding(false, brakeStop);
         }
     }

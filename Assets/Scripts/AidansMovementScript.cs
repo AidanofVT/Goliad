@@ -21,6 +21,7 @@ public class AidansMovementScript : MonoBehaviourPun {
 // This boolean isn't used by this script, but it is needed for other scripts to register what's going on. toggling path to null and back doesn't work: a new path is spontaneously created for some reason
     [SerializeField]
     bool amRunning = false;
+    Coroutine alongMover = null;
     float baseSpeed;
     [SerializeField]
     float speed;
@@ -81,6 +82,7 @@ public class AidansMovementScript : MonoBehaviourPun {
         if (giddyup != -1) {
             speed = giddyup;
         }
+        amRunning = true;
     }
 
     public float GetArrivalThreshold () {
@@ -154,21 +156,23 @@ public class AidansMovementScript : MonoBehaviourPun {
         yield return null;
     }
 
-//This function is needed because the seeker's startpath() function can only deliver it's output via a backwards-parameter, or whatever it's called.
-//The intermediary function, in this case OnePathComplete, is put as a parameter for StartPath (see lines 33 and 36), and the resulting path gets passed here as a parameter.
+// This function is needed because the seeker's startpath() function can only deliver it's output via a backwards-parameter, or whatever it's called.
+// The intermediary function, in this case OnePathComplete, is put as a parameter for StartPath (see lines 33 and 36), and the resulting path gets passed here as a parameter.
     void OnPathComplete (Path finishedPath) {
-        path = (ABPath) finishedPath;
-        if (amRunning == false) {
-            currentWaypoint = 0;
-            thisUnit.StartCoroutine("UpdateFacing");
-            StopCoroutine("MoveAlong");
-            StartCoroutine("MoveAlong");
-            StopCoroutine("Brake");
-            StartCoroutine("StuckCheck");
-            amRunning = true;
-        }
-        else {
-            currentWaypoint = 1;
+// This IF is necessary because sometimes TerminatePathfinding() will be called while a path is being computed, resulting en the path being delivered when the unit shouldn't be moving.
+        if (amRunning == true) {
+            path = (ABPath) finishedPath;
+            if (alongMover == null) {
+                currentWaypoint = 0;
+                thisUnit.StartCoroutine("UpdateFacing");
+                StopCoroutine("MoveAlong");
+                alongMover = StartCoroutine("MoveAlong");
+                StopCoroutine("Brake");
+                StartCoroutine("StuckCheck");
+            }
+            else {
+                currentWaypoint = 1;
+            }
         }
     }
 
@@ -210,6 +214,7 @@ public class AidansMovementScript : MonoBehaviourPun {
         roundToArrived = 0.15f;
         speed = baseSpeed;
         path = null;
+        alongMover = null;
         currentWaypoint = 0;
         transToFollow = null;
 // If movement is being stopped by logic outside of this script, the calling location should take care of everything related to stopping. Sending the "pathended" message might cause infinite loops.

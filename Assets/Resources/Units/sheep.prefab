@@ -693,7 +693,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4832182810722654600}
-  - {fileID: 1866539595519751219}
+  - {fileID: 3816414841402678688}
   - {fileID: 1388203593573168658}
   - {fileID: 5485212550683745432}
   - {fileID: 4404070012132328309}
@@ -761,6 +761,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameState: {fileID: 0}
   bodyCircle: {fileID: 0}
+  body: {fileID: 0}
   stats: {fileID: 0}
   weapon: {fileID: 0}
   facing: 0
@@ -768,7 +769,6 @@ MonoBehaviour:
   strikes: 3
   deathThrows: 0
   moveConductor: {fileID: 0}
-  body: {fileID: 0}
 --- !u!114 &3906374602848986028
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -797,7 +797,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d29c7c5d5cbb834a8540170f1e8c994, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  alliedFaction: 0
 --- !u!58 &3906374602848986024
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -1378,29 +1377,29 @@ PrefabInstance:
       propertyPath: m_SortingLayer
       value: 12
       objectReference: {fileID: 0}
-    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 7037510048807398018, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayerID
       value: -926520923
       objectReference: {fileID: 0}
-    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 7037510048807398018, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayer
       value: 12
       objectReference: {fileID: 0}
-    - target: {fileID: 7037510048807398018, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayerID
       value: -926520923
       objectReference: {fileID: 0}
-    - target: {fileID: 7037510048807398018, guid: 178d9eefee423f54780c7bb7694e10c3,
+    - target: {fileID: 7971818390302053615, guid: 178d9eefee423f54780c7bb7694e10c3,
         type: 3}
       propertyPath: m_SortingLayer
       value: 12
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 178d9eefee423f54780c7bb7694e10c3, type: 3}
---- !u!4 &1866539595519751219 stripped
+--- !u!4 &3816414841402678688 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3247630572699396463, guid: 178d9eefee423f54780c7bb7694e10c3,
     type: 3}

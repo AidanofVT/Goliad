@@ -76,22 +76,23 @@ public class Unit : MonoBehaviourPun {
 
     [PunRPC]
     public bool AddMeat (int toAdd) {
+        // Debug.Log("depositing to " + transform.position);
         if (meat + toAdd <= stats.meatCapacity) {
             meat += toAdd;
-            statusBar.UpdateBar();
             if (name.Contains("sheep")) {
                 float finalMagnitude = transform.localScale.x * Mathf.Pow(1.02f, toAdd);
                 transform.localScale = new Vector3(finalMagnitude, finalMagnitude, 1);
             }
             else {
-                NotifyCohortOfMeatChange(toAdd);          
+                NotifyCohortOfMeatChange(toAdd);
+                statusBar.UpdateBar();
+                if (blueCircle.activeInHierarchy == true) {
+                    gameState.activeUnitsChangedFlag = true;
+                }          
                 if (weapon != null) {
                     if(weapon.target != null && meat - toAdd < stats.weapon_shotCost && weapon.InRange()) {
                         weapon.StartCoroutine("fire"); 
                     } 
-                }
-                if (photonView.IsMine == true && blueCircle.activeInHierarchy == true) {
-                    gameState.activeUnitsChangedFlag = true;
                 }
             }
             return true;
@@ -103,10 +104,20 @@ public class Unit : MonoBehaviourPun {
 
     [PunRPC]
     public bool DeductMeat (int toDeduct) {
+        // Debug.Log("withdrawing " + toDeduct + " from " + transform.position);
         if (meat - toDeduct >= 0) {
             meat -= toDeduct;
-            statusBar.UpdateBar();
-            gameState.activeUnitsChangedFlag = true;
+            if (name.Contains("sheep")) {
+                float finalMagnitude = transform.localScale.x * Mathf.Pow(1.02f, toDeduct);
+                transform.localScale = new Vector3(finalMagnitude, finalMagnitude, 1);
+            }
+            else {
+                NotifyCohortOfMeatChange(toDeduct * -1);
+                statusBar.UpdateBar();
+                if (blueCircle.activeInHierarchy == true) {
+                    gameState.activeUnitsChangedFlag = true;
+                }
+            } 
 // This is here because otherwise orbs would not seek units which became not-full while in the orbs' search radius. 
             if (meat + toDeduct >= stats.meatCapacity) {
                 Physics2D.queriesHitTriggers = true;
@@ -119,7 +130,6 @@ public class Unit : MonoBehaviourPun {
                     }
                 }
             }
-            NotifyCohortOfMeatChange(toDeduct * -1);
             return true;
         }
         else {

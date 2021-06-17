@@ -37,13 +37,7 @@ public class ViewManager : MonoBehaviour {
     }
 
     public void ResizeIcons (GameObject singleIcon = null) {
-        if (mainCamera.orthographicSize < 40 && iconsEnabled == true) {
-            foreach (GameObject key in icons) {
-                key.SetActive(false);
-            }
-            iconsEnabled = false;
-        }
-        else {
+        if (mainCamera.orthographicSize > 40) {
             Vector3 neutralScaleVector = new Vector3 (1, 1, 1); 
             if (singleIcon != null) {
                 singleIcon.transform.localScale = neutralScaleVector * mainCamera.orthographicSize / 30;
@@ -60,6 +54,12 @@ public class ViewManager : MonoBehaviour {
                     key.transform.localScale = neutralScaleVector * mainCamera.orthographicSize / 30;
                 }
             }
+        }
+        else if (iconsEnabled == true) {
+            foreach (GameObject key in icons) {
+                key.SetActive(false);
+            }
+            iconsEnabled = false;
         }
     }
 

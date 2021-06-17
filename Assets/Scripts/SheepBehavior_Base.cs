@@ -10,7 +10,6 @@ public class SheepBehavior_Base : MonoBehaviourPun {
     protected Unit thisSheep;
 
     void Start() {
-        ChangeFaction(photonView.OwnerActorNr);
         if (photonView.IsMine && this.GetType() == typeof(SheepBehavior_Base)) {
 // Meat bars shouldn't be visible on sheep, even if they're local:
             transform.GetChild(1).gameObject.GetComponent<SpriteRenderer>().sprite = null;
@@ -26,8 +25,9 @@ public class SheepBehavior_Base : MonoBehaviourPun {
     }
 
     IEnumerator Start2 () {
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0);
         thisSheep = GetComponent<Unit>();
+        ChangeFaction(photonView.OwnerActorNr);
     }
 
     [PunRPC]

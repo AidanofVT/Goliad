@@ -63,7 +63,7 @@ public class Setup : MonoBehaviourPunCallbacks {
     IEnumerator Step2 (Vector3 startPlace) {
         GameObject home = PhotonNetwork.Instantiate("Units/depot", startPlace, Quaternion.identity);
         yield return new WaitForSeconds(0);
-        home.GetComponent<Unit>().AddMeat(270); //(270);
+        home.GetComponent<Unit>().AddMeat(270);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Vector3 spot = startPlace + new Vector3(4, 0, -0.4f);

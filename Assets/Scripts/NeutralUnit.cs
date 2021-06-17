@@ -18,5 +18,10 @@ public class NeutralUnit : MobileUnit_local {
         gameState = GameObject.Find("Goliad").GetComponent<GameState>();
         moveConductor = GetComponent<AidansMovementScript>();
     }
+    
+    public override void OnMouseEnter() { }
+
+    public override void OnMouseExit() { }
+
 
 }

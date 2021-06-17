@@ -29,7 +29,7 @@ public class SelectionRectManager : MonoBehaviour {
             }
             downTime = 1000000;
 // This is invoked so that the InputHandler sees the rectangle "on" on the frame when the mouse button is released.
-            Invoke("off", 0);
+            Invoke("Off", 0);
         }
         else if (Time.time - downTime >= 0.22) {
             if (rectOn == false) {

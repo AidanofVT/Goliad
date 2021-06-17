@@ -34,6 +34,7 @@ public class SheepBehavior_Local : SheepBehavior_Base {
     IEnumerator Start2 () {
         yield return new WaitForSeconds(0.2f);
         thisSheep = GetComponent<NeutralUnit>();
+        ChangeFaction(photonView.OwnerActorNr);
         thisSheep.facing = Random.Range(-1, 1);
 // The trigger collider has to be off upon instantiation so startup can complete before any contacts are registered.
         GetComponents<Collider2D>()[1].enabled = true;
@@ -305,7 +306,7 @@ public class SheepBehavior_Local : SheepBehavior_Base {
         else if (sheepState == sheepBehaviors.goingToFood) {
             StopCoroutine("WalkToFood");
             sheepState = sheepBehaviors.chewing;
-            Invoke("consume", eatTime);
+            Invoke("Consume", eatTime);
         }
     }
 
