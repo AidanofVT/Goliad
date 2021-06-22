@@ -63,8 +63,8 @@ public class SheepBehavior_Local : SheepBehavior_Base {
     void Consume () {
         Vector2Int patchIndex = new Vector2Int(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y));
         if (mapManager.ExploitPatch(patchIndex) == true) {
-            thisSheep.photonView.RPC("Consume", RpcTarget.Others, patchIndex.x, patchIndex.y);
-            thisSheep.AddMeat(1);
+            thisSheep.photonView.RPC("AddMeat", RpcTarget.All, 1);
+            gameState.photonView.RPC("ReducePatch", RpcTarget.All, patchIndex.x, patchIndex.y);
         }
         StartCoroutine(Idle(0));
     }    

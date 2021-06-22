@@ -192,7 +192,7 @@ public class Unit_local : Unit {
             payload = poolSize;
         }
         GameObject newOrb = PhotonNetwork.Instantiate("Orb", where, Quaternion.identity, 0, new object[]{payload});
-        pullFrom.DeductMeat(payload);
+        pullFrom.photonView.RPC("DeductMeat", RpcTarget.All, payload);
         dispensed += payload;
         return newOrb;
     }

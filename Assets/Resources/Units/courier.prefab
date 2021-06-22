@@ -140,7 +140,7 @@ MonoBehaviour:
   speed: 7
   costToBuild: 30
   meatCapacity: 60
-  startingMeat: 60
+  startingMeat: 0
   toughness: 50
   weapon_power: 0
   weapon_range: 0

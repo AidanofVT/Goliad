@@ -139,13 +139,17 @@ public class AidansMovementScript : MonoBehaviourPun {
                     Vector2 idealCourse = ((Vector2)path.vectorPath[currentWaypoint] - (Vector2)transform.position).normalized * speed;
                     Vector2 hit = (idealCourse - body.velocity) * 10;
                     // Debug.Log("hitting it with a " + hit + ".  Position is now " + body.position);
+                    // if (name.Contains("dog")) {
+                    //     Debug.Log((Vector2)path.vectorPath[currentWaypoint] - (Vector2)transform.position);
+                    // }
                     body.AddForce(hit);                    
                 }
                 // Debug.Log("Velocity = " + body.velocity.magnitude);
             }
             else if (transToFollow != null && transToFollow.GetComponent<AidansMovementScript>() != null && transToFollow.GetComponent<AidansMovementScript>().amRunning == true) {
 // This is the case of a unit catching up to a followed unit that hasn't stopped yet.
-                synchronicityItterator += 2;
+                SetRoute();
+                synchronicityItterator += 5;
             }
             else {
                 break;
@@ -159,7 +163,7 @@ public class AidansMovementScript : MonoBehaviourPun {
 // This function is needed because the seeker's startpath() function can only deliver it's output via a backwards-parameter, or whatever it's called.
 // The intermediary function, in this case OnePathComplete, is put as a parameter for StartPath (see lines 33 and 36), and the resulting path gets passed here as a parameter.
     void OnPathComplete (Path finishedPath) {
-// This IF is necessary because sometimes TerminatePathfinding() will be called while a path is being computed, resulting en the path being delivered when the unit shouldn't be moving.
+// This IF is necessary because sometimes TerminatePathfinding() will be called while a path is being computed, resulting in the path being delivered when the unit shouldn't be moving.
         if (amRunning == true) {
             path = (ABPath) finishedPath;
             if (alongMover == null) {

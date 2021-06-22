@@ -66,11 +66,12 @@ public class Setup : MonoBehaviourPunCallbacks {
         home.GetComponent<Unit>().AddMeat(270);
         AstarPath.active.UpdateGraphs(new Bounds(Vector3.zero, new Vector3 (4, 4, 1)));
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Vector3 spot = startPlace + new Vector3(4, 0, -0.4f);
-        // GameObject ally = PhotonNetwork.Instantiate("Units/dog", spot, Quaternion.identity);
-        // yield return new WaitForSeconds(1.5f);
-        // ally.GetComponent<Unit>().AddMeat(10);
-        // home.GetComponent<Unit>().StartCoroutine("Die");
+        // GameObject dog1 = PhotonNetwork.Instantiate("Units/dog", startPlace + new Vector3(8, 0, 0), Quaternion.identity);
+        // GameObject dog2 = PhotonNetwork.Instantiate("Units/dog", startPlace + new Vector3(11, 0, 0), Quaternion.identity);
+        // yield return new WaitForSeconds(0f);
+        // dog1.GetComponent<Unit>().AddMeat(6);
+        // GameObject orb1 = PhotonNetwork.Instantiate("Orb", startPlace + new Vector3(7, 0, 0), Quaternion.identity, 0, new object[]{4});
+        // GameObject orb2 = PhotonNetwork.Instantiate("Orb", startPlace + new Vector3(5.5f, 0, 0), Quaternion.identity, 0, new object[]{4});
     }
 
     void Update () {

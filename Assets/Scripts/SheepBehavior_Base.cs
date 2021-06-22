@@ -43,11 +43,4 @@ public class SheepBehavior_Base : MonoBehaviourPun {
         }        
     }
 
-    [PunRPC]
-    void Consume (int patchIndexX, int patchIndexY) {
-        if (mapManager.ExploitPatch(new Vector2Int(patchIndexX, patchIndexY)) == true)  {
-            thisSheep.AddMeat(1);
-        }
-    }
-
 }

@@ -63,7 +63,7 @@ public class OrbBehavior_Local : OrbBehavior_Base {
         }
         int roomInTarget = targetTransform.GetComponent<Unit>().RoomForMeat();
 // If the movement broke because the target disappeared or became full...
-        if (targetTransform == null ^ roomInTarget < 0) {
+        if (targetTransform == null ^ roomInTarget <= 0) {
             ActiveSearch();            
         }
 // Else, the loop must have broken by proximity to a viable target.

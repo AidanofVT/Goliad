@@ -329,7 +329,6 @@ public class Cohort {
         int share = Mathf.CeilToInt(expense / (float) members.Count);
         int covered = 0;
         List<Unit_local> thisIsToSupressWarnings = new List<Unit_local>(members);
-        Debug.Log(thisIsToSupressWarnings.Count + ", " + members.Count);
         for (int index = 0; covered < expense;) {
             index = index % thisIsToSupressWarnings.Count;
             int ask = Mathf.Clamp(expense - covered, 0, share);
