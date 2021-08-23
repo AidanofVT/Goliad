@@ -173,7 +173,17 @@ public class Unit : MonoBehaviourPun {
     }
 
     [PunRPC]
+    public virtual void StartTurning () {
+        StartCoroutine("UpdateFacing");
+    }
+
+    [PunRPC]
     public virtual void StopMoving (bool brakeStop) { }
+
+    [PunRPC]
+    public virtual void StopTurning () {
+        StopCoroutine("UpdateFacing");
+    }
 
     public virtual void TakeHit (int power) { }
 

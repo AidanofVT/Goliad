@@ -50,18 +50,20 @@ public class OrbBehavior_Local : OrbBehavior_Base {
 
     public IEnumerator GoForIt (GameObject it) {
         targetTransform = it.transform;
+        int roomInTarget = targetTransform.GetComponent<Unit>().RoomForMeat();
+        Vector3 direction;
         photonView.RPC("SetUnavailable", RpcTarget.AllViaServer);
-        while (targetTransform != null && targetTransform.GetComponent<Unit>().RoomForMeat() > 0) {            
-            Vector3 direction = (targetTransform.position - transform.position);
-            if (direction.magnitude <= 0.5) {
+        while (targetTransform != null && roomInTarget > 0) {  
+            direction = (targetTransform.position - transform.position);
+            if (direction.magnitude <= 0.5f){
                 break;
             }
             else {
                 body.AddForce(direction.normalized / 7);
-                yield return new WaitForSeconds(0.05f);
             }
-        }
-        int roomInTarget = targetTransform.GetComponent<Unit>().RoomForMeat();
+            roomInTarget = targetTransform.GetComponent<Unit>().RoomForMeat();
+            yield return new WaitForSeconds(0.05f);             
+        } 
 // If the movement broke because the target disappeared or became full...
         if (targetTransform == null ^ roomInTarget <= 0) {
             ActiveSearch();            

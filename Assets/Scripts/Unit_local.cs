@@ -271,6 +271,7 @@ public class Unit_local : Unit {
             if (cohort.members.Count > 1 && cohort.masterTask.nature == Task.actions.move) {
                 arrivalThreshold = bodyCircle.radius;
             }
+// Note that a check as to whether the unit is mobile should be done before reaching this point.
             Move(newTask.center, leaderID, speed, arrivalThreshold);
         }
     }

@@ -149,28 +149,33 @@ public class InputHandler : MonoBehaviour {
     }
 
     void Update() {
-        if (Input.GetKeyUp(KeyCode.Mouse0) && !Input.GetKey(KeyCode.Mouse1)) {
-            if (rectManage.rectOn == false) {
-                Collider2D[] detectedThings = Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition));
-                ThingLeftClicked(detectedThings[0].gameObject);
+        if  (targetingCircle.enabled == false) {
+// These might be consolodated into a function:
+            if (Input.GetKeyUp(KeyCode.Mouse0) && !Input.GetKey(KeyCode.Mouse1)) {
+                if (rectManage.rectOn == false) {
+                    Collider2D[] detectedThings = Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+                    ThingLeftClicked(detectedThings[0].gameObject);
+                }
+                Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+                commandMode = commands.neutral;
             }
-            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
-            commandMode = commands.neutral;
-        }
-        if (Input.GetKeyUp(KeyCode.Mouse1) && !Input.GetKey(KeyCode.Mouse0) && targetingCircle.enabled == false) {
-            if (rectManage.rectOn == false) {
-                Collider2D[] detectedThings = Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition));
-                ThingRightClicked(detectedThings[0].gameObject);
+            if (Input.GetKeyUp(KeyCode.Mouse1) && !Input.GetKey(KeyCode.Mouse0)) {
+                if (rectManage.rectOn == false) {
+                    Collider2D[] detectedThings = Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+                    ThingRightClicked(detectedThings[0].gameObject);
+                }
+                Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+                commandMode = commands.neutral;
             }
-        }
-        if (activeUnits.Count > 0) {
-            if (Input.GetButtonUp("take") && !Input.GetButtonUp("give")) {
-                Cursor.SetCursor(cursorForTaking, Vector2.zero, CursorMode.Auto);
-                commandMode = commands.take;
-            }
-            if (Input.GetButtonUp("give") && !Input.GetButtonUp("take")) {
-                Cursor.SetCursor(cursorForGiving, Vector2.zero, CursorMode.Auto);
-                commandMode = commands.give;
+            if (activeUnits.Count > 0) {
+                if (Input.GetButtonUp("take") && !Input.GetButtonUp("give")) {
+                    Cursor.SetCursor(cursorForTaking, Vector2.zero, CursorMode.Auto);
+                    commandMode = commands.take;
+                }
+                if (Input.GetButtonUp("give") && !Input.GetButtonUp("take")) {
+                    Cursor.SetCursor(cursorForGiving, Vector2.zero, CursorMode.Auto);
+                    commandMode = commands.give;
+                }
             }
         }
     }

@@ -168,7 +168,7 @@ public class AidansMovementScript : MonoBehaviourPun {
             path = (ABPath) finishedPath;
             if (alongMover == null) {
                 currentWaypoint = 0;
-                thisUnit.StartCoroutine("UpdateFacing");
+                photonView.RPC("StartTurning", RpcTarget.All);
                 StopCoroutine("MoveAlong");
                 alongMover = StartCoroutine("MoveAlong");
                 StopCoroutine("Brake");
@@ -213,7 +213,7 @@ public class AidansMovementScript : MonoBehaviourPun {
         StopCoroutine("MoveAlong");
         StopCoroutine("StuckCheck");
         CancelInvoke("SetRoute");
-        thisUnit.StopCoroutine("UpdateFacing");
+        photonView.RPC("StopTurning", RpcTarget.All);
         amRunning = false;
         roundToArrived = 0.15f;
         speed = baseSpeed;
