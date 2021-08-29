@@ -23,7 +23,8 @@ public class Unit : MonoBehaviourPun {
     public float facing = 0;
     public int meat = 0;
     public int strikes = 3;
-// deathThrows is a flag that gets set as soon as the unit's last strike is deducted. This is mainly to prevent incoming damage/death-related RPCs from making a mess.
+// deathThrows is a flag that gets set as soon as the unit's last strike is deducted. This is mainly to prevent problems with incoming RPCs being processed before 
+// the outgoing PhotonNetwork.Destroy(). This is both while the unit is spinning off orbs and for the final frame of existence, when even existance checks can fail.
     public bool deathThrows = false;
 
 
@@ -155,7 +156,10 @@ public class Unit : MonoBehaviourPun {
     }
 
     [PunRPC]
-    public virtual IEnumerator Die () {yield return null;}
+    public virtual IEnumerator Die () {
+        deathThrows = true;
+        yield return null;
+    }
 
     public virtual void Highlight() {
         contextCircle.SetActive(true);

@@ -7,7 +7,14 @@ public class Weapon_Remote : Weapon {
 
     [PunRPC]
     public override void Engage (int PhotonID) {
-        target = PhotonNetwork.GetPhotonView(PhotonID).gameObject;
+        try {
+            target = PhotonNetwork.GetPhotonView(PhotonID).gameObject;
+        }
+        catch (NullReferenceException) {
+            if (PhotonNetwork.GetPhotonView(PhotonID) == null) {
+                Debug.Log(PhotonID + "Isn't assigned to anything right now.");
+            }
+        }
     }
 
     public override IEnumerator Fire () {
